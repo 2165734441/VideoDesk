@@ -1,0 +1,6 @@
+.option-help{display:inline-flex!important;align-items:center;justify-content:center;flex:none;width:16px;height:16px;min-height:16px;padding:0!important;border:1px solid #83948d;border-radius:50%;margin:0 0 0 7px;background:transparent;color:#64776e;font:600 10px/1 system-ui;vertical-align:middle;cursor:help;box-shadow:none!important;touch-action:manipulation}
+.field>.option-help{align-self:flex-start;margin-top:-2px;margin-bottom:5px}.checkbox-line>.option-help{margin-left:3px}
+.option-help:hover,.option-help:focus-visible{color:#24563f;border-color:#24563f;background:#eef5ef;outline:2px solid #bad8c3;outline-offset:2px}
+.option-help-bubble{position:fixed;z-index:2147483647;max-width:min(390px,calc(100vw - 16px));padding:12px 15px;background:#203a30;color:#fff;border-radius:10px;box-shadow:0 8px 25px #13271e33;font-size:13px;line-height:1.7;white-space:pre-wrap;pointer-events:none}
+.option-help-bubble[hidden]{display:none}.cleanup-file-list{white-space:pre-wrap;max-height:40vh;overflow:auto;font-size:12px;background:#f5f7f5;padding:12px;margin-bottom:16px;overflow-wrap:anywhere}
+.source-row{flex-wrap:wrap;align-items:flex-start}.source-row>div:first-child{flex:1 1 210px}.source-row>.button-row{flex:0 0 auto;gap:8px}.source-row button{white-space:nowrap}

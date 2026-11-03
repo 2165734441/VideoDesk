@@ -1,0 +1,1 @@
+{"name":"dsh-video-desk","description":"通过映格本机服务使用分镜、台词定位、重点片段细看和字幕长图。","version":"2.5.0","entry":{"name":"dsh-video-desk","inject":["tools"]}}

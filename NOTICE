@@ -1,0 +1,24 @@
+VideoDesk / 映格
+Copyright 2026 沙雕狗_ (Bilibili UID 454711645)
+
+Original VideoDesk code is licensed under the Apache License, Version 2.0.
+Third-party components retain their original copyrights and licenses.
+
+部分功能建立在 B 站 UP 主“苍穹晓雷”（UID 109659565）的项目基础上。
+VideoDesk 整合与后续开发：B 站“沙雕狗_”（UID 454711645）。
+
+This distribution includes modified dsh-video-storyboard source code:
+Copyright 2026 SAOS-3624. Licensed under Apache-2.0.
+Upstream: https://github.com/SAOS-3624/dsh-video-storyboard
+Reviewed version: 0.6.0, commit e124ae6fcfb31f3572ea24aad093a86897b556a3.
+Its original LICENSE, NOTICE and CREDITS.md are retained in
+third_party/dsh-video-storyboard/. Changes are described in
+third_party/STORYBOARD-PATCHES.md.
+
+The optional MediaCrawler integration uses a separately downloaded project:
+Copyright (c) 2024 relakkes@gmail.com.
+NON-COMMERCIAL LEARNING LICENSE 1.1; personal non-commercial learning
+and research only. See third_party/MediaCrawler-LICENSE.txt.
+It is not relicensed under the VideoDesk Apache-2.0 license.
+
+See THIRD_PARTY_NOTICES.md for dependency and model attribution.

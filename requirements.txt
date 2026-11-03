@@ -1,0 +1,13 @@
+fastapi>=0.115,<1
+uvicorn>=0.34,<1
+python-multipart>=0.0.20,<1
+yt-dlp[default]>=2026.10.21
+imageio-ffmpeg>=0.6,<1
+playwright>=1.50,<2
+Pillow>=11,<14
+ImageHash>=4.3.2,<5
+sherpa-onnx==2.0.1
+rapidocr==3.10.0
+onnxruntime==1.31.1
+
+websockets==17.3
