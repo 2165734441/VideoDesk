@@ -168,6 +168,7 @@ def write_bundle(jid, extra=None):
         '3. 提取方法、步骤、数据与待核实说法。\n4. 区分画面、字幕、声音直接提供的信息与推断。\n'
         '5. 若只提供图片，请明确无法从静态图片确认的语音内容，不要编造。\n\n'
         '时间索引见 timeline.json；实时采集时间是本工具的采集时间，不等于播放器进度。\n', encoding='utf-8')
+    material_history.register_created(sys.modules[__name__],jid,[base/'manifest.json',base/'AI分析提示词.txt'])
     refresh_files(jid)
 
 
@@ -206,9 +207,17 @@ def run_ffmpeg(jid, args, private=False):
                 category='unsupported_codec' if re.search(r'unknown decoder|decoder.*not found|unsupported codec',summary,re.I) else 'permission_denied' if 'Permission denied' in summary else 'media_processing_error'
                 change(jid,source_diagnostic={'component':FFMPEG,'exit_code':proc.returncode,'summary':summary,'category':category})
                 raise RuntimeError('FFmpeg 处理失败：' + summary)
+            # FFmpeg can exit successfully after decoding only a damaged prefix.
+            diagnostic=log.read_text(encoding='utf-8',errors='replace')
+            if re.search(r'partial file|invalid data found|error (?:while )?(?:decoding|reading)|corrupt(?:ed)? (?:input|frame|packet)|packet corrupt|error submitting a packet|premature (?:end|EOF)',diagnostic,re.I):
+                change(jid,source_diagnostic={'component':FFMPEG,'exit_code':0,'category':'incomplete_media','summary':'解码日志报告损坏或提前结束'})
+                raise RuntimeError('视频解码不完整：检测到损坏或截断，已生成的部分文件保留，请检查原视频或缩小到可读取的时间范围')
+            if '%' not in str(args[-1]):material_history.register_created(sys.modules[__name__],jid,[Path(args[-1])])
         finally:
             with LOCK:
                 PROCESSES.pop(jid, None)
+            # Batch logs are archived into the private workspace by Pipeline.run.
+            if job_by_id(jid).get('kind')!='batch-video':material_history.register_created(sys.modules[__name__],jid,[log])
 
 
 class FrameOptions(BaseModel):
@@ -264,6 +273,7 @@ def extract_frames(jid, source, opts, input_args=None, audio_input=None, source_
         args += ['-to', str(opts.start + opts.duration)]
     args += [str(folder / '%06d.jpg')]
     log = base / '.frames.log'
+    decode_damage=threading.Event()
     with log.open('wb') as stream:
         proc = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE if remote else stream,
                                 creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
@@ -271,6 +281,7 @@ def extract_frames(jid, source, opts, input_args=None, audio_input=None, source_
             # Retain source timestamps, never signed CDN URLs or request headers.
             last = 0
             for line in proc.stderr:
+                if re.search(rb'partial file|invalid data found|error (?:while )?(?:decoding|reading)|corrupt(?:ed)? (?:input|frame|packet)|packet corrupt|error submitting a packet|premature (?:end|EOF)',line,re.I):decode_damage.set()
                 match = re.search(rb'\bpts_time:([\d.eE+\-]+)', line)
                 if match:
                     stream.write(b'pts_time:' + match[1] + b'\n')
@@ -301,19 +312,24 @@ def extract_frames(jid, source, opts, input_args=None, audio_input=None, source_
                 reader.join(timeout=10)
             with LOCK:
                 PROCESSES.pop(jid, None)
+    material_history.register_created(sys.modules[__name__],jid,[log])
     logs = log.read_text(encoding='utf-8', errors='replace')
     if proc.returncode:
         if remote:
             raise RuntimeError('直连抽帧失败。请确认网络、登录状态和视频是否可播放；没有保存视频文件。')
         raise RuntimeError('视频抽帧失败：' + logs[-900:])
+    if decode_damage.is_set() or re.search(r'partial file|invalid data found|error (?:while )?(?:decoding|reading)|corrupt(?:ed)? (?:input|frame|packet)|packet corrupt|error submitting a packet|premature (?:end|EOF)',logs,re.I):
+        change(jid,source_diagnostic={'component':FFMPEG,'exit_code':0,'category':'incomplete_media','summary':'解码日志报告损坏或提前结束'})
+        raise RuntimeError('视频解码不完整：检测到损坏或截断，请检查原视频或缩小到可读取的时间范围')
     stamps = [float(t) for t in re.findall(r'\bpts_time:([\d.eE+\-]+)', logs)]
-    frames = sorted(folder.glob('*.jpg'))
+    frames = [folder/f'{i+1:06d}.jpg' for i in range(len(stamps)) if (folder/f'{i+1:06d}.jpg').is_file()]
     if not frames:
         raise RuntimeError('所选时间范围没有视频帧，请检查起始时间和视频内容。')
     timeline = [dict(file='frames/' + path.name,
                      seconds=round(stamps[i], 6) if i < len(stamps) else None,
                      clock='source_video') for i, path in enumerate(frames)]
     atomic_json(base / 'timeline.json', timeline)
+    material_history.register_created(sys.modules[__name__],jid,[*frames,base/'timeline.json'])
     warnings = []
     if len(frames) >= opts.limit:
         warnings.append(f'已达到 {opts.limit} 张上限；需要更多图片可增大上限或分段抽取。')
@@ -631,7 +647,7 @@ async def local_guard(request: Request, call_next):
 def state():
     with LOCK:
         return {'token': TOKEN, 'settings': dict(SETTINGS), 'jobs': list(reversed(list(JOBS.values()))),
-                'ffmpeg': bool(FFMPEG), 'version': os.environ.get('VIDEO_DESK_VERSION', '2.5.0'),
+                'ffmpeg': bool(FFMPEG), 'version': os.environ.get('VIDEO_DESK_VERSION', '2.5.1'),
                 'application': 'video-desk', 'installation_id': os.environ.get('VIDEO_DESK_INSTALLATION_ID', ''),
                 'engines': {'yt_dlp': runtime_support.available('download'), 'mediacrawler': crawler_available()},
                 'youtube': video_sources.youtube_support(), 'runtime':runtime_support.status()}

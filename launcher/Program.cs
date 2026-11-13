@@ -20,8 +20,42 @@ using System.Windows.Forms;
 [assembly: AssemblyDescription("自带运行环境的本地视频采集工作台")]
 [assembly: AssemblyCompany("Video Desk")]
 [assembly: AssemblyProduct("映格 Video Desk")]
-[assembly: AssemblyVersion("2.5.0.0")]
-[assembly: AssemblyFileVersion("2.5.0.0")]
+[assembly: AssemblyVersion("2.5.1.0")]
+[assembly: AssemblyFileVersion("2.5.1.0")]
+
+internal static class ProcessEnvironment {
+    [DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true)]
+    private static extern IntPtr GetEnvironmentStringsW();
+    [DllImport("kernel32.dll",CharSet=CharSet.Unicode)]
+    private static extern bool FreeEnvironmentStringsW(IntPtr block);
+    [DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true)]
+    private static extern bool SetEnvironmentVariableW(string name,string value);
+
+    public static void Normalize() {
+        // A native environment block can contain HTTP_PROXY and http_proxy.
+        // .NET Framework's case-insensitive ProcessStartInfo dictionary throws
+        // before callers can clear it. Deduplicate the native block first.
+        IntPtr block=GetEnvironmentStringsW();
+        if(block==IntPtr.Zero)throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+        var entries=new List<KeyValuePair<string,string>>();
+        try {
+            int offset=0;
+            while(true) {
+                string entry=Marshal.PtrToStringUni(IntPtr.Add(block,offset));
+                if(String.IsNullOrEmpty(entry))break;
+                offset+=(entry.Length+1)*2;
+                int equals=entry.IndexOf('=');
+                if(equals>0)entries.Add(new KeyValuePair<string,string>(entry.Substring(0,equals),entry.Substring(equals+1)));
+            }
+        } finally { FreeEnvironmentStringsW(block); }
+        foreach(var group in entries.GroupBy(p=>p.Key,StringComparer.OrdinalIgnoreCase)) {
+            if(group.Count()<2)continue;
+            var keep=group.OrderBy(p=>p.Key,StringComparer.Ordinal).First();
+            foreach(var pair in group)SetEnvironmentVariableW(pair.Key,null);
+            if(!SetEnvironmentVariableW(keep.Key,keep.Value))throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+        }
+    }
+}
 
 internal sealed class Options {
     public bool SelfTest;
@@ -76,6 +110,7 @@ internal static class Program {
             SetErrorMode(0x0001 | 0x0002);
             AppContext.SetSwitch("Switch.System.IO.UseLegacyPathHandling", false);
             AppContext.SetSwitch("Switch.System.IO.BlockLongPaths", false);
+            ProcessEnvironment.Normalize();
             int cliIndex = Array.IndexOf(args, "--cli");
             if (cliIndex >= 0) return RunCli(Options.Parse(args.Take(cliIndex).ToArray()), args.Skip(cliIndex + 1).ToArray());
             options = Options.Parse(args);

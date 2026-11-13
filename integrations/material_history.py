@@ -55,22 +55,50 @@ class History:
         return path.suffix.lower() in VIDEO_EXTENSIONS and 'clips' not in path.parts
 
     def record(self,jid):
-        job=self.a.job_by_id(jid);root=Path(job['directory']);files={}
+        job=self.a.job_by_id(jid);root=Path(job['directory'])
         if job.get('materials_deleted') or job.get('superseded_by'):return
-        entries=[*job.get('files',[])]
-        if (root/'.ffmpeg.log').is_file():entries.append({'name':'.ffmpeg.log'})
-        for item in entries:
-            path=self.safe(root,item['name'])
-            if path and path.is_file() and not self.protected(path):files[item['name']]={'size':path.stat().st_size,'sha256':digest(path)}
         with self.lock:
-            self.records[jid]={'root':str(root),'files':files};self.a.atomic_json(self.path,self.records)
+            # Directory listings are display data, never proof of authorship.
+            # Do not refresh hashes here: a user may have edited a generated file.
+            previous=self.records.get(jid,{})
+            files=dict(previous.get('files',{})) if previous.get('ownership')=='explicit-v1' else {}
+            for child_id in job.get('children',[]):
+                child=self.records.get(child_id,{})
+                if child.get('ownership')!='explicit-v1':continue
+                child_root=Path(child['root'])
+                if not child_root.is_relative_to(root):continue
+                for name,meta in child['files'].items():files[(child_root/name).relative_to(root).as_posix()]=dict(meta)
+            self.records[jid]={'root':str(root),'files':files,'ownership':'explicit-v1'}
+            self.a.atomic_json(self.path,self.records)
+
+    def created(self,jid,paths):
+        """Called by writers for exact outputs, not by a scan of the result tree.
+
+        A mapping may supply hashes captured in private staging before publication.
+        Such hashes are not replaced if a concurrent user edit changed the target.
+        """
+        job=self.a.job_by_id(jid);root=Path(job['directory'])
+        with self.lock:
+            old=self.records.get(jid,{})
+            files=dict(old.get('files',{})) if old.get('ownership')=='explicit-v1' else {}
+            entries=paths.items() if isinstance(paths,dict) else ((p,None) for p in paths)
+            for value,expected in entries:
+                path=Path(value)
+                try:relative=path.relative_to(root).as_posix()
+                except ValueError:continue
+                path=self.safe(root,relative)
+                if path and path.is_file() and not self.protected(path):
+                    meta={'size':path.stat().st_size,'sha256':digest(path)}
+                    if expected is None or meta==expected:files[relative]=meta
+            self.records[jid]={'root':str(root),'files':files,'ownership':'explicit-v1'}
+            self.a.atomic_json(self.path,self.records)
 
     def preview(self,jid):
         job=self.a.job_by_id(jid)
         if job['status'] in ACTIVE:raise HTTPException(409,'请等待任务完成或先取消，再清理历史素材')
         if job.get('materials_deleted') or (job.get('superseded_by') and not job.get('rollback_directory')):return {'files':[],'skipped':[],'bytes':0,'directory':job['directory']}
         with self.lock:
-            if jid not in self.records:
+            if jid not in self.records or self.records[jid].get('ownership')!='explicit-v1':
                 return {'files':[],'skipped':[{'name':job['directory'],'reason':'没有生成时的归属校验记录，已保留全部文件'}],'bytes':0,'directory':job['directory']}
             record=self.records[jid];root=Path(record['root']);files=[];skipped=[];size=0
             for relative,meta in record['files'].items():
@@ -80,6 +108,9 @@ class History:
                 if not path.is_file() or self.protected(path) or path.stat().st_size!=meta['size'] or digest(path)!=meta['sha256']:
                     skipped.append({'name':relative,'reason':'已修改或属于视频来源'});continue
                 files.append(relative);size+=meta['size']
+            for entry in job.get('files',[]):
+                if entry['name'] not in record['files']:
+                    skipped.append({'name':entry['name'],'reason':'未登记为本任务生成的文件，已保留'})
             return {'files':files,'skipped':skipped,'bytes':size,'directory':str(root)}
 
     def expanded(self,ids):
@@ -120,27 +151,49 @@ class History:
             selected=self.expanded(ids);files={};skipped=[]
             for jid in sorted(selected):
                 preview=self.preview(jid);root=Path(preview['directory'])
-                skipped.extend(preview['skipped'])
+                skipped.extend({**item,'job_id':jid} for item in preview['skipped'])
                 for name in preview['files']:
                     path=self.safe(root,name)
-                    if self.shared(path,selected):skipped.append({'name':str(path),'reason':'仍被其他保留任务或外部资料共同引用'});continue
-                    files[str(path)]={'path':str(path),'job_id':jid,'name':name,'size':path.stat().st_size}
+                    if self.shared(path,selected):skipped.append({'name':str(path),'reason':'仍被其他保留任务或外部资料共同引用','job_id':jid});continue
+                    if str(path) in files:files[str(path)]['job_ids'].append(jid)
+                    else:files[str(path)]={'path':str(path),'job_id':jid,'job_ids':[jid],'name':name,'size':path.stat().st_size}
             return {'ids':sorted(selected),'files':list(files.values()),'skipped':skipped,'bytes':sum(f['size'] for f in files.values())}
 
     def clean_many(self,ids):
         with self.lock:
-            preview=self.preview_many(ids);errors=[];deleted=0
+            preview=self.preview_many(ids);errors=[];warnings=[];deleted=0
+            results={jid:{'deleted':0,'skipped':[s for s in preview['skipped'] if s.get('job_id')==jid],'errors':[],'warnings':[]} for jid in preview['ids']}
             for entry in preview['files']:
                 jid=entry['job_id'];path=Path(entry['path']);meta=self.records[jid]['files'][entry['name']]
+                owners=entry['job_ids']
+                attempted=False
                 try:
                     if self.protected(path) or self.shared(path,set(preview['ids'])) or digest(path)!=meta['sha256']:raise OSError('文件已变化或被其他任务引用，已保留')
-                    recycle(path);deleted+=1
-                except OSError as exc:errors.append({'name':entry['name'],'reason':str(exc),'job_id':jid})
+                    attempted=True;outcome=recycle(path)
+                    if path.exists():raise OSError('回收后文件仍在原位置，已保留')
+                    deleted+=1
+                    for owner in owners:results[owner]['deleted']+=1
+                    if isinstance(outcome,dict) and outcome.get('warning'):
+                        note={'name':entry['name'],'reason':outcome['warning'],'job_id':jid};warnings.append(note)
+                        for owner in owners:results[owner]['warnings'].append(note)
+                except OSError as exc:
+                    # Some shell failures are reported after the file has moved.
+                    if attempted and not path.exists():
+                        deleted+=1
+                        note={'name':entry['name'],'reason':'原路径已移走；系统报告异常，请核对回收站：'+str(exc),'job_id':jid};warnings.append(note)
+                        for owner in owners:results[owner]['deleted']+=1;results[owner]['warnings'].append(note)
+                    else:
+                        error={'name':entry['name'],'reason':str(exc),'job_id':jid};errors.append(error)
+                        for owner in owners:results[owner]['errors'].append(error)
             for jid in preview['ids']:
                 if not self.a.job_by_id(jid).get('superseded_by'):self.a.refresh_files(jid)
-                failed=bool(errors)
-                self.a.change(jid,materials_deleted=not failed,material_cleanup={'deleted':deleted,'skipped':preview['skipped'],'errors':errors})
-            return {'deleted':deleted,'skipped':preview['skipped'],'errors':errors}
+                result=results[jid]
+                self.a.change(jid,materials_deleted=result['deleted']>0 and not result['errors'],material_cleanup=result)
+            for jid in preview['ids']:
+                job=self.a.job_by_id(jid);children=job.get('children',[])
+                if job.get('kind')=='batch' and children and all(self.a.job_by_id(c).get('materials_deleted') for c in children):
+                    if not results[jid]['errors']:self.a.change(jid,materials_deleted=True)
+            return {'deleted':deleted,'skipped':preview['skipped'],'errors':errors,'warnings':warnings}
 
     def clean(self,jid):
         return self.clean_many([jid])
@@ -161,6 +214,15 @@ class History:
             if new_root.resolve().is_relative_to(old_root.resolve()) or old_root.resolve().is_relative_to(new_root.resolve()):return '输出目录相互包含，已另存新结果'
             self.a.check_cancel(new_id)
             new_files={p.relative_to(new_root).as_posix():digest(p) for p in new_root.rglob('*') if p.is_file()}
+            registered={}
+            for record in self.records.values():
+                if record.get('ownership')!='explicit-v1':continue
+                record_root=Path(record['root'])
+                if record_root!=new_root and not record_root.is_relative_to(new_root):continue
+                for name,meta in record['files'].items():
+                    path=self.safe(record_root,name)
+                    if path and path.is_file() and not self.protected(path):registered[path.relative_to(new_root).as_posix()]=meta['sha256']
+            if new_files!=registered:return '新目录含未登记或已修改文件，已保留全部文件；新结果另存'
             backup=self.a.DATA/'material-rollback'/f'{old_id}-{new_id}';backup.parent.mkdir(exist_ok=True)
             # Same-volume rename is atomic; a cross-volume target is copied to a
             # sibling first, so an interrupted copy cannot damage the old result.
@@ -214,3 +276,8 @@ def install(app,a):
     @app.post('/api/materials/{jid}/cleanup')
     def clean(jid:str):return history.clean(jid)
     return history
+
+
+def register_created(a,jid,paths):
+    history=getattr(a,'MATERIAL_HISTORY',None)
+    if history is not None:history.created(jid,paths)

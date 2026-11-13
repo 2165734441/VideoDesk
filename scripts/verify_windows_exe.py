@@ -18,7 +18,10 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--exe', type=Path, default=ROOT / 'release/VideoDesk-2.5.0-Windows-x64.exe')
+    parser.add_argument('--exe', type=Path, default=ROOT / 'release/VideoDesk-2.5.1-Windows-x64.exe')
+    parser.add_argument('--expected-version', default='2.5.1')
+    parser.add_argument('--duplicate-proxies', action='store_true', help='Use synthetic case-duplicate native environment keys')
+    parser.add_argument('--report-output', type=Path, default=ROOT/'.local/build-exe/exe-verification.json')
     parser.add_argument('--youtube', action='store_true', help='Also test a public YouTube clip; needs platform access')
     args = parser.parse_args()
     folder = Path(tempfile.mkdtemp(prefix='VideoDesk EXE 验证-'))
@@ -28,6 +31,10 @@ def main():
     env['PATH'] = str(Path(os.environ.get('SystemRoot','C:/Windows')) / 'System32')
     env['PYTHONHOME'] = str(folder / 'nonexistent-python')
     env['PYTHONPATH'] = str(folder / 'nonexistent-site-packages')
+    if args.duplicate_proxies:
+        env={k:v for k,v in env.items() if k.upper() not in ('HTTP_PROXY','HTTPS_PROXY')}
+        # Empty values keep local HTTP usable while preserving duplicate names.
+        env.update(HTTP_PROXY='',http_proxy='',HTTPS_PROXY='',https_proxy='')
     proc = subprocess.Popen([str(args.exe), '--self-test', '--home', str(folder / 'app home'),
                              '--report', str(report), '--stop-file', str(stop)], env=env,
                             creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
@@ -46,7 +53,7 @@ def main():
         base = state['url']
         with urlopen(base+'/api/state',timeout=10) as response:
             health=json.load(response)
-        assert health['version']=='2.5.0'
+        assert health['version']==args.expected_version
         assert health['engines']=={'yt_dlp':True,'mediacrawler':True},health['engines']
         assert health['youtube']['ready'],health['youtube']
         assert health['jobs']==[], 'New install must not inherit any sender jobs'
@@ -54,6 +61,9 @@ def main():
         assert state['crawler_python'].startswith(str(folder))
         assert state['node'].startswith(str(folder))
         assert '3.13.17' in state['main_check']
+        cli=subprocess.run([str(args.exe),'--home',str(folder/'app home'),'--cli','help'],env=env,
+            capture_output=True,timeout=90,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
+        assert cli.returncode==0,cli.stderr.decode('utf-8',errors='replace')
         token=health['token']
         def api(path,body):
             request=Request(base+path,data=json.dumps(body).encode(),headers={'Content-Type':'application/json','X-App-Token':token})
@@ -145,6 +155,7 @@ def main():
         assert second_state['success']
         assert second_state['install']==state['install'],'Re-run should reuse the prepared runtime'
         summary={'success':True,'exe':str(args.exe),'test_home':str(folder),
+                 'version':health['version'],'duplicate_proxy_environment':args.duplicate_proxies,'cli_help':True,
                  'first_install':state['install'],'isolated_path':env['PATH'],
                  'engines':health['engines'],'download_and_extraction':'passed',
                  'frames':job['frames'],'audio':'passed','timeline':'passed',
@@ -153,7 +164,7 @@ def main():
                  'youtube_node_ejs':health['youtube'],
                  'public_youtube_direct_frames_and_audio':'passed' if args.youtube else 'not_run',
                  'second_launch_reused_runtime':True,'second_launch_seconds':round(time.monotonic()-start,2)}
-        output=ROOT/'.local/build-exe/exe-verification.json'
+        output=args.report_output;output.parent.mkdir(parents=True,exist_ok=True)
         output.write_text(json.dumps(summary,ensure_ascii=False,indent=2),encoding='utf-8')
         print(json.dumps(summary,ensure_ascii=False),flush=True)
     finally:
