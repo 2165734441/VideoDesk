@@ -59,7 +59,7 @@ function goto(page) {
   document.querySelectorAll('.page').forEach(el => el.hidden = el.id !== `page-${page}`);
   const parent=({capture:'import',download:'import',crawler:'import',dedup:'library'}[page])||page;
   document.querySelectorAll('.nav').forEach(el => el.classList.toggle('active', el.dataset.page === parent));
-  $('breadcrumb').textContent = '工作空间 / ' + ({import:'导入与采集',analysis:'AI 看懂视频',subtitles:'字幕区域截图长图',settings:'账号与模型',capture:'网页录制与截图',download:'链接下载',crawler:'平台采集',extract:'视频抽帧',dedup:'照片与截图去重',library:'素材库'}[page]);
+  $('breadcrumb').textContent = '工作空间 / ' + ({live:'直播录播与回放',translate:'英文视频转中文',import:'导入与采集',analysis:'AI 看懂视频',subtitles:'字幕区域截图长图',settings:'账号与模型',capture:'网页录制与截图',download:'链接下载',crawler:'平台采集',extract:'视频抽帧',dedup:'照片与截图去重',library:'素材库'}[page]);
   if (page === 'library') renderJobs();
   if (page === 'dedup' && typeof refreshDedup === 'function') refreshDedup().catch(e=>toast(e.message,true));
   if (typeof onWorkflowPage==='function') onWorkflowPage(page);

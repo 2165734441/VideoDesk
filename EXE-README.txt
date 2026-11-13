@@ -1,4 +1,8 @@
-映格 Video Desk 2.5.1 —— Windows x64 合并版
+映格 Video Desk 2.6.0 —— Windows x64 合并版
+
+新增：多人抖音直播录播与回放、英文视频中文配音和双语字幕、CUDA/NVENC 加速与 CPU 回退。
+AI 模型与隔离运行组件按需安装，可指定保存目录；CPU 至少预留 5 GB，NVIDIA 安装至少预留 20 GB。
+真实抖音和关注导入需平台页面可访问及人工登录，具体验证范围见 MEDIA26-TEST-REPORT.md。
 
 本版：视频抽帧、AI 看懂视频、字幕区域截图长图各自保存设置。
 抽帧默认只生成图片；AI 必需资料自动集中到“一起上传给AI”。
@@ -7,7 +11,7 @@
 素材库支持多选预览并回收生成文件，保留原片及新增、修改或共享文件。
 实测范围及限制见 release 中的 WORKFLOWS25-TEST-REPORT.md。
 
-发送给别人：VideoDesk-2.5.1-Windows-x64.exe 一个文件即可。
+发送给别人：VideoDesk-2.6.0-Windows-x64.exe 一个文件即可。
 接收者双击，自动准备环境并打开本机网页，无需 Python、Git、Node.js、FFmpeg。
 Windows 10 / 11 x64，建议预留至少 4 GB。默认无需管理员权限，不修改系统 PATH。
 
@@ -31,8 +35,8 @@ OCR 引擎和文字模型已内置。其他运行组件首次准备可离线，�
 遇到可识别的平台验证，任务暂停；手动处理后点击“已完成验证，继续”重新解析。
 Cookie、密钥、浏览器资料不会进入 AI ZIP 或分享包。
 
-命令行：VideoDesk-2.5.1-Windows-x64.exe --cli help
-DSH 插件：dsh-video-desk-2.5.1.zip，安装说明在插件 README.md。
+命令行：VideoDesk-2.6.0-Windows-x64.exe --cli help
+DSH 插件：dsh-video-desk-2.6.0.zip，安装说明在插件 README.md。
 
 程序与运行资料：%LOCALAPPDATA%\VideoDesk
 默认素材：当前用户“文档”中的“映格素材”，网页顶部可更改。
@@ -57,7 +61,7 @@ SenseVoice 代码与模型分别遵守随附许可证，其他依赖与 FFmpeg �
 失败可重试，取消授权仍保留当前可用功能；离线时可先使用已内置的应用运行库。
 启动器 → 导出启动诊断。诊断包含组件退出码、系统及处理器信息，不含账号或素材。
 诊断原文件：%LOCALAPPDATA%\VideoDesk\runtime-diagnostics.json。
-命令行修复：VideoDesk-2.5.1-Windows-x64.exe --repair
+命令行修复：VideoDesk-2.6.0-Windows-x64.exe --repair
 2.5.0 兼容测试与限制：COMPATIBILITY-TEST-REPORT.md。
 
 
@@ -75,5 +79,5 @@ SenseVoice 代码与模型分别遵守随附许可证，其他依赖与 FFmpeg �
 连接断开先点“重连”，旧地址失效则从托盘重新打开工作台。
 完整验收记录：BATCH-TEST-REPORT.md。
 
-2.5.1 修复独立测试报告的 VD25-01 至 VD25-07，详见 BUGFIX251-TEST-REPORT.md。
+2.6.0 修复独立测试报告的 VD25-01 至 VD25-07，详见 BUGFIX251-TEST-REPORT.md。
 旧版归属记录不能证明文件来源，升级后会保守保留这些旧素材，请核对后手动整理。
