@@ -7,8 +7,8 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'scripts'))
-DESTINATION = ROOT / 'release' / 'VideoDesk-2.5.0-source.zip'
-PREFIX = 'VideoDesk-2.5.0'
+DESTINATION = ROOT / 'release' / 'VideoDesk-2.5.1-source.zip'
+PREFIX = 'VideoDesk-2.5.1'
 
 FILES = [
     '.gitignore', '.gitattributes', 'LICENSE', 'NOTICE', 'THIRD_PARTY_NOTICES.md',
@@ -27,7 +27,7 @@ FILES = [
 def main():
     entries = {}
     from build_windows_exe import APP_FILES
-    additions=['EXE-README.txt','MERGE-PLAN.md','MERGE-TEST-REPORT.md','launcher/Program.cs','launcher/app.manifest',
+    additions=['BUGFIX251-TEST-REPORT.md','EXE-README.txt','MERGE-PLAN.md','MERGE-TEST-REPORT.md','launcher/Program.cs','launcher/app.manifest',
         'launcher/Compatibility.cs','scripts/prepare_vc_runtime.py','tests/test_runtime_compatibility.py',
         'tests/CompatibilityHarness.cs','tests/CompatibilityFake.cs',
         'scripts/verify_compatibility.py','COMPATIBILITY-TEST-REPORT.md',
@@ -53,7 +53,7 @@ def main():
         license_path = ROOT / 'third_party' / 'MediaCrawler-LICENSE.txt'
     entries['third_party/MediaCrawler-LICENSE.txt'] = license_path.read_bytes()
     manifest = {
-        'name': 'Video Desk', 'version': '2.5.0', 'type': 'source-installer',
+        'name': 'Video Desk', 'version': '2.5.1', 'type': 'source-installer',
         'runtime_data_included': False,
         'files': {name: hashlib.sha256(data).hexdigest() for name, data in sorted(entries.items())},
     }
@@ -74,17 +74,17 @@ def main():
     DESTINATION.with_suffix('.zip.sha256').write_text(checksum + '  ' + DESTINATION.name + '\n', encoding='ascii')
     print(json.dumps({'file': str(DESTINATION), 'bytes': DESTINATION.stat().st_size,
                       'files': len(entries), 'sha256': checksum}, ensure_ascii=False))
-    plugin=ROOT/'release/dsh-video-desk-2.5.0.zip'
+    plugin=ROOT/'release/dsh-video-desk-2.5.1.zip'
     with zipfile.ZipFile(plugin,'w',zipfile.ZIP_DEFLATED) as archive:
         for p in (ROOT/'dsh-plugin').iterdir():
             if p.is_file():archive.write(p,'dsh-video-desk/'+p.name)
     artifacts=[]
-    for path in (DESTINATION,plugin,ROOT/'release/VideoDesk-2.5.0-Windows-x64.exe',ROOT/'release/SenseVoice-offline.tar.bz2'):
+    for path in (DESTINATION,plugin,ROOT/'release/VideoDesk-2.5.1-Windows-x64.exe',ROOT/'release/SenseVoice-offline.tar.bz2'):
         if not path.is_file():continue
         with path.open('rb') as stream:checksum=hashlib.file_digest(stream,'sha256').hexdigest()
         path.with_name(path.name+'.sha256').write_text(checksum+'  '+path.name+'\n',encoding='ascii')
         artifacts.append({'name':path.name,'bytes':path.stat().st_size,'sha256':checksum})
-    (ROOT/'release/VideoDesk-2.5.0-files.json').write_text(json.dumps({'version':'2.5.0','artifacts':artifacts},ensure_ascii=False,indent=2),encoding='utf-8')
+    (ROOT/'release/VideoDesk-2.5.1-files.json').write_text(json.dumps({'version':'2.5.1','artifacts':artifacts},ensure_ascii=False,indent=2),encoding='utf-8')
 
 
 if __name__ == '__main__':

@@ -87,14 +87,18 @@ class HistorySafety(unittest.TestCase):
     def job(self,jid,title='成品'):
         base=self.root/jid;base.mkdir();job={'id':jid,'directory':str(base),'source':str(self.root/'original.mp4'),'status':'done','title':title,'files':[]}
         self.jobs[jid]=job;return base
-    def record(self,jid):self.a.refresh_files(jid);self.h.record(jid)
+    def record(self,jid):
+        self.a.refresh_files(jid)
+        self.h.created(jid,[Path(self.jobs[jid]['directory'])/f['name'] for f in self.jobs[jid]['files']])
+        self.h.record(jid)
     def test_titles_preserve_dots_unicode_and_windows_reserved_names(self):
         self.assertEqual(title_name('商品.版本2.mp4'),'商品.版本2');self.assertEqual(title_name('PPO-GRPO（上）'),'PPO-GRPO（上）')
         self.assertEqual(title_name('CON.mp4'),'_CON');self.assertEqual(title_name('a:b?c.mov'),'a_b_c')
     def test_cleanup_skips_moved_modified_inputs_and_unrecorded_files(self):
         base=self.job('old');(base/'same.txt').write_text('same');(base/'modified.txt').write_text('old');(base/'moved.txt').write_text('move');(base/'video.mp4').write_bytes(b'original')
         self.record('old');(base/'modified.txt').write_text('edited');(base/'moved.txt').rename(self.root/'moved.txt');(base/'personal.txt').write_text('mine')
-        result=self.h.clean('old');self.assertEqual(result['deleted'],1);self.assertEqual(len(result['skipped']),2)
+        result=self.h.clean('old');self.assertEqual(result['deleted'],1)
+        self.assertTrue({'modified.txt','moved.txt'}.issubset({s['name'] for s in result['skipped']}))
         self.assertEqual((base/'modified.txt').read_text(),'edited');self.assertTrue((base/'video.mp4').exists());self.assertTrue((base/'personal.txt').exists());self.assertTrue((self.root/'moved.txt').exists())
     def test_a_file_later_registered_as_input_is_protected(self):
         base=self.job('old');source=base/'original.png';source.write_bytes(b'input');self.record('old')

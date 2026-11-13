@@ -6,7 +6,7 @@ for(let i=0;i<args.length;i++){
 }
 const command=positional.shift()??'help';
 if(command==='help'){
-  console.log(`映格 Video Desk 2.5.0
+  console.log(`映格 Video Desk 2.5.1
 video-desk storyboard <链接或本机视频> [--mode direct|cache] [--start 0] [--duration 60] [--transcript auto|off|subtitles] [--output 完整路径]
 video-desk probe|subtitles <视频> [同上]
 video-desk zoom <任务ID> --start 10 --duration 8
