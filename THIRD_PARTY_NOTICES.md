@@ -1,5 +1,14 @@
 # 第三方来源、致谢与许可证
 
+## 2.6 新增组件
+
+- 直播页面数据结构参考 [DouyinLiveRecorder](https://github.com/ihmily/DouyinLiveRecorder)（MIT）；本项目自行实现浏览器响应观察、调度与录制，未打包其 CLI、固定 Cookie、签名实现或关闭证书校验的请求代码。
+- [faster-whisper](https://github.com/SYSTRAN/faster-whisper)、[Whisper small.en](https://huggingface.co/Systran/faster-whisper-small.en)、[CTranslate2](https://github.com/OpenNMT/CTranslate2)：MIT；许可证在 `third_party/*-LICENSE.txt`。Whisper 与翻译模型按需下载。
+- [OPUS-MT en-zh](https://huggingface.co/Helsinki-NLP/opus-mt-en-zh)：Apache-2.0，固定模型提交及各文件校验见 `integrations/translation-catalog.json`，保留模型卡。
+- [MeloTTS 中文模型](https://huggingface.co/myshell-ai/MeloTTS-Chinese) 及其 [sherpa-onnx 转换](https://k2-fsa.github.io/sherpa/onnx/tts/pretrained_models/vits.html)：MIT，模型包保留 LICENSE、README 和字典。
+- [Demucs](https://github.com/adefossez/demucs)：MIT；使用作者 HTDemucs safetensors 权重，固定提交、SHA256 和模型卡保留。音频分离不保证完全移除原声或保留全部环境声。
+- 可选隔离运行环境使用 Python 3.11、PyTorch、Transformers、SentencePiece 等，第三方许可证随各包的 dist-info 保留；CUDA 运行库随官方 PyTorch CUDA wheel 提供，遵守其所含第三方条款。
+
 映格 / VideoDesk 的原创代码采用 [Apache-2.0](LICENSE)。第三方代码、模型和外部工具保留各自版权与许可证；根目录许可证不覆盖第三方的限制。
 
 ## 作者与项目来源

@@ -20,8 +20,8 @@ using System.Windows.Forms;
 [assembly: AssemblyDescription("自带运行环境的本地视频采集工作台")]
 [assembly: AssemblyCompany("Video Desk")]
 [assembly: AssemblyProduct("映格 Video Desk")]
-[assembly: AssemblyVersion("2.5.1.0")]
-[assembly: AssemblyFileVersion("2.5.1.0")]
+[assembly: AssemblyVersion("2.6.0.0")]
+[assembly: AssemblyFileVersion("2.6.0.0")]
 
 internal static class ProcessEnvironment {
     [DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true)]
@@ -346,7 +346,7 @@ internal sealed class LauncherForm : Form {
             options.Repair = false;
             open.Enabled = true;
             UpdateProgress("准备完成，工作台已启动。", 100);
-            details.AppendText(core.Url + "\r\n后台在系统托盘运行。关闭网页不停止任务；录制时请保持采集页面打开。\r\n");
+            details.AppendText(core.Url + "\r\n后台在系统托盘运行。直播录播可关闭网页；网页共享录制需要保持采集页面打开。\r\n");
             if (core.Degraded) details.AppendText("部分组件暂不可用；工作台中可查看具体功能及修复入口。\r\n");
             open.Text = "打开工作台"; crashReported = false;
             if (!options.Background || forceRepair) core.OpenBrowser();

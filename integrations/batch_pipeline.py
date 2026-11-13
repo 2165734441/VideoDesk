@@ -494,7 +494,10 @@ class Pipeline:
                     # Re-encode for accurate non-keyframe boundaries; preserve dimensions,
                     # including odd sizes (4:4:4 H.264 when 4:2:0 cannot represent them).
                     pixel='yuv420p' if int(info.get('width',0))%2==0 and int(info.get('height',0))%2==0 else 'yuv444p'
-                    a.run_ffmpeg(jid,args+['-t',str(right-left),'-c:v','libx264','-preset','fast','-crf','18','-pix_fmt',pixel,'-c:a','aac','-movflags','+faststart',str(out/'clips/clip.mp4')],private=True)
+                    from .hardware import encode
+                    encode(a,jid,args+['-t',str(right-left),'-pix_fmt',pixel],
+                           ['-c:a','aac','-movflags','+faststart',str(out/'clips/clip.mp4')],
+                           device='cpu' if pixel=='yuv444p' else 'auto',quality=18)
                 material=[p for p in out.rglob('*') if p.is_file() and p.suffix.lower() in ('.jpg','.png','.m4a','.mp4','.srt')]
                 if not material:
                     warnings.append(f'第 {index+1} 段未生成所选内容')

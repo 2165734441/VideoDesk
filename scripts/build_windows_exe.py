@@ -24,13 +24,21 @@ sys.path.insert(0,str(ROOT/'scripts'))
 BUILD = ROOT / '.local' / 'build-exe'
 CACHE = BUILD / 'cache'
 STAGE = BUILD / 'payload'
-VERSION = '2.5.1'
+VERSION = '2.6.0'
 PYTHON_VERSION = '3.13.17'
 PYTHON_HASH = '9e35319bffedab8b36ad44d8f377cb4f1733bcec257a0b6d04d94f01486ddb38'
 NODE_VERSION = '22.23.4'
 NODE_HASH = 'cbc74b5e0982c9dbb41525fd8fb5dcd32fbee237863f7829072f4639a1ce5f20'
 UPSTREAM_COMMIT = '8f583999006d5b692272c608440e193ca282e73b'
 APP_FILES = [
+    'integrations/hardware.py','integrations/live.py','integrations/live_browser.py',
+    'integrations/translation.py','integrations/translation_worker.py','integrations/translation_components.py',
+    'integrations/translation-catalog.json','integrations/translation-requirements-lock.txt',
+    'static/media26.js','static/media26.css','tests/test_media26.py',
+    'scripts/prepare_v26_catalog.py','scripts/verify_media26.py','scripts/verify_live26.py','scripts/verify_media26_ui.py',
+    'docs/MEDIA26.md','docs/AGENT-TEST-PROMPT26.md','MEDIA26-TEST-REPORT.md',
+    'third_party/Whisper-LICENSE.txt','third_party/CTranslate2-LICENSE.txt','third_party/faster-whisper-LICENSE.txt',
+    'third_party/MeloTTS-LICENSE.txt','third_party/Demucs-LICENSE.txt',
     'tests/test_bug_report25.py','tests/EnvironmentHarness.cs','scripts/verify_bugfix25.py',
     'LICENSE','NOTICE','THIRD_PARTY_NOTICES.md','docs/BUILD.md','docs/USAGE-HISTORY.md',
     'integrations/performance.py','integrations/media_probe.py','integrations/workflow_settings.py','integrations/recycle.py',

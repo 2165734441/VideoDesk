@@ -29,7 +29,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 import imageio_ffmpeg
-from integrations import image_dedup, video_sources, storyboard, local_sources, batch_pipeline, material_history, material_packages, runtime_support
+from integrations import image_dedup, video_sources, storyboard, local_sources, batch_pipeline, material_history, material_packages, runtime_support, live, translation, hardware
 
 ROOT = Path(__file__).resolve().parent
 DATA = Path(os.environ.get('VIDEO_DESK_DATA', str(ROOT / '.local')))
@@ -622,6 +622,8 @@ app.add_middleware(TrustedHostMiddleware, allowed_hosts=['127.0.0.1', 'localhost
 
 @app.on_event('shutdown')
 def close_login_browser():
+    LIVE.close()
+    TRANSLATION.close()
     BROWSER.close()
 
 
@@ -647,7 +649,7 @@ async def local_guard(request: Request, call_next):
 def state():
     with LOCK:
         return {'token': TOKEN, 'settings': dict(SETTINGS), 'jobs': list(reversed(list(JOBS.values()))),
-                'ffmpeg': bool(FFMPEG), 'version': os.environ.get('VIDEO_DESK_VERSION', '2.5.1'),
+                'ffmpeg': bool(FFMPEG), 'version': os.environ.get('VIDEO_DESK_VERSION', '2.6.0'),
                 'application': 'video-desk', 'installation_id': os.environ.get('VIDEO_DESK_INSTALLATION_ID', ''),
                 'engines': {'yt_dlp': runtime_support.available('download'), 'mediacrawler': crawler_available()},
                 'youtube': video_sources.youtube_support(), 'runtime':runtime_support.status()}
@@ -1099,9 +1101,8 @@ def finish_capture(jid: str, req: FinishRequest):
                         shutil.copyfileobj(src, out)
             if req.mp4:
                 try:
-                    run_ffmpeg(jid, ['-i', str(raw), '-vf', 'pad=ceil(iw/2)*2:ceil(ih/2)*2',
-                        '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '22', '-c:a', 'aac',
-                        '-movflags', '+faststart', str(base / 'recording.mp4')])
+                    hardware.encode(sys.modules[__name__], jid, ['-i', str(raw), '-vf', 'pad=ceil(iw/2)*2:ceil(ih/2)*2', '-pix_fmt', 'yuv420p'],
+                        ['-c:a', 'aac', '-movflags', '+faststart', str(base / 'recording.mp4')])
                 except RuntimeError:
                     (base / 'recording.mp4').unlink(missing_ok=True)
                     warnings.append('MP4 转换失败，原始 WebM 已保留。')
@@ -1125,9 +1126,15 @@ def cancel(jid: str):
     job = job_by_id(jid)
     if job['kind'] in ('batch', 'batch-video'):
         return BATCH_PIPELINE.cancel(jid)
+    if job['kind']=='live-recording':
+        key=job.get('options',{}).get('anchor_id')
+        if key and (LIVE.active.get(key)==jid or LIVE.pending.get(key)==jid):
+            return LIVE.stop(key)
     if job['kind'] == 'capture' and job['status'] == 'recording':
         raise HTTPException(409, '请在采集页面使用停止并保存，避免丢失录制分段')
     EVENTS[jid].set()
+    if job['kind']=='translation' and job['status']=='waiting':
+        change(jid,status='cancelled',message='已取消，双语字幕与已完成文件仍保留')
     if job['kind']=='analysis' and job['status']=='waiting':
         change(jid,status='cancelled',message='已取消等待人工接管，已保存文件仍保留')
     return {'message': '已请求取消'}
@@ -1136,6 +1143,11 @@ def cancel(jid: str):
 @app.post('/api/jobs/{jid}/resume')
 def resume(jid: str):
     job = job_by_id(jid)
+    if job['kind'] == 'translation':
+        if job['status'] not in ('waiting','error','interrupted','cancelled'):
+            raise HTTPException(409,'此翻译任务正在处理或已经完成')
+        TRANSLATION.schedule(jid)
+        return {'id':jid,'message':'已重新排队翻译，已完成阶段保留'}
     if job['kind'] in ('batch', 'batch-video'):
         return BATCH_PIPELINE.retry(jid)
     if job['kind'] == 'analysis':
@@ -1189,6 +1201,8 @@ LOCAL_SOURCES = local_sources.install(app, sys.modules[__name__])
 MATERIAL_HISTORY = material_history.install(app, sys.modules[__name__])
 BATCH_PIPELINE = batch_pipeline.install(app, sys.modules[__name__], LOCAL_SOURCES)
 MATERIAL_PACKAGES = material_packages.install(app, sys.modules[__name__])
+LIVE = live.install(app, sys.modules[__name__])
+TRANSLATION = translation.install(app, sys.modules[__name__])
 app.mount('/static', StaticFiles(directory=ROOT / 'static'), name='static')
 
 

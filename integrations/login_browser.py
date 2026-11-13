@@ -38,7 +38,23 @@ class LoginBrowser:
         def response(value):
             # These are normal responses to the user's browser navigation.
             # Do not construct signed API requests or solve challenges.
-            if '/aweme/v1/web/aweme/detail/' not in value.url or value.status != 200:return
+            if value.status != 200:return
+            if any(s in value.url for s in ('/user/following/', '/following/list/')):
+                try:
+                    from .live_browser import following_data
+                    payload=value.json()
+                    # First page starts a new import snapshot, preventing account switches
+                    # from merging the previous account's following list.
+                    from urllib.parse import parse_qs
+                    query=parse_qs(urlparse(value.url).query)
+                    first=query.get('max_time',[''])[0] in ('0','') and query.get('cursor',['0'])[0]=='0'
+                    previous=getattr(self,'live_following',{})
+                    users={} if first or time.monotonic()-previous.get('time',0)>300 else dict(previous.get('users',{}))
+                    for item in following_data(payload):users[item['url']]=item
+                    self.live_following={'users':users,'has_more':payload.get('has_more'),'time':time.monotonic()}
+                except Exception:pass
+                return
+            if '/aweme/v1/web/aweme/detail/' not in value.url:return
             try:
                 payload=value.json();detail=payload.get('aweme_detail') or {}
                 vid=str(detail.get('aweme_id',''));media=detail_media(payload,vid)
