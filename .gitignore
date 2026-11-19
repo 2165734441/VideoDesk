@@ -24,6 +24,8 @@ cookies*.txt
 .tmp/
 repro/qa/
 *.apk
+!mobile/VideoDesk-Mobile.apk
+*.idsig
 # 上游声明不分发：真实视频示例图与赞赏二维码
 third_party/dsh-video-storyboard/docs/demo-real.png
 third_party/dsh-video-storyboard/docs/assets/wechat-reward.png
