@@ -1,0 +1,136 @@
+{
+  "python": "3.13.17 (tags/v3.13.17:64e080d, Oct 21 2026, 14:08:53) [MSC v.1944 64 bit (AMD64)]",
+  "results": {
+    "A2_account_switch_without_owner_param": {
+      "step1_account_a": {
+        "users": [
+          {
+            "url": "https://www.douyin.com/user/SEC_AAAAAAAA",
+            "name": "alice"
+          },
+          {
+            "url": "https://www.douyin.com/user/SEC_BBBBBBBB",
+            "name": "bob"
+          }
+        ],
+        "loaded": 2
+      },
+      "step2_account_b": {
+        "users": [
+          {
+            "url": "https://www.douyin.com/user/SEC_AAAAAAAA",
+            "name": "alice"
+          },
+          {
+            "url": "https://www.douyin.com/user/SEC_BBBBBBBB",
+            "name": "bob"
+          },
+          {
+            "url": "https://www.douyin.com/user/SEC_CCCCCCCC",
+            "name": "charlie"
+          }
+        ],
+        "loaded": 3,
+        "expected": 1,
+        "complete": false,
+        "message": "已读取 3 位关注，账号显示共 1 位；尚未确认完整，请继续加载。平台隐藏、失效账号也可能造成差额"
+      },
+      "leaked_account_a_users": [
+        "alice",
+        "bob"
+      ],
+      "owner_after_switch": "SEC_OWNER_AAAA"
+    },
+    "A3_partial_list_message": {
+      "loaded_count": 120,
+      "expected_count": 500,
+      "complete": false,
+      "message": "已读取 120 位关注，账号显示共 500 位；尚未确认完整，请继续加载。平台隐藏、失效账号也可能造成差额",
+      "contains_explicit_unread_difference": false
+    },
+    "B2_missing_status_claimed_online": {
+      "input_has_status_field": false,
+      "room_data": {
+        "online": true,
+        "url": "https://pull.example.invalid/live.flv",
+        "name": "synthetic",
+        "room_id": "7381928374650910213"
+      },
+      "claims_online": true
+    },
+    "B2_control_explicit_offline": {
+      "room_data": {
+        "online": false,
+        "url": "https://pull.example.invalid/live.flv",
+        "name": "synthetic",
+        "room_id": "7381928374650910213"
+      },
+      "claims_online": false
+    },
+    "A7_link_normalization": {
+      "forms": [
+        {
+          "input": "https://live.douyin.com/7381928374650910213",
+          "normalized": "https://live.douyin.com/7381928374650910213"
+        },
+        {
+          "input": "https://www.douyin.com/live/7381928374650910213",
+          "normalized": "https://live.douyin.com/7381928374650910213"
+        },
+        {
+          "input": "https://webcast.amemv.com/douyin/webcast/reflow/7381928374650910213/",
+          "normalized": "https://webcast.amemv.com/douyin/webcast/reflow/7381928374650910213/"
+        },
+        {
+          "input": "http://webcast.amemv.com/douyin/webcast/reflow/7381928374650910213",
+          "normalized": "http://webcast.amemv.com/douyin/webcast/reflow/7381928374650910213"
+        },
+        {
+          "input": "https://webcast.amemv.com/douyin/webcast/reflow/7381928374650910213/?from=share",
+          "normalized": "https://webcast.amemv.com/douyin/webcast/reflow/7381928374650910213/?from=share"
+        },
+        {
+          "input": "https://v.douyin.com/iQaSynth01/",
+          "normalized": "https://v.douyin.com/iQaSynth01/"
+        }
+      ],
+      "distinct_normalized_values": 5,
+      "same_room_id_in_all_inputs": "7381928374650910213"
+    },
+    "B4_cross_midnight_window": {
+      "rows": [
+        {
+          "case": "Mon 23:30 in Mon 23:00-01:00",
+          "expected": true,
+          "actual": true,
+          "match": true
+        },
+        {
+          "case": "Tue 00:30 after Mon 23:00-01:00",
+          "expected": true,
+          "actual": true,
+          "match": true
+        },
+        {
+          "case": "Mon 00:30 before Mon 23:00-01:00",
+          "expected": false,
+          "actual": false,
+          "match": true
+        },
+        {
+          "case": "Tue 12:00 outside",
+          "expected": false,
+          "actual": false,
+          "match": true
+        }
+      ],
+      "all_match": true
+    },
+    "A7_19_digit_room_id": {
+      "input": "7381928374650910213",
+      "normalized": "https://live.douyin.com/7381928374650910213",
+      "digits_preserved": true,
+      "js_number_would_be": 7.381928374650911e+18
+    }
+  }
+}

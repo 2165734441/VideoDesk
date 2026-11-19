@@ -21,3 +21,9 @@ cookies*.txt
 *.mkv
 *.mov
 *.tar.bz2
+.tmp/
+repro/qa/
+*.apk
+# 上游声明不分发：真实视频示例图与赞赏二维码
+third_party/dsh-video-storyboard/docs/demo-real.png
+third_party/dsh-video-storyboard/docs/assets/wechat-reward.png

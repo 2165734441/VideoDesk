@@ -1,0 +1,16 @@
+{
+  "handoff_date": "2026-11-16",
+  "timezone": "Asia/Shanghai",
+  "windows_source_version": "2.8.2",
+  "android_source_version": "1.1.1",
+  "current_user_acceptance": "FAILED",
+  "current_failure_root_cause": "NOT_REPRODUCED_IN_THIS_HANDOFF",
+  "current_user_reports": ["Live recording still fails", "Missed live starts", "Phone controls are excessive and confusing"],
+  "this_turn_scope": "Documentation, read-only inventory, sanitized source handoff and archive integrity only",
+  "new_product_fix_or_live_phone_test_in_this_turn": false,
+  "historical_acceptance_is_current_acceptance": false,
+  "priority": ["Actual recording failure", "Reliable automatic start and recovery", "Simplify phone interactions", "Real phone multi-stream and USB replay transfer"],
+  "private_runtime_data_included": false,
+  "source_directory_in_zip": "项目源码",
+  "entry_document": "AI-HANDOFF-20261116.md"
+}

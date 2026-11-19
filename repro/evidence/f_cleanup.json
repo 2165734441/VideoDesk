@@ -1,0 +1,88 @@
+{
+  "job_id": "c766a4875e42",
+  "directory": "E:\\VideoDesk\\repro\\qa\\output\\20261114-151902_c766a4875e42",
+  "sentinels_before": {
+    "sentinel_original.mp4": "22e7a76f0391ae2419ac4fc1edffc81ee4b8ae215dfd54384e1e7bc7a76bfccb",
+    "sentinel_user_added.txt": "c903c36f05971c3a9817f62ba2d08c45cbf6380ef5ff4b4ea013686e05e6959b",
+    "sentinel_shared.dat": "2f1f7a46b3af7d5eaa0106e5fface8f0ce7937cf57b9dbcb88188e24bc3322f4"
+  },
+  "modified_frame": "AI分析提示词.txt",
+  "preview_files": [
+    ".frames.log",
+    "frames/000001.jpg",
+    "frames/000002.jpg",
+    "frames/000003.jpg",
+    "timeline.json",
+    "manifest.json"
+  ],
+  "preview_skipped": [
+    {
+      "name": "AI分析提示词.txt",
+      "reason": "已修改或属于视频来源"
+    }
+  ],
+  "cleanup_response": {
+    "deleted": 6,
+    "skipped": [
+      {
+        "name": "AI分析提示词.txt",
+        "reason": "已修改或属于视频来源",
+        "job_id": "c766a4875e42"
+      }
+    ],
+    "errors": [],
+    "warnings": [
+      {
+        "name": "timeline.json",
+        "reason": "系统回收站报告异常（HRESULT 80070002）；原路径已移走，请核对回收站",
+        "job_id": "c766a4875e42"
+      },
+      {
+        "name": "manifest.json",
+        "reason": "系统回收站报告异常（HRESULT 80070002）；原路径已移走，请核对回收站",
+        "job_id": "c766a4875e42"
+      }
+    ]
+  },
+  "sentinels_after": {
+    "sentinel_original.mp4": "22e7a76f0391ae2419ac4fc1edffc81ee4b8ae215dfd54384e1e7bc7a76bfccb",
+    "sentinel_user_added.txt": "c903c36f05971c3a9817f62ba2d08c45cbf6380ef5ff4b4ea013686e05e6959b",
+    "sentinel_shared.dat": "2f1f7a46b3af7d5eaa0106e5fface8f0ce7937cf57b9dbcb88188e24bc3322f4"
+  },
+  "survivors": {
+    "sentinel_original.mp4": true,
+    "sentinel_user_added.txt": true,
+    "sentinel_shared.dat": true
+  },
+  "removed": [
+    ".frames.log",
+    "frames/000001.jpg",
+    "frames/000002.jpg",
+    "frames/000003.jpg",
+    "timeline.json",
+    "manifest.json"
+  ],
+  "reported": {
+    "deleted": 6,
+    "skipped": [
+      {
+        "name": "AI分析提示词.txt",
+        "reason": "已修改或属于视频来源",
+        "job_id": "c766a4875e42"
+      }
+    ],
+    "errors": [],
+    "warnings": [
+      {
+        "name": "timeline.json",
+        "reason": "系统回收站报告异常（HRESULT 80070002）；原路径已移走，请核对回收站",
+        "job_id": "c766a4875e42"
+      },
+      {
+        "name": "manifest.json",
+        "reason": "系统回收站报告异常（HRESULT 80070002）；原路径已移走，请核对回收站",
+        "job_id": "c766a4875e42"
+      }
+    ]
+  }
+}

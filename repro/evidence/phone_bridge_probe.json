@@ -1,0 +1,254 @@
+{
+  "bridge_port": 14552,
+  "instance": "http://127.0.0.1:14545",
+  "note": "synthetic anchors/events only; no adb reverse, no APK install, no real phone write",
+  "records": [
+    {
+      "label": "C-01 unauthenticated config rejected",
+      "status": 401,
+      "body": {
+        "error": "需要重新通过 USB 配对"
+      }
+    },
+    {
+      "label": "C-02 unauthenticated event rejected",
+      "status": 401,
+      "body": {
+        "error": "需要重新通过 USB 配对"
+      }
+    },
+    {
+      "label": "C-03 wrong key rejected",
+      "status": 404,
+      "body": {
+        "error": "主播已删除，请同步列表"
+      }
+    },
+    {
+      "label": "C-03b explicitly wrong key",
+      "status": 401,
+      "body": "{\"error\": \"需要重新通过 USB 配对\"}"
+    },
+    {
+      "label": "C-04 unknown state rejected",
+      "status": 400,
+      "body": {
+        "error": "未知开播状态"
+      }
+    },
+    {
+      "label": "C-05 event for unknown anchor",
+      "status": 404,
+      "body": {
+        "error": "主播已删除，请同步列表"
+      }
+    },
+    {
+      "label": "C-06 malformed / oversized handled",
+      "status": 404,
+      "body": {
+        "error": "主播已删除，请同步列表"
+      }
+    },
+    {
+      "label": "C-07 config after auth",
+      "status": 200,
+      "body": {
+        "anchors": [
+          {
+            "id": "ed2e591fda5b",
+            "name": "",
+            "url": "https://live.douyin.com/7381928374650910000",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "3eb6a401fbb8",
+            "name": "",
+            "url": "https://webcast.amemv.com/douyin/webcast/reflow/7381928374650910000/",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "bc45b623b220",
+            "name": "",
+            "url": "https://www.douyin.com/user/MS4wLjABAAAAqa_synth_anchor_0001",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "b9bf52f265cd",
+            "name": "",
+            "url": "https://v.douyin.com/iQaSynth01/",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "a6ce3380333e",
+            "name": "",
+            "url": "https://live.douyin.com/7381928374650910099",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "dbe08de000cc",
+            "name": "",
+            "url": "https://live.douyin.com/7381928374650910213",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "7ffa1c087701",
+            "name": "",
+            "url": "https://live.douyin.com/9999000011112222",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          }
+        ],
+        "commands": []
+      }
+    },
+    {
+      "label": "C-10 alpha online event",
+      "status": 200,
+      "body": {
+        "ok": true,
+        "event_id": "bc0302cfaf65"
+      }
+    },
+    {
+      "label": "C-11 duplicate online within 300s",
+      "status": 200,
+      "body": {
+        "ok": true,
+        "duplicate": true
+      }
+    },
+    {
+      "label": "C-12 beta online event",
+      "status": 200,
+      "body": {
+        "ok": true,
+        "event_id": "4f86e017fa01"
+      }
+    },
+    {
+      "label": "C-13 dismiss alpha",
+      "status": 200,
+      "body": {
+        "ok": true,
+        "decision": "dismiss"
+      }
+    },
+    {
+      "label": "C-14 repeat decision after dismiss (idempotency)",
+      "status": 200,
+      "body": {
+        "ok": true,
+        "decision": "dismiss"
+      }
+    },
+    {
+      "label": "C-15 invalid decision target",
+      "status": 400,
+      "body": {
+        "detail": "请选择电脑录制、手机录制或忽略"
+      }
+    },
+    {
+      "label": "C-16 decision unknown event",
+      "status": 404,
+      "body": {
+        "detail": "开播通知不存在"
+      }
+    },
+    {
+      "label": "C-20 alpha offline event",
+      "status": 200,
+      "body": {
+        "ok": true,
+        "event_id": "0d1751fe313b"
+      }
+    },
+    {
+      "label": "C-21 phone state after offline",
+      "status": 200,
+      "body": {
+        "events": [
+          [
+            "6e34c4e15cfb",
+            "offline",
+            ""
+          ],
+          [
+            "8e3cdf93473a",
+            "online",
+            "pending"
+          ],
+          [
+            "6e34c4e15cfb",
+            "online",
+            "dismiss"
+          ]
+        ],
+        "connected": true,
+        "devices": [
+          {
+            "serial": "<redacted-serial>",
+            "state": "device",
+            "model": "V2304A"
+          }
+        ]
+      }
+    },
+    {
+      "label": "C-22 record command while companion not connected",
+      "status": 200,
+      "body": {
+        "message": "已发送到手机，请查看手机画面／授权提示"
+      }
+    },
+    {
+      "label": "C-23 invalid record action",
+      "status": 400,
+      "body": {
+        "detail": "未知手机录制操作"
+      }
+    }
+  ]
+}

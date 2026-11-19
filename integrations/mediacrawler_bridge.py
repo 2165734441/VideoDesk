@@ -19,6 +19,9 @@ from urllib.parse import urlparse
 from manual_gate import attach_manual_gate
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(ROOT))
+from integrations.runtime_support import configure_platform
+configure_platform()
 UPSTREAM = ROOT / 'third_party' / 'MediaCrawler'
 
 

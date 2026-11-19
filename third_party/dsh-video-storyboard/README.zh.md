@@ -1,4 +1,3 @@
-<!-- VideoDesk distribution: documentation images are linked to the original upstream source. -->
 # dsh-video-storyboard · 中文长版说明
 
 > **速览版在 [README.md](README.md)**（三分钟读完）。这份是长版：设计取舍、实测基线、和其他插件的对比。
@@ -83,12 +82,12 @@ video_storyboard({ input: "https://example.com/some-video" })   // 任意 yt-dlp
 
 ---
 
-![本工具产出的分镜](https://raw.githubusercontent.com/SAOS-3624/dsh-video-storyboard/e124ae6fcfb31f3572ea24aad093a86897b556a3/docs/demo.png)
+![本工具产出的分镜](docs/demo.png)
 
 > 上图是它自己的输出：一段 27 秒的**合成**素材（9 个镜头、响—静—响的音频）→ 一张 9 格图 + 底部音频条带。
 > 素材由 ffmpeg 现场生成，仓库里没有任何第三方视频画面。
 
-![作者自己 19 分钟视频的宫格](https://raw.githubusercontent.com/SAOS-3624/dsh-video-storyboard/e124ae6fcfb31f3572ea24aad093a86897b556a3/docs/demo-real.png)
+![作者自己 19 分钟视频的宫格](docs/demo-real.png)
 
 > 同一工具跑**作者自己的 19 分钟视频**：64 格分 4 张，这里展示第 17–32 格。底部黄线是片子里检出的切点。
 > 这张图是作者本人的素材，仅作演示用途——见 [NOTICE](./NOTICE)。

@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 import {connect,submitBatch} from '../integrations/desk_client.mjs';
+import {readFileSync} from 'node:fs';
+const version=JSON.parse(readFileSync(new URL('../version.json',import.meta.url),'utf8')).version;
 const args=process.argv.slice(2), positional=[],opts={};
 for(let i=0;i<args.length;i++){
   const s=args[i];if(s.startsWith('--')){const key=s.slice(2).replaceAll('-','_');opts[key]=args[i+1]&&!args[i+1].startsWith('--')?args[++i]:true;}else positional.push(s);
 }
 const command=positional.shift()??'help';
 if(command==='help'){
-  console.log(`映格 Video Desk 2.5.0
+  console.log(`映格 Video Desk ${version}
 video-desk storyboard <链接或本机视频> [--mode direct|cache] [--start 0] [--duration 60] [--transcript auto|off|subtitles] [--output 完整路径]
 video-desk probe|subtitles <视频> [同上]
 video-desk zoom <任务ID> --start 10 --duration 8
@@ -42,7 +44,11 @@ try{
     if(opts.terms)body.terms=JSON.parse(opts.terms);if(opts.tier_map)body.tier_map=JSON.parse(opts.tier_map);
     result=await client.api('/api/analysis',body);
   }else if(command==='jobs')result=(await client.api('/api/state')).jobs;
-  else if(command==='status')result=await client.api(`/api/analysis/${positional[0]}`);
+  else if(command==='status'){
+    if(!positional[0])throw new Error('缺少任务 ID');
+    result=(await client.api('/api/state')).jobs.find(j=>j.id===positional[0]);
+    if(!result)throw new Error('任务不存在');
+  }
   else if(command==='locate')result=await client.api(`/api/analysis/${positional.shift()}/locate`,{query:positional.join(' ')});
   else if(command==='zoom')result=await client.api(`/api/analysis/${positional[0]}/zoom`,opts.cell?{cell:Number(opts.cell)}:{start:Number(opts.start??0),duration:Number(opts.duration??10)});
   else if(command==='export'&&opts.outputs)result=await client.api(`/api/exports/${positional[0]}`,{request_id:opts.request_id??crypto.randomUUID(),output:opts.output??'',outputs:Object.fromEntries(['frames','audio','puzzles','transcript','clips','ai','zip'].map(k=>[k,String(opts.outputs).split(',').includes(k)])),segments:{enabled:!!opts.segment,seconds:Number(opts.segment??10),organize:true}});
@@ -51,7 +57,7 @@ try{
   else if(command==='model-install')result=await client.api('/api/models/install',{id:'sensevoice',path:opts.path??null});
   else if(command==='model-export')result=await client.api('/api/models/export',{id:'sensevoice',output:opts.output??''});
   else throw new Error('未知命令。运行 help 查看用法');
-  if(result?.id&&result?.status&&!opts.no_wait){
+  if(result?.id&&result?.status&&command!=='status'&&!opts.no_wait){
     const controller=new AbortController();process.once('SIGINT',()=>controller.abort());
     result=await client.wait(result,{signal:controller.signal,progress:j=>console.error(`[${j.id}] ${j.status} ${j.message}`)});
   }

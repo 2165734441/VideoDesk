@@ -8,6 +8,10 @@ import os
 from pathlib import Path
 import sys
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from integrations.runtime_support import configure_platform
+configure_platform()
+
 
 def probe(name):
     print('正在检查：'+name,flush=True)
@@ -19,7 +23,7 @@ def probe(name):
         import imageio_ffmpeg
         import subprocess
         ffmpeg=imageio_ffmpeg.get_ffmpeg_exe()
-        ffprobe=Path(__file__).resolve().parents[1]/'runtime-tools/ffprobe.exe'
+        ffprobe=Path(os.environ.get('VIDEO_DESK_APP_ROOT') or Path(__file__).resolve().parents[1])/'runtime-tools/ffprobe.exe'
         for tool in (ffmpeg,str(ffprobe)):
             subprocess.run([tool,'-version'],check=True,stdout=subprocess.DEVNULL,
                            stderr=subprocess.PIPE,timeout=15,

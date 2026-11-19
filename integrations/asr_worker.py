@@ -5,6 +5,10 @@ import re
 import sys
 import wave
 
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
+from integrations.runtime_support import configure_platform
+configure_platform()
+
 
 def transcribe(req):
     if req.get('service'):return transcribe_service(req)

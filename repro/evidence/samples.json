@@ -1,0 +1,55 @@
+{
+  "ffmpeg": "repro/qa/home/versions/2.7.0-e5df71c0b1/runtime/main/Lib/site-packages/imageio_ffmpeg/binaries/ffmpeg-win-x86_64-v7.1.exe",
+  "note": "All synthetic; safe to redistribute. Re-run to recreate.",
+  "samples": [
+    {
+      "file": "repro/samples/qa_av_6s.mp4",
+      "sha256": "22e7a76f0391ae2419ac4fc1edffc81ee4b8ae215dfd54384e1e7bc7a76bfccb",
+      "bytes": 69734,
+      "description": "6s synthetic video with audible 440 Hz tone",
+      "generation": "ffmpeg -f lavfi -i testsrc=320x180:25:6 -f lavfi -i sine=440:44100:6 -c:v libx264 -c:a aac -shortest"
+    },
+    {
+      "file": "repro/samples/qa_silent_4s.mp4",
+      "sha256": "a9526b643eefd87df195bc661a899597622526743ebcb09118315adb8272e6f9",
+      "bytes": 12613,
+      "description": "4s synthetic video with NO audio track",
+      "generation": "ffmpeg -f lavfi -i testsrc=320x180:25:4 -c:v libx264 -an"
+    },
+    {
+      "file": "repro/samples/qa_tiny_04s.mp4",
+      "sha256": "e8fcad700e5c4c282af5bdbac224d88bfa50b89d934e6de385c88521504bdb27",
+      "bytes": 8603,
+      "description": "0.4s very short clip",
+      "generation": "ffmpeg -f lavfi -i testsrc=...:0.4 -f lavfi -i sine=330:0.4 -shortest"
+    },
+    {
+      "file": "repro/samples/qa_portrait_3s.mp4",
+      "sha256": "aecbc915af7c0c99de8d6f865e1d3642b0878d22862faf5b0c287e26182f6a1f",
+      "bytes": 36882,
+      "description": "3s vertical/portrait clip",
+      "generation": "ffmpeg -f lavfi -i testsrc=180x320:25:3 -f lavfi -i sine=520:3 -shortest"
+    },
+    {
+      "file": "repro/samples/QA27 中文,空格 样本.mp4",
+      "sha256": "22e7a76f0391ae2419ac4fc1edffc81ee4b8ae215dfd54384e1e7bc7a76bfccb",
+      "bytes": 69734,
+      "description": "byte-identical copy with Chinese/space/comma filename",
+      "generation": "byte copy of qa_av_6s.mp4"
+    },
+    {
+      "file": "repro/samples/qa_zero_byte.mp4",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "description": "zero-byte media",
+      "generation": "write_bytes(b'')"
+    },
+    {
+      "file": "repro/samples/qa_broken.mp4",
+      "sha256": "e23a30fdbd3d8a1329e864c98f1e32b51ba27b7f3f658e74c7685be00adfb982",
+      "bytes": 192,
+      "description": "corrupted media",
+      "generation": "write_bytes(synthetic garbage)"
+    }
+  ]
+}

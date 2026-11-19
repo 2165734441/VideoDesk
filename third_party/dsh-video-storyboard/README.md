@@ -1,4 +1,3 @@
-<!-- VideoDesk distribution: documentation images are linked to the original upstream source. -->
 # dsh-video-storyboard
 
 > 让 AI 真正"看过"一段视频：**一张分镜图 + 一份带时间码的文本清单**，模型据此回答"第 3 分钟发生了什么""这句话对应哪一格"。
@@ -601,7 +600,7 @@ video_storyboard({ input: "materials.mp4", hotwords: "位错 滑移 柏氏矢量
 这个插件是免费的，也不打算收费。如果它帮你省下了 API 费用或剪辑时间，
 欢迎请我喝杯奶茶 —— 完全自愿，不影响任何功能。
 
-<img src="https://raw.githubusercontent.com/SAOS-3624/dsh-video-storyboard/e124ae6fcfb31f3572ea24aad093a86897b556a3/docs/assets/wechat-reward.png" alt="微信赞赏码" width="220">
+<img src="docs/assets/wechat-reward.png" alt="微信赞赏码" width="220">
 
 > 仓库右上角的 **Sponsor** 按钮也指向这里（`.github/FUNDING.yml`）。
 

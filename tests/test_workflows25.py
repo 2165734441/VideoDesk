@@ -176,7 +176,10 @@ class CleanupOwnership(unittest.TestCase):
         self.jobs[jid]={'id':jid,'status':'done','kind':'batch-video','directory':str(folder),'files':[]}
         return folder
 
-    def record(self,jid):self.a.refresh_files(jid);self.history.record(jid)
+    def record(self,jid):
+        self.a.refresh_files(jid)
+        self.history.created(jid,[Path(self.jobs[jid]['directory'])/f['name'] for f in self.jobs[jid]['files']])
+        self.history.record(jid)
 
     def test_other_retained_job_prevents_shared_file_cleanup(self):
         folder=self.job('one');(folder/'owned.txt').write_text('keep');self.record('one')

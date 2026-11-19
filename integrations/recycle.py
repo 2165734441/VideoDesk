@@ -14,12 +14,13 @@ def recycle(path):
     guid=lambda value:(ctypes.c_ubyte*16).from_buffer_copy(uuid.UUID(value).bytes_le)
     operation,item=ctypes.c_void_p(),ctypes.c_void_p()
     def check(code):
-        if code < 0:raise OSError(f'系统回收站操作失败（HRESULT {code & 0xffffffff:08x}），文件已保留')
+        if code < 0:raise OSError(f'系统回收站报告异常（HRESULT {code & 0xffffffff:08x}）')
     def method(pointer,index,*argtypes):
         table=ctypes.cast(pointer,ctypes.POINTER(ctypes.POINTER(ctypes.c_void_p))).contents
         return ctypes.WINFUNCTYPE(ctypes.c_long,ctypes.c_void_p,*argtypes)(table[index])
     initialized=ctypes.windll.ole32.CoInitializeEx(None,2)
-    check(initialized)
+    if initialized not in (0,1,-2147417850):check(initialized)
+    error=None
     try:
         check(ctypes.windll.ole32.CoCreateInstance(ctypes.byref(guid('3ad05575-8857-4850-9277-11b85bdb8e09')),None,1,
             ctypes.byref(guid('947aab5f-0a5c-4c13-b4d6-4bf7836fc9f8')),ctypes.byref(operation)))
@@ -30,8 +31,12 @@ def recycle(path):
         check(method(operation,21)(operation))
         aborted=ctypes.c_int()
         check(method(operation,22,ctypes.POINTER(ctypes.c_int))(operation,ctypes.byref(aborted)))
-        if aborted.value or path.exists():raise OSError('系统回收站未完成操作，请检查文件')
+        if aborted.value or path.exists():raise OSError('系统回收站未完成操作')
+    except OSError as exc:error=exc
     finally:
         if item:method(item,2)(item)
         if operation:method(operation,2)(operation)
-        ctypes.windll.ole32.CoUninitialize()
+        if initialized in (0,1):ctypes.windll.ole32.CoUninitialize()
+    if path.exists():
+        raise OSError(str(error or '系统回收站未完成操作')+'，文件仍在原位置，已保留')
+    return {'removed':True,'warning':str(error)+'；原路径已移走，请核对回收站' if error else ''}

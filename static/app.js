@@ -1,6 +1,6 @@
 'use strict';
 function jobProgress(j){
-  const active=['queued','running','processing','waiting','waiting_source','recording'].includes(j.status);
+  const active=['transferring','queued','running','processing','waiting','waiting_source','recording'].includes(j.status);
   if(!active&&j.status!=='done')return '';
   const percent=j.status==='done'?100:Math.max(0,Math.min(99,Number(j.progress)||0));
   const waiting=['waiting','waiting_source'].includes(j.status),pending=j.status==='queued';
@@ -12,7 +12,7 @@ function jobProgress(j){
   if(Number.isFinite(d.completed)&&Number.isFinite(d.total))parts.push(`本步骤 ${d.completed} / ${d.total}`);
   if(Number.isFinite(d.elapsed))parts.push(`本步骤耗时 ${d.elapsed} 秒`);
   if(Number.isFinite(d.eta)&&d.eta>0)parts.push(`本阶段剩余约 ${Math.ceil(d.eta)} 秒`);
-  const label=waiting?(j.status==='waiting_source'?'等待来源 · 重新选择并继续':'等待网站验证 · 手动处理后继续'):pending?'排队中':j.status==='recording'?'正在录制':unknown?'正在处理 · 当前阶段时长待确定':j.status==='done'?'已完成 100%':`总进度约 ${percent}%`;
+  const label=waiting?(j.status==='waiting_source'?'等待来源 · 重新选择并继续':j.kind==='translation'?'等待检查双语字幕 · 修改后继续':j.kind==='live-recording'?'等待直播连接 · 正在自动重试':'等待网站验证 · 手动处理后继续'):pending?'排队中':j.status==='recording'?'正在录制':unknown?'正在处理 · 当前阶段时长待确定':j.status==='done'?'已完成 100%':`总进度约 ${percent}%`;
   return `<div class="task-progress ${unknown&&!waiting?'is-indeterminate':''} ${waiting?'is-paused':''}"><div class="task-progress-label"><strong>${html(label)}</strong><span>${html(parts.join(' · '))}</span></div><div class="progress" role="progressbar" aria-label="任务总进度" aria-valuemin="0" aria-valuemax="100" ${unknown?'':`aria-valuenow="${percent}"`}><span style="width:${unknown?35:percent}%"></span></div></div>`;
 }
 const $ = id => document.getElementById(id);
@@ -22,9 +22,9 @@ let session = null, finishing = false, rendering = false;
 const video = $('sourceVideo'), preview = $('preview');
 const previewCtx = preview.getContext('2d');
 const outputCanvas = document.createElement('canvas'), outputCtx = outputCanvas.getContext('2d', {alpha: false});
-const statusLabels = {queued:'排队中',running:'处理中',waiting:'待人工验证',waiting_source:'等待来源',recording:'采集中',processing:'正在保存',done:'已完成',error:'失败',cancelled:'已取消',interrupted:'已中断'};
+const statusLabels = {transferring:'手机回放传输中',queued:'排队中',running:'处理中',waiting:'待人工验证',waiting_source:'等待来源',recording:'采集中',processing:'正在保存',done:'已完成',error:'失败',cancelled:'已取消',interrupted:'已中断'};
 const html = text => String(text ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const activeStatus = s => ['queued','running','recording','processing','waiting','waiting_source'].includes(s);
+const activeStatus = s => ['transferring','queued','running','recording','processing','waiting','waiting_source'].includes(s);
 function toast(message, error = false) {
   $('toast').textContent = message; $('toast').classList.toggle('error', error); $('toast').hidden = false;
   clearTimeout(toast.timer); toast.timer = setTimeout(() => $('toast').hidden = true, error ? 10000 : 5500);
@@ -41,7 +41,7 @@ async function api(url, {method = 'GET', body, raw = false, timeoutMs} = {}) {
     const data = await response.json().catch(e=>{if(e.name==='AbortError')throw e;return {};});
     if (!response.ok) {
       const error = new Error(typeof data.detail === 'string' ? data.detail : response.status===422?'参数不正确，请检查数量、时间和所选内容。':`请求失败（${response.status}），请检查参数。`);
-      error.status=response.status;throw error;
+      error.status=response.status;error.code=data.code;error.canDisableBackground=!!data.can_disable_background;throw error;
     }
     return data;
   } catch(e) {
@@ -59,7 +59,7 @@ function goto(page) {
   document.querySelectorAll('.page').forEach(el => el.hidden = el.id !== `page-${page}`);
   const parent=({capture:'import',download:'import',crawler:'import',dedup:'library'}[page])||page;
   document.querySelectorAll('.nav').forEach(el => el.classList.toggle('active', el.dataset.page === parent));
-  $('breadcrumb').textContent = '工作空间 / ' + ({import:'导入与采集',analysis:'AI 看懂视频',subtitles:'字幕区域截图长图',settings:'账号与模型',capture:'网页录制与截图',download:'链接下载',crawler:'平台采集',extract:'视频抽帧',dedup:'照片与截图去重',library:'素材库'}[page]);
+  $('breadcrumb').textContent = '工作空间 / ' + ({live:'直播录播与回放',translate:'英文视频转中文',import:'导入与采集',analysis:'AI 看懂视频',subtitles:'字幕区域截图长图',settings:'账号与模型',capture:'网页录制与截图',download:'链接下载',crawler:'平台采集',extract:'视频抽帧',dedup:'照片与截图去重',library:'素材库'}[page]);
   if (page === 'library') renderJobs();
   if (page === 'dedup' && typeof refreshDedup === 'function') refreshDedup().catch(e=>toast(e.message,true));
   if (typeof onWorkflowPage==='function') onWorkflowPage(page);
@@ -368,7 +368,7 @@ function renderJobs() {
   const filter=$('jobFilter').value;
   const visible=jobs.filter(j=>($('showCleaned')?.checked||(!j.materials_deleted&&!j.superseded_by))&&(filter==='all'||(filter==='active'?activeStatus(j.status):filter==='error'?['error','interrupted','cancelled'].includes(j.status):j.status===filter)));
   if(!visible.length) {$('jobs').innerHTML='<div class="jobs-empty"><strong>这里，准备装下你的灵感。</strong>从网页采集、链接下载或导入视频开始，素材会出现在这里。</div>';return;}
-  $('jobs').innerHTML=visible.map(j=>`<article class="job"><div class="job-icon">${{download:'↓',capture:'◉',extract:'▦',crawler:'◈',dedup:'▧',stream:'⇣'}[j.kind]||'▤'}</div><div><div class="job-title">${html(j.title)}</div><p class="job-message">${html(j.message)}</p>${jobProgress(j)}<div class="job-meta">${new Date(j.created*1000).toLocaleString('zh-CN',{timeZone:'Asia/Shanghai'})} · ${j.frames||0} 张图片<br>${html(j.directory)}</div></div><div class="job-actions"><span class="status ${html(j.status)}">${statusLabels[j.status]||html(j.status)}</span><button class="text-btn" data-action="folder" data-id="${j.id}">打开目录</button><button class="text-btn" data-action="files" data-id="${j.id}">查看素材</button>${j.kind==='dedup'?`<button class="text-btn" data-action="dedup" data-id="${j.id}">查看去重结果</button>`:!activeStatus(j.status)&&j.frames?`<button class="text-btn" data-action="dedup-source" data-id="${j.id}">图片去重</button>`:''}${['waiting','waiting_source'].includes(j.status)?`<button class="subtle" data-action="resume" data-id="${j.id}">重新接管 / 继续</button>`:''}${activeStatus(j.status)&&j.status!=='recording'?`<button class="text-btn" data-action="cancel" data-id="${j.id}">取消</button>`:''}</div></article>`).join('');
+  $('jobs').innerHTML=visible.map(j=>`<article class="job"><div class="job-icon">${{download:'↓',capture:'◉',extract:'▦',crawler:'◈',dedup:'▧',stream:'⇣'}[j.kind]||'▤'}</div><div><div class="job-title">${html(j.title)}</div><p class="job-message">${html(j.message)}</p>${jobProgress(j)}<div class="job-meta">${new Date(j.created*1000).toLocaleString('zh-CN',{timeZone:'Asia/Shanghai'})} · ${j.frames||0} 张图片<br>${html(j.directory)}</div></div><div class="job-actions"><span class="status ${html(j.status)}">${j.status==='waiting'&&j.kind==='translation'?'待检查字幕':j.status==='waiting'&&j.kind==='live-recording'?'重连中':statusLabels[j.status]||html(j.status)}</span><button class="text-btn" data-action="folder" data-id="${j.id}">打开目录</button><button class="text-btn" data-action="files" data-id="${j.id}">查看素材</button>${j.kind==='dedup'?`<button class="text-btn" data-action="dedup" data-id="${j.id}">查看去重结果</button>`:!activeStatus(j.status)&&j.frames?`<button class="text-btn" data-action="dedup-source" data-id="${j.id}">图片去重</button>`:''}${['waiting','waiting_source'].includes(j.status)&&j.kind!=='live-recording'?`<button class="subtle" data-action="resume" data-id="${j.id}">${j.kind==='translation'?'检查双语字幕':'重新接管 / 继续'}</button>`:''}${activeStatus(j.status)&&!['recording','transferring'].includes(j.status)?`<button class="text-btn" data-action="cancel" data-id="${j.id}">取消</button>`:''}</div></article>`).join('');
 }
 const isVideo=name=>/\.(mp4|webm|mkv|mov|avi|flv|m4v|ts)$/i.test(name);
 async function showFiles(jid) {
@@ -383,7 +383,7 @@ async function showFiles(jid) {
 }
 $('jobs').addEventListener('click',event=>{
   const b=event.target.closest('button[data-action]');if(!b) return;
-  const handlers={dedup:()=>openDedup(b.dataset.id),'dedup-source':async()=>{await refresh();$('dedupSourceJob').value=b.dataset.id;$('dedupSource').disabled=true;goto('dedup');},folder:()=>api(`/api/jobs/${b.dataset.id}/open-folder`,{method:'POST'}),files:()=>showFiles(b.dataset.id),resume:async()=>{await api(`/api/jobs/${b.dataset.id}/resume`,{method:'POST'});toast('已通知引擎继续，请等待结果');},cancel:async()=>{await api(`/api/jobs/${b.dataset.id}/cancel`,{method:'POST'});toast('已请求取消');await refresh();}};
+  const handlers={dedup:()=>openDedup(b.dataset.id),'dedup-source':async()=>{await refresh();$('dedupSourceJob').value=b.dataset.id;$('dedupSource').disabled=true;goto('dedup');},folder:()=>api(`/api/jobs/${b.dataset.id}/open-folder`,{method:'POST'}),files:()=>showFiles(b.dataset.id),resume:async()=>{const job=jobs.find(j=>j.id===b.dataset.id);if(job?.kind==='translation'&&job.status==='waiting'){await refresh();goto('translate');$('translateJobSelect').value=job.id;$('translateJobSelect').dispatchEvent(new Event('change'));$('translateLoadRows').click();return;}await api(`/api/jobs/${b.dataset.id}/resume`,{method:'POST'});toast('已通知引擎继续，请等待结果');},cancel:async()=>{await api(`/api/jobs/${b.dataset.id}/cancel`,{method:'POST'});toast('已请求取消');await refresh();}};
   handlers[b.dataset.action]().catch(e=>toast(e.message,true));
 });
 $('filesList').addEventListener('click',event=>{const b=event.target.closest('[data-extract-id]');if(b) useSavedVideo(b.dataset.extractId,b.dataset.file);});

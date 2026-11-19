@@ -198,8 +198,15 @@ def build(a,jid,source,info,rows,transcript_info,evidence,work,settings,left,rig
     data=report(base,title,names,warnings,metrics)
     # Keep a structured, complete representation for joint export, outside upload.
     (private/'联合内容源.json').write_text(json.dumps({'title':title,'from':left,'to':right,'rows':rows,'visuals':[{k:v for k,v in x.items() if k!='file'} for x in unique],'timeline':timeline,'images':sorted(images),'warnings':warnings,'metrics':metrics},ensure_ascii=False),encoding='utf-8')
+    from .material_history import register_created
+    register_created(a,jid,output_paths(base,data)+[private/'联合内容源.json'])
     a.change(jid,ai_package=data)
     return data
+
+
+def output_paths(base,data):
+    """Only paths explicitly produced by the package writer, never a tree scan."""
+    return [base/UPLOAD/name for name in data['files']]+[base/EXTRA/'资料索引.json',base/'处理与完整性报告.html']
 
 
 def combine(base,items,batch_files=10,check=lambda:None,episodes=None):

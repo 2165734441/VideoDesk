@@ -24,13 +24,34 @@ sys.path.insert(0,str(ROOT/'scripts'))
 BUILD = ROOT / '.local' / 'build-exe'
 CACHE = BUILD / 'cache'
 STAGE = BUILD / 'payload'
-VERSION = '2.5.0'
+VERSION = json.loads((ROOT/'version.json').read_text('utf-8'))['version']
 PYTHON_VERSION = '3.13.17'
 PYTHON_HASH = '9e35319bffedab8b36ad44d8f377cb4f1733bcec257a0b6d04d94f01486ddb38'
 NODE_VERSION = '22.23.4'
 NODE_HASH = 'cbc74b5e0982c9dbb41525fd8fb5dcd32fbee237863f7829072f4639a1ce5f20'
 UPSTREAM_COMMIT = '8f583999006d5b692272c608440e193ca282e73b'
 APP_FILES = [
+    'tests/test_bug_report281.py','tests/Launcher281Harness.cs','third_party/OPENCV-PATCHES.md',
+    'integrations/phone_import.py','tests/test_phone_import.py','tests/test_phone_streams.mjs','docs/PHONE28.md',
+    'mobile/assets/live-resolver.js','mobile/src/org/videodesk/mobile/StreamResolver.java',
+    'mobile/src/org/videodesk/mobile/StreamService.java','mobile/src/org/videodesk/mobile/VideoLibrary.java',
+    'mobile/src/org/videodesk/mobile/FlvMp4.java',
+    'integrations/following.py','integrations/mobile.py','tests/test_phone27.py','tests/test_phone_detector.mjs','docs/PHONE27.md',
+    'mobile/VideoDesk-Mobile.apk','mobile/AndroidManifest.xml','scripts/build_android.py',
+    'mobile/src/org/videodesk/mobile/Bridge.java','mobile/src/org/videodesk/mobile/MainActivity.java',
+    'tests/test_live283.py','tests/test_phone_wireless.py','scripts/run_tests.py','docs/LIVE29.md','docs/PHONE-CABLE-FREE.md',
+    'tests/test_live_page_reuse.py',
+    'mobile/src/org/videodesk/mobile/RecordingService.java','mobile/src/org/videodesk/mobile/LiveNoticeService.java',
+    'version.json', 'tests/test_bug_report26.py', 'tests/test_bug_report27.py', 'tests/test_live272.py',
+    'integrations/hardware.py','integrations/live.py','integrations/live_browser.py',
+    'integrations/translation.py','integrations/translation_worker.py','integrations/translation_components.py',
+    'integrations/translation-catalog.json','integrations/translation-requirements-lock.txt',
+    'static/media26.js','static/media26.css','tests/test_media26.py',
+    'scripts/prepare_v26_catalog.py','scripts/verify_media26.py','scripts/verify_live26.py','scripts/verify_media26_ui.py',
+    'docs/MEDIA26.md','docs/AGENT-TEST-PROMPT26.md','MEDIA26-TEST-REPORT.md',
+    'third_party/Whisper-LICENSE.txt','third_party/CTranslate2-LICENSE.txt','third_party/faster-whisper-LICENSE.txt',
+    'third_party/MeloTTS-LICENSE.txt','third_party/Demucs-LICENSE.txt',
+    'tests/test_bug_report25.py','tests/EnvironmentHarness.cs','scripts/verify_bugfix25.py',
     'LICENSE','NOTICE','THIRD_PARTY_NOTICES.md','docs/BUILD.md','docs/USAGE-HISTORY.md',
     'integrations/performance.py','integrations/media_probe.py','integrations/workflow_settings.py','integrations/recycle.py',
     'static/workflows25.js','static/workflows25.css','tests/test_workflows25.py','WORKFLOWS25-TEST-REPORT.md',
@@ -228,15 +249,36 @@ def isolated_environment():
 def smoke_runtimes():
     env = isolated_environment()
     run([STAGE / 'runtime' / 'main' / 'python.exe', '-c',
-         'import fastapi,uvicorn,yt_dlp,yt_dlp_ejs,playwright,PIL,imageio_ffmpeg,imagehash,sherpa_onnx,rapidocr,onnxruntime; from integrations.video_sources import youtube_support; assert youtube_support()["ready"]; imagehash.phash(PIL.Image.new("RGB",(32,32))); print("Main embedded runtime OK")'], env=env, cwd=STAGE / 'app')
+         'from integrations.runtime_support import configure_platform; configure_platform(); import fastapi,uvicorn,yt_dlp,yt_dlp_ejs,playwright,PIL,imageio_ffmpeg,imagehash,sherpa_onnx,rapidocr,onnxruntime; from integrations.video_sources import youtube_support; assert youtube_support()["ready"]; imagehash.phash(PIL.Image.new("RGB",(32,32))); print("Main embedded runtime OK")'], env=env, cwd=STAGE / 'app')
     run([STAGE / 'runtime' / 'crawler' / 'python.exe', STAGE / 'app' / 'integrations' / 'mediacrawler_bridge.py', '--check'],
         env=env, cwd=STAGE / 'app')
     run([STAGE / 'runtime' / 'node' / 'node.exe', '--version'], env=env)
 
 
+def patch_runtime_paths(stage=STAGE):
+    """Keep OpenCV's native extension loader on the interpreter's short alias.
+
+    OpenCV realpath(__file__) expands NTFS aliases back past the DLL loader's
+    limit. Patch its Python config, not native binaries or the global OS paths.
+    """
+    marker='# VideoDesk: preserve the embedded interpreter alias for long native paths.'
+    prefix=(marker+'\n'
+            '_vd_cv2 = os.path.join(os.path.dirname(sys.executable), "Lib", "site-packages", "cv2")\n'
+            'if os.name == "nt" and len(LOADER_DIR) >= 240 and os.path.isdir(_vd_cv2):\n'
+            '    LOADER_DIR = _vd_cv2\n\n')
+    for runtime in ('main','crawler'):
+        path=Path(stage)/'runtime'/runtime/'Lib/site-packages/cv2/config-3.py'
+        text=path.read_text('utf-8')
+        if marker in text:continue
+        if 'PYTHON_EXTENSIONS_PATHS = [' not in text or 'LOADER_DIR' not in text:
+            raise RuntimeError('Unrecognized OpenCV loader config: '+str(path))
+        path.write_text(prefix+text,encoding='utf-8')
+
+
 def bundle():
     from prepare_vc_runtime import prepare as prepare_vc_runtime
     prepare_vc_runtime(STAGE)
+    patch_runtime_paths()
     copy_app()
     smoke_runtimes()
     browsers = list((STAGE / 'runtime' / 'browsers').glob('chromium-*/chrome-win*/chrome.exe'))
@@ -291,7 +333,9 @@ def bundle():
 def compile_launcher(archive=BUILD/'payload.zip'):
     digest = sha256(archive)
     info = BUILD / 'BuildInfo.cs'
-    info.write_text('internal static class BuildInfo { public const string Version="' + VERSION +
+    info.write_text('[assembly: System.Reflection.AssemblyVersion("'+VERSION+'.0")]\n'
+                    '[assembly: System.Reflection.AssemblyFileVersion("'+VERSION+'.0")]\n'
+                    'internal static class BuildInfo { public const string Version="' + VERSION +
                     '"; public const string PayloadHash="' + digest + '"; }', encoding='utf-8-sig')
     output = ROOT / 'release' / ('VideoDesk-' + VERSION + '-Windows-x64.exe')
     output.parent.mkdir(exist_ok=True)
@@ -307,7 +351,30 @@ def compile_launcher(archive=BUILD/'payload.zip'):
     report = {'file':str(output), 'bytes':output.stat().st_size, 'sha256':checksum,
               'payload_sha256':digest,'files':len(json.loads((STAGE/'runtime-manifest.json').read_text(encoding='utf-8'))['files']),'version':VERSION}
     (BUILD / 'build-report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
+    receipt = {**report, 'file': output.name, 'validation': 'built; runtime acceptance recorded separately'}
+    (output.parent/('VideoDesk-'+VERSION+'-build.json')).write_text(json.dumps(receipt,ensure_ascii=False,indent=2),encoding='utf-8')
+    write_release_checksums(output.parent, VERSION)
+    verify_release_checksums(output.parent, VERSION)
     print(json.dumps(report,ensure_ascii=False),flush=True)
+
+
+def write_release_checksums(folder, version):
+    folder = Path(folder)
+    manifest = folder/('VideoDesk-'+version+'-SHA256SUMS.txt')
+    artifacts = sorted(p for p in folder.glob('VideoDesk-'+version+'-*') if p.is_file()
+                       and p != manifest and not p.name.endswith(('.sha256', '.tmp')))
+    manifest.write_text(''.join(sha256(p)+'  '+p.name+'\n' for p in artifacts), encoding='utf-8')
+    return manifest
+
+
+def verify_release_checksums(folder, version):
+    folder = Path(folder)
+    manifest = folder/('VideoDesk-'+version+'-SHA256SUMS.txt')
+    for line in manifest.read_text('utf-8').splitlines():
+        expected, name = line.split('  ', 1)
+        path = folder/name
+        if path.parent != folder or not path.is_file() or sha256(path) != expected:
+            raise RuntimeError('交付文件校验不一致：'+name)
 
 
 if __name__ == '__main__':

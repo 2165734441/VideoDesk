@@ -4,7 +4,8 @@ Copyright 2026 沙雕狗_ (Bilibili UID 454711645)
 Original VideoDesk code is licensed under the Apache License, Version 2.0.
 Third-party components retain their original copyrights and licenses.
 
-部分功能建立在 B 站 UP 主“苍穹晓雷”（UID 109659565）的项目基础上。
+「AI 看懂视频」功能搬运自 B 站 UP 主“苍穹晓雷”（UID 109659565）的代码与思路，
+用于降低大模型看懂画面所需的额度消耗。
 VideoDesk 整合与后续开发：B 站“沙雕狗_”（UID 454711645）。
 
 This distribution includes modified dsh-video-storyboard source code:

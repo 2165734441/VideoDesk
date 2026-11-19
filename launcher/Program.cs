@@ -20,14 +20,47 @@ using System.Windows.Forms;
 [assembly: AssemblyDescription("自带运行环境的本地视频采集工作台")]
 [assembly: AssemblyCompany("Video Desk")]
 [assembly: AssemblyProduct("映格 Video Desk")]
-[assembly: AssemblyVersion("2.5.0.0")]
-[assembly: AssemblyFileVersion("2.5.0.0")]
+
+internal static class ProcessEnvironment {
+    [DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true)]
+    private static extern IntPtr GetEnvironmentStringsW();
+    [DllImport("kernel32.dll",CharSet=CharSet.Unicode)]
+    private static extern bool FreeEnvironmentStringsW(IntPtr block);
+    [DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true)]
+    private static extern bool SetEnvironmentVariableW(string name,string value);
+
+    public static void Normalize() {
+        // A native environment block can contain HTTP_PROXY and http_proxy.
+        // .NET Framework's case-insensitive ProcessStartInfo dictionary throws
+        // before callers can clear it. Deduplicate the native block first.
+        IntPtr block=GetEnvironmentStringsW();
+        if(block==IntPtr.Zero)throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+        var entries=new List<KeyValuePair<string,string>>();
+        try {
+            int offset=0;
+            while(true) {
+                string entry=Marshal.PtrToStringUni(IntPtr.Add(block,offset));
+                if(String.IsNullOrEmpty(entry))break;
+                offset+=(entry.Length+1)*2;
+                int equals=entry.IndexOf('=');
+                if(equals>0)entries.Add(new KeyValuePair<string,string>(entry.Substring(0,equals),entry.Substring(equals+1)));
+            }
+        } finally { FreeEnvironmentStringsW(block); }
+        foreach(var group in entries.GroupBy(p=>p.Key,StringComparer.OrdinalIgnoreCase)) {
+            if(group.Count()<2)continue;
+            var keep=group.OrderBy(p=>p.Key,StringComparer.Ordinal).First();
+            foreach(var pair in group)SetEnvironmentVariableW(pair.Key,null);
+            if(!SetEnvironmentVariableW(keep.Key,keep.Value))throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+        }
+    }
+}
 
 internal sealed class Options {
     public bool SelfTest;
     public bool Background;
     public bool TrayTest;
     public bool Repair;
+    public bool CustomHome;
     public string Home = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "VideoDesk");
     public string Report = "";
     public string StopFile = "";
@@ -38,7 +71,7 @@ internal sealed class Options {
             else if (args[i] == "--repair") o.Repair = true;
             else if (args[i] == "--tray-test") { o.TrayTest = true; o.SelfTest = true; o.Background = true; }
             else if (args[i] == "--background") o.Background = true;
-            else if (args[i] == "--home" && i + 1 < args.Length) o.Home = args[++i];
+            else if (args[i] == "--home" && i + 1 < args.Length) { o.Home = args[++i]; o.CustomHome = true; }
             else if (args[i] == "--report" && i + 1 < args.Length) o.Report = args[++i];
             else if (args[i] == "--stop-file" && i + 1 < args.Length) o.StopFile = args[++i];
             else throw new ArgumentException("Unknown argument: " + args[i]);
@@ -47,6 +80,7 @@ internal sealed class Options {
         o.Home = Path.GetFullPath(o.Home);
         return o;
     }
+    public string DefaultOutput { get { return CustomHome || SelfTest ? Path.Combine(Home,"output") : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),"映格素材"); } }
 }
 
 internal static class Json {
@@ -76,6 +110,7 @@ internal static class Program {
             SetErrorMode(0x0001 | 0x0002);
             AppContext.SetSwitch("Switch.System.IO.UseLegacyPathHandling", false);
             AppContext.SetSwitch("Switch.System.IO.BlockLongPaths", false);
+            ProcessEnvironment.Normalize();
             int cliIndex = Array.IndexOf(args, "--cli");
             if (cliIndex >= 0) return RunCli(Options.Parse(args.Take(cliIndex).ToArray()), args.Skip(cliIndex + 1).ToArray());
             options = Options.Parse(args);
@@ -108,6 +143,9 @@ internal static class Program {
                 } finally { mutex.ReleaseMutex(); }
             }
         } catch (Exception exc) {
+            if (Array.IndexOf(args, "--cli") >= 0) {
+                AttachConsole(-1); Console.Error.WriteLine("启动未完成：" + exc.Message); return 1;
+            }
             if (options != null && !String.IsNullOrEmpty(options.Report))
                 Json.Write(options.Report, new { success = false, error = exc.ToString() });
             if (options == null || !options.SelfTest)
@@ -120,8 +158,9 @@ internal static class Program {
     private static int RunCli(Options options, string[] args) {
         AttachConsole(-1); Console.OutputEncoding = new UTF8Encoding(false);
         if (!Core.ExistingReady(options.Home)) {
+            string startupArguments = "--background" + (options.CustomHome ? " --home " + Core.QuoteArgument(options.Home) : "");
             Process.Start(new ProcessStartInfo(Assembly.GetExecutingAssembly().Location,
-                "--background --home " + Core.QuoteArgument(options.Home)) { UseShellExecute = false, CreateNoWindow = true });
+                startupArguments) { UseShellExecute = false, CreateNoWindow = true });
             Stopwatch watch = Stopwatch.StartNew();
             while (!Core.ExistingReady(options.Home) && watch.Elapsed.TotalMinutes < 5) Thread.Sleep(300);
             if (!Core.ExistingReady(options.Home)) { Console.Error.WriteLine("后台启动超时，请查看应用目录的 launcher.log"); return 1; }
@@ -311,7 +350,7 @@ internal sealed class LauncherForm : Form {
             options.Repair = false;
             open.Enabled = true;
             UpdateProgress("准备完成，工作台已启动。", 100);
-            details.AppendText(core.Url + "\r\n后台在系统托盘运行。关闭网页不停止任务；录制时请保持采集页面打开。\r\n");
+            details.AppendText(core.Url + "\r\n后台在系统托盘运行。直播录播可关闭网页；网页共享录制需要保持采集页面打开。\r\n");
             if (core.Degraded) details.AppendText("部分组件暂不可用；工作台中可查看具体功能及修复入口。\r\n");
             open.Text = "打开工作台"; crashReported = false;
             if (!options.Background || forceRepair) core.OpenBrowser();
@@ -360,7 +399,7 @@ internal sealed class Core : IDisposable {
     public void ClearRepairRequest() { File.Delete(Path.Combine(Data, "repair.request")); }
     public bool ServerAlive { get { try { return server != null && !server.HasExited; } catch { return false; } } }
     public bool ShutdownRequested { get { return File.Exists(Path.Combine(Data, "shutdown.request")); } }
-    public string OutputDirectory { get { try { return (string)Json.Read(Path.Combine(Data, "settings.json"))["output"]; } catch { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "映格素材"); } } }
+    public string OutputDirectory { get { try { return (string)Json.Read(Path.Combine(Data, "settings.json"))["output"]; } catch { return options.DefaultOutput; } } }
     public bool HasActiveJobs {
         get {
             try {
@@ -443,12 +482,30 @@ internal sealed class Core : IDisposable {
     }
 
     private void ConfigureRuntime() {
+        // Native runtimes still have shorter executable/current-directory limits.
+        // An existing NTFS short name is an alias, not a second installation.
+        if (InstallRoot.Length >= 140) InstallRoot = ShortRuntimePath(InstallRoot);
         manifest = Json.Read(Path.Combine(InstallRoot, "runtime-manifest.json"));
         MainPython = Path.Combine(InstallRoot, "runtime", "main", "python.exe");
         CrawlerPython = Path.Combine(InstallRoot, "runtime", "crawler", "python.exe");
         Node = Path.Combine(InstallRoot, "runtime", "node", "node.exe");
         Browser = ChooseBrowser(InstallRoot, manifest);
         ChildPath = Path.GetDirectoryName(Node) + ";" + Path.GetDirectoryName(MainPython) + ";" + Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "System32");
+    }
+
+    [DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true)]
+    private static extern uint GetShortPathName(string path,StringBuilder output,uint size);
+    private static string ShortRuntimePath(string path) {
+        string extended=path.StartsWith(@"\\?\",StringComparison.Ordinal)?path:path.StartsWith(@"\\",StringComparison.Ordinal)?@"\\?\UNC\"+path.Substring(2):@"\\?\"+path;
+        var output=new StringBuilder(32768);
+        uint size=GetShortPathName(extended,output,(uint)output.Capacity);
+        if(size>0 && size<output.Capacity) {
+            string result=output.ToString();
+            if(result.StartsWith(@"\\?\UNC\",StringComparison.Ordinal))result=@"\\"+result.Substring(8);
+            else if(result.StartsWith(@"\\?\",StringComparison.Ordinal))result=result.Substring(4);
+            if(result.Length<path.Length)return result;
+        }
+        return path;
     }
 
     private string ProbeArguments(string component) {
@@ -549,8 +606,9 @@ internal sealed class Core : IDisposable {
                     if (archive.Entries.Count != expected.Count + 1) throw new InvalidOperationException("安装文件清单不一致。");
                     long total = archive.Entries.Sum(entry => entry.Length);
                     string driveRoot = Path.GetPathRoot(stage);
-                    if (!String.IsNullOrEmpty(driveRoot) && new DriveInfo(driveRoot).AvailableFreeSpace < total + payload.Length + 200L * 1024 * 1024)
-                        throw new IOException("应用所在磁盘空间不足，请至少预留 3 GB 可用空间。");
+                    long requiredBytes = total + payload.Length + 200L * 1024 * 1024;
+                    if (!String.IsNullOrEmpty(driveRoot) && new DriveInfo(driveRoot).AvailableFreeSpace < requiredBytes)
+                        throw new IOException("应用所在磁盘空间不足，本次安装至少需要 " + Math.Ceiling(requiredBytes / (1024.0 * 1024 * 1024) * 10) / 10 + " GB 可用空间。");
                     long processed = 0; int previous = -1;
                     string stagePrefix = Path.GetFullPath(stage) + Path.DirectorySeparatorChar;
                     foreach (ZipArchiveEntry entry in archive.Entries) {
@@ -593,15 +651,31 @@ internal sealed class Core : IDisposable {
     }
 
     private ProcessStartInfo ChildInfo(string executable, string arguments) {
-        ProcessStartInfo info = new ProcessStartInfo(executable, arguments);
+        string nativeExecutable = executable.Length >= 248 ? ShortRuntimePath(executable) : executable;
+        if(nativeExecutable.Length>=260)throw new InvalidOperationException("应用目录过长，且此磁盘未提供可用的短路径名称。请将 --home 设置为较短目录后重试；已有素材不会删除。");
+        ProcessStartInfo info = new ProcessStartInfo(nativeExecutable, arguments);
         info.UseShellExecute = false; info.CreateNoWindow = true;
         info.WorkingDirectory = Path.Combine(InstallRoot, "app");
+        // CreateProcess still rejects a >= MAX_PATH current directory even in a
+        // longPathAware parent. Scripts and all data paths are already absolute.
+        if (info.WorkingDirectory.Length >= 248)
+            info.WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.System);
         foreach (string key in new[] { "PYTHONHOME", "PYTHONPATH", "VIRTUAL_ENV", "CONDA_PREFIX" }) info.EnvironmentVariables.Remove(key);
         info.EnvironmentVariables["PATH"] = ChildPath;
         info.EnvironmentVariables["PYTHONUTF8"] = "1";
         info.EnvironmentVariables["PYTHONIOENCODING"] = "utf-8";
         info.EnvironmentVariables["VIDEO_DESK_DATA"] = Data;
-        info.EnvironmentVariables["VIDEO_DESK_DEFAULT_OUTPUT"] = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "映格素材");
+        info.EnvironmentVariables["VIDEO_DESK_APP_ROOT"] = Path.Combine(InstallRoot,"app");
+        string ffmpegDirectory=Path.Combine(InstallRoot,"runtime","main","Lib","site-packages","imageio_ffmpeg","binaries");
+        if(Directory.Exists(ffmpegDirectory)) {
+            string ffmpeg=Directory.GetFiles(ffmpegDirectory,"ffmpeg*.exe").FirstOrDefault();
+            if(ffmpeg!=null) {
+                ffmpeg=ShortRuntimePath(ffmpeg);
+                info.EnvironmentVariables["IMAGEIO_FFMPEG_EXE"]=ffmpeg;
+                info.EnvironmentVariables["VIDEO_DESK_FFMPEG"]=ffmpeg;
+            }
+        }
+        info.EnvironmentVariables["VIDEO_DESK_DEFAULT_OUTPUT"] = options.DefaultOutput;
         info.EnvironmentVariables["VIDEO_DESK_CRAWLER_PYTHON"] = CrawlerPython;
         info.EnvironmentVariables["VIDEO_DESK_BROWSER_EXE"] = Browser;
         info.EnvironmentVariables["VIDEO_DESK_NODE_EXE"] = Node;
@@ -746,7 +820,7 @@ internal sealed class Core : IDisposable {
             string executable = Assembly.GetExecutingAssembly().Location;
             string installed = Path.Combine(options.Home, "VideoDesk.exe");
             if (!String.Equals(executable, installed, StringComparison.OrdinalIgnoreCase)) {
-                if (!File.Exists(installed) || new FileInfo(installed).Length != new FileInfo(executable).Length || FileVersionInfo.GetVersionInfo(installed).FileVersion != BuildInfo.Version + ".0") File.Copy(executable, installed, true);
+                if (!File.Exists(installed) || new FileInfo(installed).Length != new FileInfo(executable).Length || FileVersionInfo.GetVersionInfo(installed).FileVersion != BuildInfo.Version + ".0" || HashFile(installed) != HashFile(executable)) File.Copy(executable, installed, true);
             }
             string shortcut = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "映格视频工作台.lnk");
             {

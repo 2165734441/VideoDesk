@@ -1,0 +1,3306 @@
+{
+  "instance": "http://127.0.0.1:2746",
+  "installation_id": "bdbfa8b441cc4ed89f9537d7401e17d3",
+  "exe_sha256": "676a999a093e07d901be809fcb7bcc685de92be703b8e04493427ab3edb97d2d",
+  "apk_sha256": "dbfa13c3c270544f95dc543995fb18b326e58a80ad3178372f4977aa86c85c61",
+  "requests": [
+    {
+      "label": "S001 state",
+      "method": "GET",
+      "path": "/api/state",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "token": "<redacted>",
+        "settings": {
+          "output": "E:\\VideoDesk\\repro\\qa\\output"
+        },
+        "jobs": [
+          {
+            "id": "49dfb788bd40",
+            "kind": "extract",
+            "title": "直接抽帧 · QA27 中文,空格 样本.mp4",
+            "status": "done",
+            "message": "抽帧完成，原视频未复制、未修改。",
+            "progress": 100,
+            "created": 1794640651.5658479,
+            "updated": 1794640653.2916873,
+            "directory": "E:\\VideoDesk\\repro\\qa\\output\\20261114-151731_49dfb788bd40",
+            "source": "E:\\VideoDesk\\repro\\samples\\QA27 中文,空格 样本.mp4",
+            "options": {
+              "mode": "seconds",
+              "value": 3,
+              "crop": null,
+              "start": 0,
+              "duration": 0,
+              "limit": 2000,
+              "audio": true,
+              "video_saved": false,
+              "source_mode": "local-path"
+            },
+            "frames": 2,
+            "files": [
+              {
+                "name": "AI分析提示词.txt",
+                "size": 540
+              },
+              {
+                "name": "audio.m4a",
+                "size": 39730
+              },
+              {
+                "name": "frames/000001.jpg",
+                "size": 6373
+              },
+              {
+                "name": "frames/000002.jpg",
+                "size": 6356
+              },
+              {
+                "name": "manifest.json",
+                "size": 538
+              },
+              {
+                "name": "timeline.json",
+                "size": 193
+              }
+            ],
+            "progress_detail": {},
+            "progress_indeterminate": false
+          },
+          {
+            "id": "31d315995036",
+            "kind": "extract",
+            "title": "直接抽帧 · qa_broken.mp4",
+            "status": "error",
+            "message": "视频抽帧失败：[in#0 @ 0000018e1033ac40] Error opening input: Invalid data found when processing input\nError opening input file E:\\VideoDesk\\repro\\samples\\qa_broken.mp4.\nError opening input files: Invalid data found when processing input\n",
+            "progress": 0,
+            "created": 1794640650.7698412,
+            "updated": 1794640651.3899817,
+            "directory": "E:\\VideoDesk\\repro\\qa\\output\\20261114-151730_31d315995036",
+            "source": "E:\\VideoDesk\\repro\\samples\\qa_broken.mp4",
+            "options": {
+              "mode": "seconds",
+              "value": 3,
+              "crop": null,
+              "start": 0,
+              "duration": 0,
+              "limit": 2000,
+              "audio": true,
+              "video_saved": false,
+              "source_mode": "local-path"
+            },
+            "frames": 0,
+            "files": [],
+            "progress_detail": {},
+            "progress_indeterminate": false
+          },
+          {
+            "id": "f440f90f38be",
+            "kind": "extract",
+            "title": "直接抽帧 · qa_av_6s.mp4",
+            "status": "done",
+            "message": "抽帧完成，原视频未复制、未修改。",
+            "progress": 100,
+            "created": 1794640648.7349987,
+            "updated": 1794640650.5505471,
+            "directory": "E:\\VideoDesk\\repro\\qa\\output\\20261114-151728_f440f90f38be",
+            "source": "E:\\VideoDesk\\repro\\samples\\qa_av_6s.mp4",
+            "options": {
+              "mode": "seconds",
+              "value": 2.0,
+              "crop": null,
+              "start": 0,
+              "duration": 0,
+              "limit": 100,
+              "audio": false,
+              "video_saved": false,
+              "source_mode": "local-path"
+            },
+            "frames": 0,
+            "files": [
+              {
+                "name": "AI分析提示词.txt",
+                "size": 558
+              },
+              {
+                "name": "sentinel_original.mp4",
+                "size": 69734
+              },
+              {
+                "name": "sentinel_shared.dat",
+                "size": 168
+              },
+              {
+                "name": "sentinel_user_added.txt",
+                "size": 34
+              }
+            ],
+            "progress_detail": {},
+            "progress_indeterminate": false,
+            "materials_deleted": true,
+            "material_cleanup": {
+              "deleted": 6,
+              "skipped": [
+                {
+                  "name": "AI分析提示词.txt",
+                  "reason": "已修改或属于视频来源",
+                  "job_id": "f440f90f38be"
+                }
+              ],
+              "errors": [],
+              "warnings": [
+                {
+                  "name": "timeline.json",
+                  "reason": "系统回收站报告异常（HRESULT 80070002）；原路径已移走，请核对回收站",
+                  "job_id": "f440f90f38be"
+                },
+                {
+                  "name": "manifest.json",
+                  "reason": "系统回收站报告异常（HRESULT 80070002）；原路径已移走，请核对回收站",
+                  "job_id": "f440f90f38be"
+                }
+              ]
+            }
+          },
+          {
+            "id": "ce754c0c3dee",
+            "kind": "live-recording",
+            "title": "输出目录验证 · 直播录播",
+            "status": "error",
+            "message": "已停止读取直播间；可改用手机检测／录制，或打开专用浏览器确认直播能正常播放",
+            "progress": 0,
+            "created": 1794640645.6937003,
+            "updated": 1794640646.8593633,
+            "directory": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_C\\20261114-151725_ce754c0c3dee",
+            "source": "https://live.douyin.com/7000000000000000202",
+            "options": {
+              "anchor_id": "70a8df9cee8e",
+              "automatic": false,
+              "quality": "origin"
+            },
+            "frames": 0,
+            "files": [],
+            "progress_detail": {},
+            "progress_indeterminate": false
+          },
+          {
+            "id": "ff6b373bccfc",
+            "kind": "live-recording",
+            "title": "输出目录验证 · 直播录播",
+            "status": "error",
+            "message": "已停止读取直播间；可改用手机检测／录制，或打开专用浏览器确认直播能正常播放",
+            "progress": 0,
+            "created": 1794640643.8411655,
+            "updated": 1794640645.0197067,
+            "directory": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_A\\20261114-151723_ff6b373bccfc",
+            "source": "https://live.douyin.com/7000000000000000201",
+            "options": {
+              "anchor_id": "d58292f548c7",
+              "automatic": false,
+              "quality": "origin"
+            },
+            "frames": 0,
+            "files": [],
+            "progress_detail": {},
+            "progress_indeterminate": false
+          },
+          {
+            "id": "9115f34e6d2e",
+            "kind": "extract",
+            "title": "直接抽帧 · qa_av_6s.mp4",
+            "status": "done",
+            "message": "抽帧完成，原视频未复制、未修改。",
+            "progress": 100,
+            "created": 1794640612.8448637,
+            "updated": 1794640619.9877017,
+            "directory": "E:\\VideoDesk\\repro\\qa\\output\\20261114-151652_9115f34e6d2e",
+            "source": "E:\\VideoDesk\\repro\\samples\\qa_av_6s.mp4",
+            "options": {
+              "mode": "seconds",
+              "value": 2.0,
+              "crop": null,
+              "start": 0,
+              "duration": 0,
+              "limit": 100,
+              "audio": false,
+              "video_saved": false,
+              "source_mode": "local-path"
+            },
+            "frames": 0,
+            "files": [
+              {
+                "name": "AI分析提示词.txt",
+                "size": 558
+              },
+              {
+                "name": "sentinel_original.mp4",
+                "size": 69734
+              },
+              {
+                "name": "sentinel_shared.dat",
+                "size": 168
+              },
+              {
+                "name": "sentinel_user_added.txt",
+                "size": 34
+              }
+            ],
+            "progress_detail": {},
+            "progress_indeterminate": false,
+            "materials_deleted": true,
+            "material_cleanup": {
+              "deleted": 6,
+              "skipped": [
+                {
+                  "name": "AI分析提示词.txt",
+                  "reason": "已修改或属于视频来源",
+                  "job_id": "9115f34e6d2e"
+                }
+              ],
+              "errors": [],
+              "warnings": [
+                {
+                  "name": "timeline.json",
+                  "reason": "系统回收站报告异常（HRESULT 80070002）；原路径已移走，请核对回收站",
+                  "job_id": "9115f34e6d2e"
+                },
+                {
+                  "name": "manifest.json",
+                  "reason": "系统回收站报告异常（HRESULT 80070002）；原路径已移走，请核对回收站",
+                  "job_id": "9115f34e6d2e"
+                }
+              ]
+            }
+          },
+          {
+            "id": "59b459a07f58",
+            "kind": "live-recording",
+            "title": "输出目录验证 · 直播录播",
+            "status": "error",
+            "message": "已停止读取直播间；可改用手机检测／录制，或打开专用浏览器确认直播能正常播放",
+            "progress": 0,
+            "created": 1794640593.712935,
+            "updated": 1794640594.662904,
+            "directory": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_C\\20261114-151633_59b459a07f58",
+            "source": "https://live.douyin.com/7000000000000000202",
+            "options": {
+              "anchor_id": "271aeb53cbf0",
+              "automatic": false,
+              "quality": "origin"
+            },
+            "frames": 0,
+            "files": [],
+            "progress_detail": {},
+            "progress_indeterminate": false
+          },
+          {
+            "id": "251b23416d7f",
+            "kind": "live-recording",
+            "title": "输出目录验证 · 直播录播",
+            "status": "error",
+            "message": "已停止读取直播间；可改用手机检测／录制，或打开专用浏览器确认直播能正常播放",
+            "progress": 0,
+            "created": 1794640592.019092,
+            "updated": 1794640593.192883,
+            "directory": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_A\\20261114-151631_251b23416d7f",
+            "source": "https://live.douyin.com/7000000000000000201",
+            "options": {
+              "anchor_id": "fd50374262f4",
+              "automatic": false,
+              "quality": "origin"
+            },
+            "frames": 0,
+            "files": [],
+            "progress_detail": {},
+            "progress_indeterminate": false
+          },
+          {
+            "id": "6f10fb5d0a1a",
+            "kind": "extract",
+            "title": "直接抽帧 · sentinel_broken.mp4",
+            "status": "error",
+            "message": "视频抽帧失败：[in#0 @ 000001e14fb7ac40] Error opening input: Invalid data found when processing input\nError opening input file E:\\VideoDesk\\repro\\qa\\materials\\sentinel_broken.mp4.\nError opening input files: Invalid data found when processing input\n",
+            "progress": 0,
+            "created": 1794639120.5402896,
+            "updated": 1794639121.01486,
+            "directory": "E:\\VideoDesk\\repro\\qa\\output\\20261114-145200_6f10fb5d0a1a",
+            "source": "E:\\VideoDesk\\repro\\qa\\materials\\sentinel_broken.mp4",
+            "options": {
+              "mode": "seconds",
+              "value": 3,
+              "crop": null,
+              "start": 0,
+              "duration": 0,
+              "limit": 2000,
+              "audio": true,
+              "video_saved": false,
+              "source_mode": "local-path"
+            },
+            "frames": 0,
+            "files": [],
+            "progress_detail": {},
+            "progress_indeterminate": false
+          }
+        ],
+        "ffmpeg": true,
+        "version": "2.7.0",
+        "application": "video-desk",
+        "installation_id": "bdbfa8b441cc4ed89f9537d7401e17d3",
+        "engines": {
+          "yt_dlp": true,
+          "mediacrawler": true
+        },
+        "youtube": {
+          "ready": true,
+          "node": true,
+          "ejs": "0.8.0"
+        },
+        "runtime": {
+          "managed": true,
+          "degraded": false,
+          "components": [
+            {
+              "id": "base",
+              "name": "基础工作台",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "media",
+              "name": "音视频处理",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "download",
+              "name": "链接下载",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "node",
+              "name": "分镜与 YouTube 脚本",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "browser",
+              "name": "登录浏览器",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "dedup",
+              "name": "相似图片去重",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "ocr",
+              "name": "画面文字识别",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "asr",
+              "name": "本地语音识别",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "crawler",
+              "name": "MediaCrawler 平台采集",
+              "ready": true,
+              "message": "已就绪"
+            }
+          ],
+          "repair_hint": "从系统托盘打开“检测并修复”。修复保留账号、设置和素材。"
+        }
+      }
+    },
+    {
+      "label": "S002 settings isolation",
+      "method": "GET",
+      "path": "/api/state",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "token": "<redacted>",
+        "settings": {
+          "output": "E:\\VideoDesk\\repro\\qa\\output"
+        },
+        "jobs": [
+          {
+            "id": "49dfb788bd40",
+            "kind": "extract",
+            "title": "直接抽帧 · QA27 中文,空格 样本.mp4",
+            "status": "done",
+            "message": "抽帧完成，原视频未复制、未修改。",
+            "progress": 100,
+            "created": 1794640651.5658479,
+            "updated": 1794640653.2916873,
+            "directory": "E:\\VideoDesk\\repro\\qa\\output\\20261114-151731_49dfb788bd40",
+            "source": "E:\\VideoDesk\\repro\\samples\\QA27 中文,空格 样本.mp4",
+            "options": {
+              "mode": "seconds",
+              "value": 3,
+              "crop": null,
+              "start": 0,
+              "duration": 0,
+              "limit": 2000,
+              "audio": true,
+              "video_saved": false,
+              "source_mode": "local-path"
+            },
+            "frames": 2,
+            "files": [
+              {
+                "name": "AI分析提示词.txt",
+                "size": 540
+              },
+              {
+                "name": "audio.m4a",
+                "size": 39730
+              },
+              {
+                "name": "frames/000001.jpg",
+                "size": 6373
+              },
+              {
+                "name": "frames/000002.jpg",
+                "size": 6356
+              },
+              {
+                "name": "manifest.json",
+                "size": 538
+              },
+              {
+                "name": "timeline.json",
+                "size": 193
+              }
+            ],
+            "progress_detail": {},
+            "progress_indeterminate": false
+          },
+          {
+            "id": "31d315995036",
+            "kind": "extract",
+            "title": "直接抽帧 · qa_broken.mp4",
+            "status": "error",
+            "message": "视频抽帧失败：[in#0 @ 0000018e1033ac40] Error opening input: Invalid data found when processing input\nError opening input file E:\\VideoDesk\\repro\\samples\\qa_broken.mp4.\nError opening input files: Invalid data found when processing input\n",
+            "progress": 0,
+            "created": 1794640650.7698412,
+            "updated": 1794640651.3899817,
+            "directory": "E:\\VideoDesk\\repro\\qa\\output\\20261114-151730_31d315995036",
+            "source": "E:\\VideoDesk\\repro\\samples\\qa_broken.mp4",
+            "options": {
+              "mode": "seconds",
+              "value": 3,
+              "crop": null,
+              "start": 0,
+              "duration": 0,
+              "limit": 2000,
+              "audio": true,
+              "video_saved": false,
+              "source_mode": "local-path"
+            },
+            "frames": 0,
+            "files": [],
+            "progress_detail": {},
+            "progress_indeterminate": false
+          },
+          {
+            "id": "f440f90f38be",
+            "kind": "extract",
+            "title": "直接抽帧 · qa_av_6s.mp4",
+            "status": "done",
+            "message": "抽帧完成，原视频未复制、未修改。",
+            "progress": 100,
+            "created": 1794640648.7349987,
+            "updated": 1794640650.5505471,
+            "directory": "E:\\VideoDesk\\repro\\qa\\output\\20261114-151728_f440f90f38be",
+            "source": "E:\\VideoDesk\\repro\\samples\\qa_av_6s.mp4",
+            "options": {
+              "mode": "seconds",
+              "value": 2.0,
+              "crop": null,
+              "start": 0,
+              "duration": 0,
+              "limit": 100,
+              "audio": false,
+              "video_saved": false,
+              "source_mode": "local-path"
+            },
+            "frames": 0,
+            "files": [
+              {
+                "name": "AI分析提示词.txt",
+                "size": 558
+              },
+              {
+                "name": "sentinel_original.mp4",
+                "size": 69734
+              },
+              {
+                "name": "sentinel_shared.dat",
+                "size": 168
+              },
+              {
+                "name": "sentinel_user_added.txt",
+                "size": 34
+              }
+            ],
+            "progress_detail": {},
+            "progress_indeterminate": false,
+            "materials_deleted": true,
+            "material_cleanup": {
+              "deleted": 6,
+              "skipped": [
+                {
+                  "name": "AI分析提示词.txt",
+                  "reason": "已修改或属于视频来源",
+                  "job_id": "f440f90f38be"
+                }
+              ],
+              "errors": [],
+              "warnings": [
+                {
+                  "name": "timeline.json",
+                  "reason": "系统回收站报告异常（HRESULT 80070002）；原路径已移走，请核对回收站",
+                  "job_id": "f440f90f38be"
+                },
+                {
+                  "name": "manifest.json",
+                  "reason": "系统回收站报告异常（HRESULT 80070002）；原路径已移走，请核对回收站",
+                  "job_id": "f440f90f38be"
+                }
+              ]
+            }
+          },
+          {
+            "id": "ce754c0c3dee",
+            "kind": "live-recording",
+            "title": "输出目录验证 · 直播录播",
+            "status": "error",
+            "message": "已停止读取直播间；可改用手机检测／录制，或打开专用浏览器确认直播能正常播放",
+            "progress": 0,
+            "created": 1794640645.6937003,
+            "updated": 1794640646.8593633,
+            "directory": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_C\\20261114-151725_ce754c0c3dee",
+            "source": "https://live.douyin.com/7000000000000000202",
+            "options": {
+              "anchor_id": "70a8df9cee8e",
+              "automatic": false,
+              "quality": "origin"
+            },
+            "frames": 0,
+            "files": [],
+            "progress_detail": {},
+            "progress_indeterminate": false
+          },
+          {
+            "id": "ff6b373bccfc",
+            "kind": "live-recording",
+            "title": "输出目录验证 · 直播录播",
+            "status": "error",
+            "message": "已停止读取直播间；可改用手机检测／录制，或打开专用浏览器确认直播能正常播放",
+            "progress": 0,
+            "created": 1794640643.8411655,
+            "updated": 1794640645.0197067,
+            "directory": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_A\\20261114-151723_ff6b373bccfc",
+            "source": "https://live.douyin.com/7000000000000000201",
+            "options": {
+              "anchor_id": "d58292f548c7",
+              "automatic": false,
+              "quality": "origin"
+            },
+            "frames": 0,
+            "files": [],
+            "progress_detail": {},
+            "progress_indeterminate": false
+          },
+          {
+            "id": "9115f34e6d2e",
+            "kind": "extract",
+            "title": "直接抽帧 · qa_av_6s.mp4",
+            "status": "done",
+            "message": "抽帧完成，原视频未复制、未修改。",
+            "progress": 100,
+            "created": 1794640612.8448637,
+            "updated": 1794640619.9877017,
+            "directory": "E:\\VideoDesk\\repro\\qa\\output\\20261114-151652_9115f34e6d2e",
+            "source": "E:\\VideoDesk\\repro\\samples\\qa_av_6s.mp4",
+            "options": {
+              "mode": "seconds",
+              "value": 2.0,
+              "crop": null,
+              "start": 0,
+              "duration": 0,
+              "limit": 100,
+              "audio": false,
+              "video_saved": false,
+              "source_mode": "local-path"
+            },
+            "frames": 0,
+            "files": [
+              {
+                "name": "AI分析提示词.txt",
+                "size": 558
+              },
+              {
+                "name": "sentinel_original.mp4",
+                "size": 69734
+              },
+              {
+                "name": "sentinel_shared.dat",
+                "size": 168
+              },
+              {
+                "name": "sentinel_user_added.txt",
+                "size": 34
+              }
+            ],
+            "progress_detail": {},
+            "progress_indeterminate": false,
+            "materials_deleted": true,
+            "material_cleanup": {
+              "deleted": 6,
+              "skipped": [
+                {
+                  "name": "AI分析提示词.txt",
+                  "reason": "已修改或属于视频来源",
+                  "job_id": "9115f34e6d2e"
+                }
+              ],
+              "errors": [],
+              "warnings": [
+                {
+                  "name": "timeline.json",
+                  "reason": "系统回收站报告异常（HRESULT 80070002）；原路径已移走，请核对回收站",
+                  "job_id": "9115f34e6d2e"
+                },
+                {
+                  "name": "manifest.json",
+                  "reason": "系统回收站报告异常（HRESULT 80070002）；原路径已移走，请核对回收站",
+                  "job_id": "9115f34e6d2e"
+                }
+              ]
+            }
+          },
+          {
+            "id": "59b459a07f58",
+            "kind": "live-recording",
+            "title": "输出目录验证 · 直播录播",
+            "status": "error",
+            "message": "已停止读取直播间；可改用手机检测／录制，或打开专用浏览器确认直播能正常播放",
+            "progress": 0,
+            "created": 1794640593.712935,
+            "updated": 1794640594.662904,
+            "directory": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_C\\20261114-151633_59b459a07f58",
+            "source": "https://live.douyin.com/7000000000000000202",
+            "options": {
+              "anchor_id": "271aeb53cbf0",
+              "automatic": false,
+              "quality": "origin"
+            },
+            "frames": 0,
+            "files": [],
+            "progress_detail": {},
+            "progress_indeterminate": false
+          },
+          {
+            "id": "251b23416d7f",
+            "kind": "live-recording",
+            "title": "输出目录验证 · 直播录播",
+            "status": "error",
+            "message": "已停止读取直播间；可改用手机检测／录制，或打开专用浏览器确认直播能正常播放",
+            "progress": 0,
+            "created": 1794640592.019092,
+            "updated": 1794640593.192883,
+            "directory": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_A\\20261114-151631_251b23416d7f",
+            "source": "https://live.douyin.com/7000000000000000201",
+            "options": {
+              "anchor_id": "fd50374262f4",
+              "automatic": false,
+              "quality": "origin"
+            },
+            "frames": 0,
+            "files": [],
+            "progress_detail": {},
+            "progress_indeterminate": false
+          },
+          {
+            "id": "6f10fb5d0a1a",
+            "kind": "extract",
+            "title": "直接抽帧 · sentinel_broken.mp4",
+            "status": "error",
+            "message": "视频抽帧失败：[in#0 @ 000001e14fb7ac40] Error opening input: Invalid data found when processing input\nError opening input file E:\\VideoDesk\\repro\\qa\\materials\\sentinel_broken.mp4.\nError opening input files: Invalid data found when processing input\n",
+            "progress": 0,
+            "created": 1794639120.5402896,
+            "updated": 1794639121.01486,
+            "directory": "E:\\VideoDesk\\repro\\qa\\output\\20261114-145200_6f10fb5d0a1a",
+            "source": "E:\\VideoDesk\\repro\\qa\\materials\\sentinel_broken.mp4",
+            "options": {
+              "mode": "seconds",
+              "value": 3,
+              "crop": null,
+              "start": 0,
+              "duration": 0,
+              "limit": 2000,
+              "audio": true,
+              "video_saved": false,
+              "source_mode": "local-path"
+            },
+            "frames": 0,
+            "files": [],
+            "progress_detail": {},
+            "progress_indeterminate": false
+          }
+        ],
+        "ffmpeg": true,
+        "version": "2.7.0",
+        "application": "video-desk",
+        "installation_id": "bdbfa8b441cc4ed89f9537d7401e17d3",
+        "engines": {
+          "yt_dlp": true,
+          "mediacrawler": true
+        },
+        "youtube": {
+          "ready": true,
+          "node": true,
+          "ejs": "0.8.0"
+        },
+        "runtime": {
+          "managed": true,
+          "degraded": false,
+          "components": [
+            {
+              "id": "base",
+              "name": "基础工作台",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "media",
+              "name": "音视频处理",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "download",
+              "name": "链接下载",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "node",
+              "name": "分镜与 YouTube 脚本",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "browser",
+              "name": "登录浏览器",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "dedup",
+              "name": "相似图片去重",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "ocr",
+              "name": "画面文字识别",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "asr",
+              "name": "本地语音识别",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "crawler",
+              "name": "MediaCrawler 平台采集",
+              "ready": true,
+              "message": "已就绪"
+            }
+          ],
+          "repair_hint": "从系统托盘打开“检测并修复”。修复保留账号、设置和素材。"
+        }
+      }
+    },
+    {
+      "label": "reset anchors",
+      "method": "GET",
+      "path": "/api/live",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "settings": {
+          "concurrency": 4,
+          "output": "E:\\VideoDesk\\repro\\qa\\output",
+          "segment_minutes": 30
+        },
+        "anchors": [
+          {
+            "id": "70a8df9cee8e",
+            "name": "输出目录验证",
+            "url": "https://live.douyin.com/7000000000000000202",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {
+              "state": "idle",
+              "message": "已停止读取直播间；可改用手机检测／录制，或打开专用浏览器确认直播能正常播放"
+            },
+            "active_job": null
+          }
+        ]
+      }
+    },
+    {
+      "label": "delete anchor 70a8df9cee8e",
+      "method": "DELETE",
+      "path": "/api/live/anchors/70a8df9cee8e",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "label": "A-dedup-P01",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "",
+        "url": "https://live.douyin.com/7381928374650910213"
+      },
+      "status": 200,
+      "body": {
+        "id": "db4e3d87d03e",
+        "name": "",
+        "url": "https://live.douyin.com/7381928374650910213",
+        "enabled": false,
+        "quality": "origin",
+        "windows": [],
+        "monitor_device": "pc",
+        "record_target": "ask"
+      }
+    },
+    {
+      "label": "A-dedup-P02",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "",
+        "url": "https://www.douyin.com/live/7381928374650910213"
+      },
+      "status": 409,
+      "body": {
+        "detail": "此主播已在列表中，请修改已有设置"
+      }
+    },
+    {
+      "label": "A-dedup-P03",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "",
+        "url": "https://live.douyin.com/7381928374650910213?utm_source=copy"
+      },
+      "status": 409,
+      "body": {
+        "detail": "此主播已在列表中，请修改已有设置"
+      }
+    },
+    {
+      "label": "A-dedup-P04",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "",
+        "url": "https://webcast.amemv.com/douyin/webcast/reflow/7381928374650910213/"
+      },
+      "status": 200,
+      "body": {
+        "id": "dc2cd28d2736",
+        "name": "",
+        "url": "https://webcast.amemv.com/douyin/webcast/reflow/7381928374650910213/",
+        "enabled": false,
+        "quality": "origin",
+        "windows": [],
+        "monitor_device": "pc",
+        "record_target": "ask"
+      }
+    },
+    {
+      "label": "A-dedup-P05",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "",
+        "url": "http://webcast.amemv.com/douyin/webcast/reflow/7381928374650910213"
+      },
+      "status": 200,
+      "body": {
+        "id": "d9a74a04402d",
+        "name": "",
+        "url": "http://webcast.amemv.com/douyin/webcast/reflow/7381928374650910213",
+        "enabled": false,
+        "quality": "origin",
+        "windows": [],
+        "monitor_device": "pc",
+        "record_target": "ask"
+      }
+    },
+    {
+      "label": "A-dedup-P06",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "",
+        "url": "https://webcast.amemv.com/douyin/webcast/reflow/7381928374650910213/?from=share"
+      },
+      "status": 200,
+      "body": {
+        "id": "b85545416f74",
+        "name": "",
+        "url": "https://webcast.amemv.com/douyin/webcast/reflow/7381928374650910213/?from=share",
+        "enabled": false,
+        "quality": "origin",
+        "windows": [],
+        "monitor_device": "pc",
+        "record_target": "ask"
+      }
+    },
+    {
+      "label": "A-dedup-state",
+      "method": "GET",
+      "path": "/api/live",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "settings": {
+          "concurrency": 4,
+          "output": "E:\\VideoDesk\\repro\\qa\\output",
+          "segment_minutes": 30
+        },
+        "anchors": [
+          {
+            "id": "db4e3d87d03e",
+            "name": "",
+            "url": "https://live.douyin.com/7381928374650910213",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "dc2cd28d2736",
+            "name": "",
+            "url": "https://webcast.amemv.com/douyin/webcast/reflow/7381928374650910213/",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "d9a74a04402d",
+            "name": "",
+            "url": "http://webcast.amemv.com/douyin/webcast/reflow/7381928374650910213",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "b85545416f74",
+            "name": "",
+            "url": "https://webcast.amemv.com/douyin/webcast/reflow/7381928374650910213/?from=share",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          }
+        ]
+      }
+    },
+    {
+      "label": "reset anchors",
+      "method": "GET",
+      "path": "/api/live",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "settings": {
+          "concurrency": 4,
+          "output": "E:\\VideoDesk\\repro\\qa\\output",
+          "segment_minutes": 30
+        },
+        "anchors": [
+          {
+            "id": "db4e3d87d03e",
+            "name": "",
+            "url": "https://live.douyin.com/7381928374650910213",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "dc2cd28d2736",
+            "name": "",
+            "url": "https://webcast.amemv.com/douyin/webcast/reflow/7381928374650910213/",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "d9a74a04402d",
+            "name": "",
+            "url": "http://webcast.amemv.com/douyin/webcast/reflow/7381928374650910213",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "b85545416f74",
+            "name": "",
+            "url": "https://webcast.amemv.com/douyin/webcast/reflow/7381928374650910213/?from=share",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          }
+        ]
+      }
+    },
+    {
+      "label": "delete anchor db4e3d87d03e",
+      "method": "DELETE",
+      "path": "/api/live/anchors/db4e3d87d03e",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "label": "delete anchor dc2cd28d2736",
+      "method": "DELETE",
+      "path": "/api/live/anchors/dc2cd28d2736",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "label": "delete anchor d9a74a04402d",
+      "method": "DELETE",
+      "path": "/api/live/anchors/d9a74a04402d",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "label": "delete anchor b85545416f74",
+      "method": "DELETE",
+      "path": "/api/live/anchors/b85545416f74",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "label": "A-dedup2-reflow-first",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "",
+        "url": "https://webcast.amemv.com/douyin/webcast/reflow/7381928374650910777/"
+      },
+      "status": 200,
+      "body": {
+        "id": "8556d4214098",
+        "name": "",
+        "url": "https://webcast.amemv.com/douyin/webcast/reflow/7381928374650910777/",
+        "enabled": false,
+        "quality": "origin",
+        "windows": [],
+        "monitor_device": "pc",
+        "record_target": "ask"
+      }
+    },
+    {
+      "label": "A-dedup2-live-second",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "",
+        "url": "https://live.douyin.com/7381928374650910777"
+      },
+      "status": 200,
+      "body": {
+        "id": "3cf409bd617b",
+        "name": "",
+        "url": "https://live.douyin.com/7381928374650910777",
+        "enabled": false,
+        "quality": "origin",
+        "windows": [],
+        "monitor_device": "pc",
+        "record_target": "ask"
+      }
+    },
+    {
+      "label": "A-dedup2-state",
+      "method": "GET",
+      "path": "/api/live",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "settings": {
+          "concurrency": 4,
+          "output": "E:\\VideoDesk\\repro\\qa\\output",
+          "segment_minutes": 30
+        },
+        "anchors": [
+          {
+            "id": "8556d4214098",
+            "name": "",
+            "url": "https://webcast.amemv.com/douyin/webcast/reflow/7381928374650910777/",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "3cf409bd617b",
+            "name": "",
+            "url": "https://live.douyin.com/7381928374650910777",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          }
+        ]
+      }
+    },
+    {
+      "label": "reset anchors",
+      "method": "GET",
+      "path": "/api/live",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "settings": {
+          "concurrency": 4,
+          "output": "E:\\VideoDesk\\repro\\qa\\output",
+          "segment_minutes": 30
+        },
+        "anchors": [
+          {
+            "id": "8556d4214098",
+            "name": "",
+            "url": "https://webcast.amemv.com/douyin/webcast/reflow/7381928374650910777/",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "3cf409bd617b",
+            "name": "",
+            "url": "https://live.douyin.com/7381928374650910777",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          }
+        ]
+      }
+    },
+    {
+      "label": "delete anchor 8556d4214098",
+      "method": "DELETE",
+      "path": "/api/live/anchors/8556d4214098",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "label": "delete anchor 3cf409bd617b",
+      "method": "DELETE",
+      "path": "/api/live/anchors/3cf409bd617b",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "label": "A-note-blank",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "",
+        "url": "https://live.douyin.com/7000000000000000101"
+      },
+      "status": 200,
+      "body": {
+        "id": "7c995a5b7a45",
+        "name": "",
+        "url": "https://live.douyin.com/7000000000000000101",
+        "enabled": false,
+        "quality": "origin",
+        "windows": [],
+        "monitor_device": "pc",
+        "record_target": "ask"
+      }
+    },
+    {
+      "label": "A-note-edit",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "id": "7c995a5b7a45",
+        "name": "测试备注A",
+        "url": "https://live.douyin.com/7000000000000000101"
+      },
+      "status": 200,
+      "body": {
+        "id": "7c995a5b7a45",
+        "name": "测试备注A",
+        "url": "https://live.douyin.com/7000000000000000101",
+        "enabled": false,
+        "quality": "origin",
+        "windows": [],
+        "monitor_device": "pc",
+        "record_target": "ask"
+      }
+    },
+    {
+      "label": "A-same-nick-1",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "同名主播",
+        "url": "https://live.douyin.com/7000000000000000102"
+      },
+      "status": 200,
+      "body": {
+        "id": "db777c1febeb",
+        "name": "同名主播",
+        "url": "https://live.douyin.com/7000000000000000102",
+        "enabled": false,
+        "quality": "origin",
+        "windows": [],
+        "monitor_device": "pc",
+        "record_target": "ask"
+      }
+    },
+    {
+      "label": "A-same-nick-2",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "同名主播",
+        "url": "https://live.douyin.com/7000000000000000103"
+      },
+      "status": 200,
+      "body": {
+        "id": "2fc2295b56b9",
+        "name": "同名主播",
+        "url": "https://live.douyin.com/7000000000000000103",
+        "enabled": false,
+        "quality": "origin",
+        "windows": [],
+        "monitor_device": "pc",
+        "record_target": "ask"
+      }
+    },
+    {
+      "label": "A-same-nick-state",
+      "method": "GET",
+      "path": "/api/live",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "settings": {
+          "concurrency": 4,
+          "output": "E:\\VideoDesk\\repro\\qa\\output",
+          "segment_minutes": 30
+        },
+        "anchors": [
+          {
+            "id": "7c995a5b7a45",
+            "name": "测试备注A",
+            "url": "https://live.douyin.com/7000000000000000101",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "db777c1febeb",
+            "name": "同名主播",
+            "url": "https://live.douyin.com/7000000000000000102",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "2fc2295b56b9",
+            "name": "同名主播",
+            "url": "https://live.douyin.com/7000000000000000103",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          }
+        ]
+      }
+    },
+    {
+      "label": "A-invalid-1",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "",
+        "url": "not a url"
+      },
+      "status": 422,
+      "body": {
+        "detail": [
+          {
+            "type": "value_error",
+            "loc": [
+              "body"
+            ],
+            "msg": "Value error, 请粘贴抖音直播间、主播主页或分享链接",
+            "input": {
+              "name": "",
+              "url": "not a url"
+            },
+            "ctx": {
+              "error": {}
+            }
+          }
+        ]
+      }
+    },
+    {
+      "label": "A-invalid-2",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "",
+        "url": "https://www.example.com/live/123456"
+      },
+      "status": 422,
+      "body": {
+        "detail": [
+          {
+            "type": "value_error",
+            "loc": [
+              "body"
+            ],
+            "msg": "Value error, 当前直播录播仅支持抖音链接",
+            "input": {
+              "name": "",
+              "url": "https://www.example.com/live/123456"
+            },
+            "ctx": {
+              "error": {}
+            }
+          }
+        ]
+      }
+    },
+    {
+      "label": "A-invalid-3",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "",
+        "url": "https://www.douyin.com/video/7381928374650910000"
+      },
+      "status": 422,
+      "body": {
+        "detail": [
+          {
+            "type": "value_error",
+            "loc": [
+              "body"
+            ],
+            "msg": "Value error, 请使用主播主页或直播间链接，不是已发布的视频链接",
+            "input": {
+              "name": "",
+              "url": "https://www.douyin.com/video/7381928374650910000"
+            },
+            "ctx": {
+              "error": {}
+            }
+          }
+        ]
+      }
+    },
+    {
+      "label": "A-invalid-4",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "",
+        "url": "https://live.douyin.com/"
+      },
+      "status": 422,
+      "body": {
+        "detail": [
+          {
+            "type": "value_error",
+            "loc": [
+              "body"
+            ],
+            "msg": "Value error, 请使用包含完整房间号的抖音直播间链接",
+            "input": {
+              "name": "",
+              "url": "https://live.douyin.com/"
+            },
+            "ctx": {
+              "error": {}
+            }
+          }
+        ]
+      }
+    },
+    {
+      "label": "A-short-share",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "",
+        "url": "  8.86 复制打开抖音 https://v.douyin.com/iQaSynth01/ 复制此链接 "
+      },
+      "status": 200,
+      "body": {
+        "id": "8761bdc215ad",
+        "name": "",
+        "url": "https://v.douyin.com/iQaSynth01/",
+        "enabled": false,
+        "quality": "origin",
+        "windows": [],
+        "monitor_device": "pc",
+        "record_target": "ask"
+      }
+    },
+    {
+      "label": "A-19digit",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "",
+        "url": "https://live.douyin.com/7381928374650910213"
+      },
+      "status": 200,
+      "body": {
+        "id": "36de6a760482",
+        "name": "",
+        "url": "https://live.douyin.com/7381928374650910213",
+        "enabled": false,
+        "quality": "origin",
+        "windows": [],
+        "monitor_device": "pc",
+        "record_target": "ask"
+      }
+    },
+    {
+      "label": "A-19digit-state",
+      "method": "GET",
+      "path": "/api/live",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "settings": {
+          "concurrency": 4,
+          "output": "E:\\VideoDesk\\repro\\qa\\output",
+          "segment_minutes": 30
+        },
+        "anchors": [
+          {
+            "id": "7c995a5b7a45",
+            "name": "测试备注A",
+            "url": "https://live.douyin.com/7000000000000000101",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "db777c1febeb",
+            "name": "同名主播",
+            "url": "https://live.douyin.com/7000000000000000102",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "2fc2295b56b9",
+            "name": "同名主播",
+            "url": "https://live.douyin.com/7000000000000000103",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "8761bdc215ad",
+            "name": "",
+            "url": "https://v.douyin.com/iQaSynth01/",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "36de6a760482",
+            "name": "",
+            "url": "https://live.douyin.com/7381928374650910213",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          }
+        ]
+      }
+    },
+    {
+      "label": "B-out-r1-global-A",
+      "method": "POST",
+      "path": "/api/settings",
+      "payload": {
+        "output": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_A"
+      },
+      "status": 200,
+      "body": {
+        "output": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_A"
+      }
+    },
+    {
+      "label": "B-out-r1-live-A",
+      "method": "POST",
+      "path": "/api/live/settings",
+      "payload": {
+        "concurrency": 4,
+        "segment_minutes": 30,
+        "output": ""
+      },
+      "status": 200,
+      "body": {
+        "settings": {
+          "concurrency": 4,
+          "output": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_A",
+          "segment_minutes": 30
+        },
+        "anchors": [
+          {
+            "id": "7c995a5b7a45",
+            "name": "测试备注A",
+            "url": "https://live.douyin.com/7000000000000000101",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "db777c1febeb",
+            "name": "同名主播",
+            "url": "https://live.douyin.com/7000000000000000102",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "2fc2295b56b9",
+            "name": "同名主播",
+            "url": "https://live.douyin.com/7000000000000000103",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "8761bdc215ad",
+            "name": "",
+            "url": "https://v.douyin.com/iQaSynth01/",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "36de6a760482",
+            "name": "",
+            "url": "https://live.douyin.com/7381928374650910213",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          }
+        ]
+      }
+    },
+    {
+      "label": "B-out-r1-global-B",
+      "method": "POST",
+      "path": "/api/settings",
+      "payload": {
+        "output": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_B"
+      },
+      "status": 200,
+      "body": {
+        "output": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_B"
+      }
+    },
+    {
+      "label": "reset anchors",
+      "method": "GET",
+      "path": "/api/live",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "settings": {
+          "concurrency": 4,
+          "output": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_A",
+          "segment_minutes": 30
+        },
+        "anchors": [
+          {
+            "id": "7c995a5b7a45",
+            "name": "测试备注A",
+            "url": "https://live.douyin.com/7000000000000000101",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "db777c1febeb",
+            "name": "同名主播",
+            "url": "https://live.douyin.com/7000000000000000102",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "2fc2295b56b9",
+            "name": "同名主播",
+            "url": "https://live.douyin.com/7000000000000000103",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "8761bdc215ad",
+            "name": "",
+            "url": "https://v.douyin.com/iQaSynth01/",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "36de6a760482",
+            "name": "",
+            "url": "https://live.douyin.com/7381928374650910213",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          }
+        ]
+      }
+    },
+    {
+      "label": "delete anchor 7c995a5b7a45",
+      "method": "DELETE",
+      "path": "/api/live/anchors/7c995a5b7a45",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "label": "delete anchor db777c1febeb",
+      "method": "DELETE",
+      "path": "/api/live/anchors/db777c1febeb",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "label": "delete anchor 2fc2295b56b9",
+      "method": "DELETE",
+      "path": "/api/live/anchors/2fc2295b56b9",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "label": "delete anchor 8761bdc215ad",
+      "method": "DELETE",
+      "path": "/api/live/anchors/8761bdc215ad",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "label": "delete anchor 36de6a760482",
+      "method": "DELETE",
+      "path": "/api/live/anchors/36de6a760482",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "label": "B-out-r1-anchor",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "输出目录验证",
+        "url": "https://live.douyin.com/7000000000000000201"
+      },
+      "status": 200,
+      "body": {
+        "id": "980a933cc49e",
+        "name": "输出目录验证",
+        "url": "https://live.douyin.com/7000000000000000201",
+        "enabled": false,
+        "quality": "origin",
+        "windows": [],
+        "monitor_device": "pc",
+        "record_target": "ask"
+      }
+    },
+    {
+      "label": "B-out-r1-start",
+      "method": "POST",
+      "path": "/api/live/anchors/980a933cc49e/start",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "id": "2f398eab94cd"
+      }
+    },
+    {
+      "label": "B-out-r1-stop",
+      "method": "POST",
+      "path": "/api/live/anchors/980a933cc49e/stop",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "message": "正在停止并保存；自动监控已关闭"
+      }
+    },
+    {
+      "label": "B-out-r2-global-A",
+      "method": "POST",
+      "path": "/api/settings",
+      "payload": {
+        "output": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_C"
+      },
+      "status": 200,
+      "body": {
+        "output": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_C"
+      }
+    },
+    {
+      "label": "B-out-r2-live-A",
+      "method": "POST",
+      "path": "/api/live/settings",
+      "payload": {
+        "concurrency": 4,
+        "segment_minutes": 30,
+        "output": ""
+      },
+      "status": 200,
+      "body": {
+        "settings": {
+          "concurrency": 4,
+          "output": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_C",
+          "segment_minutes": 30
+        },
+        "anchors": [
+          {
+            "id": "980a933cc49e",
+            "name": "输出目录验证",
+            "url": "https://live.douyin.com/7000000000000000201",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {
+              "state": "error",
+              "message": "已停止读取直播间",
+              "automatic": false
+            },
+            "active_job": "2f398eab94cd"
+          }
+        ]
+      }
+    },
+    {
+      "label": "B-out-r2-global-B",
+      "method": "POST",
+      "path": "/api/settings",
+      "payload": {
+        "output": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_D"
+      },
+      "status": 200,
+      "body": {
+        "output": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_D"
+      }
+    },
+    {
+      "label": "reset anchors",
+      "method": "GET",
+      "path": "/api/live",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "settings": {
+          "concurrency": 4,
+          "output": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_C",
+          "segment_minutes": 30
+        },
+        "anchors": [
+          {
+            "id": "980a933cc49e",
+            "name": "输出目录验证",
+            "url": "https://live.douyin.com/7000000000000000201",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {
+              "state": "idle",
+              "message": "已停止读取直播间；可改用手机检测／录制，或打开专用浏览器确认直播能正常播放"
+            },
+            "active_job": null
+          }
+        ]
+      }
+    },
+    {
+      "label": "delete anchor 980a933cc49e",
+      "method": "DELETE",
+      "path": "/api/live/anchors/980a933cc49e",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "label": "B-out-r2-anchor",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "输出目录验证",
+        "url": "https://live.douyin.com/7000000000000000202"
+      },
+      "status": 200,
+      "body": {
+        "id": "5f4c5a1c40b2",
+        "name": "输出目录验证",
+        "url": "https://live.douyin.com/7000000000000000202",
+        "enabled": false,
+        "quality": "origin",
+        "windows": [],
+        "monitor_device": "pc",
+        "record_target": "ask"
+      }
+    },
+    {
+      "label": "B-out-r2-start",
+      "method": "POST",
+      "path": "/api/live/anchors/5f4c5a1c40b2/start",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "id": "841c275ef2d9"
+      }
+    },
+    {
+      "label": "B-out-r2-stop",
+      "method": "POST",
+      "path": "/api/live/anchors/5f4c5a1c40b2/stop",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "message": "正在停止并保存；自动监控已关闭"
+      }
+    },
+    {
+      "label": "B-restore-global",
+      "method": "POST",
+      "path": "/api/settings",
+      "payload": {
+        "output": "E:\\VideoDesk\\repro\\qa\\output"
+      },
+      "status": 200,
+      "body": {
+        "output": "E:\\VideoDesk\\repro\\qa\\output"
+      }
+    },
+    {
+      "label": "B-restore-live",
+      "method": "POST",
+      "path": "/api/live/settings",
+      "payload": {
+        "concurrency": 4,
+        "segment_minutes": 30,
+        "output": "E:\\VideoDesk\\repro\\qa\\output"
+      },
+      "status": 200,
+      "body": {
+        "settings": {
+          "concurrency": 4,
+          "output": "E:\\VideoDesk\\repro\\qa\\output",
+          "segment_minutes": 30
+        },
+        "anchors": [
+          {
+            "id": "5f4c5a1c40b2",
+            "name": "输出目录验证",
+            "url": "https://live.douyin.com/7000000000000000202",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {
+              "state": "error",
+              "message": "已停止读取直播间",
+              "automatic": false
+            },
+            "active_job": "841c275ef2d9"
+          }
+        ]
+      }
+    },
+    {
+      "label": "B-bound-1",
+      "method": "POST",
+      "path": "/api/live/settings",
+      "payload": {
+        "concurrency": 0,
+        "segment_minutes": 30
+      },
+      "status": 422,
+      "body": {
+        "detail": [
+          {
+            "type": "greater_than_equal",
+            "loc": [
+              "body",
+              "concurrency"
+            ],
+            "msg": "Input should be greater than or equal to 1",
+            "input": 0,
+            "ctx": {
+              "ge": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "label": "B-bound-2",
+      "method": "POST",
+      "path": "/api/live/settings",
+      "payload": {
+        "concurrency": 9,
+        "segment_minutes": 30
+      },
+      "status": 422,
+      "body": {
+        "detail": [
+          {
+            "type": "less_than_equal",
+            "loc": [
+              "body",
+              "concurrency"
+            ],
+            "msg": "Input should be less than or equal to 8",
+            "input": 9,
+            "ctx": {
+              "le": 8
+            }
+          }
+        ]
+      }
+    },
+    {
+      "label": "B-bound-3",
+      "method": "POST",
+      "path": "/api/live/settings",
+      "payload": {
+        "concurrency": 4,
+        "segment_minutes": 0
+      },
+      "status": 422,
+      "body": {
+        "detail": [
+          {
+            "type": "greater_than_equal",
+            "loc": [
+              "body",
+              "segment_minutes"
+            ],
+            "msg": "Input should be greater than or equal to 1",
+            "input": 0,
+            "ctx": {
+              "ge": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "label": "B-bound-4",
+      "method": "POST",
+      "path": "/api/live/settings",
+      "payload": {
+        "concurrency": 4,
+        "segment_minutes": 121
+      },
+      "status": 422,
+      "body": {
+        "detail": [
+          {
+            "type": "less_than_equal",
+            "loc": [
+              "body",
+              "segment_minutes"
+            ],
+            "msg": "Input should be less than or equal to 120",
+            "input": 121,
+            "ctx": {
+              "le": 120
+            }
+          }
+        ]
+      }
+    },
+    {
+      "label": "B-bound-5",
+      "method": "POST",
+      "path": "/api/live/settings",
+      "payload": {
+        "concurrency": 1,
+        "segment_minutes": 30
+      },
+      "status": 200,
+      "body": {
+        "settings": {
+          "concurrency": 1,
+          "output": "E:\\VideoDesk\\repro\\qa\\output",
+          "segment_minutes": 30
+        },
+        "anchors": [
+          {
+            "id": "5f4c5a1c40b2",
+            "name": "输出目录验证",
+            "url": "https://live.douyin.com/7000000000000000202",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {
+              "state": "error",
+              "message": "已停止读取直播间",
+              "automatic": false
+            },
+            "active_job": "841c275ef2d9"
+          }
+        ]
+      }
+    },
+    {
+      "label": "B-bound-6",
+      "method": "POST",
+      "path": "/api/live/settings",
+      "payload": {
+        "concurrency": 8,
+        "segment_minutes": 30
+      },
+      "status": 200,
+      "body": {
+        "settings": {
+          "concurrency": 8,
+          "output": "E:\\VideoDesk\\repro\\qa\\output",
+          "segment_minutes": 30
+        },
+        "anchors": [
+          {
+            "id": "5f4c5a1c40b2",
+            "name": "输出目录验证",
+            "url": "https://live.douyin.com/7000000000000000202",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {
+              "state": "idle",
+              "message": "已停止读取直播间；可改用手机检测／录制，或打开专用浏览器确认直播能正常播放"
+            },
+            "active_job": null
+          }
+        ]
+      }
+    },
+    {
+      "label": "B-restore-live2",
+      "method": "POST",
+      "path": "/api/live/settings",
+      "payload": {
+        "concurrency": 4,
+        "segment_minutes": 30,
+        "output": "E:\\VideoDesk\\repro\\qa\\output"
+      },
+      "status": 200,
+      "body": {
+        "settings": {
+          "concurrency": 4,
+          "output": "E:\\VideoDesk\\repro\\qa\\output",
+          "segment_minutes": 30
+        },
+        "anchors": [
+          {
+            "id": "5f4c5a1c40b2",
+            "name": "输出目录验证",
+            "url": "https://live.douyin.com/7000000000000000202",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {
+              "state": "idle",
+              "message": "已停止读取直播间；可改用手机检测／录制，或打开专用浏览器确认直播能正常播放"
+            },
+            "active_job": null
+          }
+        ]
+      }
+    },
+    {
+      "label": "C-phone-state",
+      "method": "GET",
+      "path": "/api/phone",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "devices": [
+          {
+            "serial": "<redacted-serial>",
+            "state": "device",
+            "model": "V2304A"
+          }
+        ],
+        "connected": false,
+        "status": {},
+        "events": [],
+        "message": ""
+      }
+    },
+    {
+      "label": "D-001",
+      "method": "POST",
+      "path": "/api/translation",
+      "payload": {
+        "paths": [
+          "E:\\VideoDesk\\repro\\samples\\qa_av_6s.mp4"
+        ],
+        "output": "E:\\VideoDesk\\repro\\qa\\output",
+        "backend": "local"
+      },
+      "status": 400,
+      "body": {
+        "detail": "请先安装本地翻译组件和模型"
+      }
+    },
+    {
+      "label": "D-002",
+      "method": "POST",
+      "path": "/api/translation",
+      "payload": {
+        "paths": [
+          "E:\\VideoDesk\\repro\\samples\\qa_av_6s.mp4"
+        ],
+        "output": "E:\\VideoDesk\\repro\\qa\\output",
+        "backend": "cloud",
+        "background": true
+      },
+      "status": 409,
+      "body": {
+        "detail": "保留背景声需要本地音频分离组件。可安装组件，或关闭背景声分离后仅生成中文配音。",
+        "code": "background_component_required",
+        "can_disable_background": true
+      }
+    },
+    {
+      "label": "D-services-set",
+      "method": "POST",
+      "path": "/api/translation/services",
+      "payload": {
+        "asr": {
+          "base_url": "https://127.0.0.1:9",
+          "api_key": "<test-dummy-key>",
+          "model": "qa",
+          "voice": "alloy"
+        }
+      },
+      "status": 200,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "label": "D-services-get",
+      "method": "GET",
+      "path": "/api/translation/services",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "asr": {
+          "base_url": "https://127.0.0.1:9",
+          "api_key": "",
+          "model": "qa",
+          "voice": "alloy",
+          "has_key": true
+        },
+        "translation": {
+          "base_url": "",
+          "api_key": "",
+          "model": "",
+          "voice": "alloy",
+          "has_key": false
+        },
+        "tts": {
+          "base_url": "",
+          "api_key": "",
+          "model": "",
+          "voice": "alloy",
+          "has_key": false
+        }
+      }
+    },
+    {
+      "label": "D-services-set-1",
+      "method": "POST",
+      "path": "/api/translation/services",
+      "payload": {
+        "asr": {
+          "base_url": "https://127.0.0.1:9",
+          "api_key": "<test-dummy-key>",
+          "model": "qa",
+          "voice": "alloy"
+        }
+      },
+      "status": 200,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "label": "D-services-clear-1",
+      "method": "POST",
+      "path": "/api/translation/services",
+      "payload": {
+        "asr": {
+          "base_url": "https://127.0.0.1:9",
+          "api_key": "",
+          "model": "qa",
+          "voice": "alloy"
+        }
+      },
+      "status": 200,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "label": "D-services-get-cleared-1",
+      "method": "GET",
+      "path": "/api/translation/services",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "asr": {
+          "base_url": "https://127.0.0.1:9",
+          "api_key": "",
+          "model": "qa",
+          "voice": "alloy",
+          "has_key": true
+        },
+        "translation": {
+          "base_url": "",
+          "api_key": "",
+          "model": "",
+          "voice": "alloy",
+          "has_key": false
+        },
+        "tts": {
+          "base_url": "",
+          "api_key": "",
+          "model": "",
+          "voice": "alloy",
+          "has_key": false
+        }
+      }
+    },
+    {
+      "label": "D-services-set-2",
+      "method": "POST",
+      "path": "/api/translation/services",
+      "payload": {
+        "asr": {
+          "base_url": "https://127.0.0.1:9",
+          "api_key": "<test-dummy-key>",
+          "model": "qa",
+          "voice": "alloy"
+        }
+      },
+      "status": 200,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "label": "D-services-clear-2",
+      "method": "POST",
+      "path": "/api/translation/services",
+      "payload": {
+        "asr": {
+          "base_url": "https://127.0.0.1:9",
+          "api_key": "",
+          "model": "qa",
+          "voice": "alloy"
+        }
+      },
+      "status": 200,
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "label": "D-services-get-cleared-2",
+      "method": "GET",
+      "path": "/api/translation/services",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "asr": {
+          "base_url": "https://127.0.0.1:9",
+          "api_key": "",
+          "model": "qa",
+          "voice": "alloy",
+          "has_key": true
+        },
+        "translation": {
+          "base_url": "",
+          "api_key": "",
+          "model": "",
+          "voice": "alloy",
+          "has_key": false
+        },
+        "tts": {
+          "base_url": "",
+          "api_key": "",
+          "model": "",
+          "voice": "alloy",
+          "has_key": false
+        }
+      }
+    },
+    {
+      "label": "D-services-get2",
+      "method": "GET",
+      "path": "/api/translation/services",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "asr": {
+          "base_url": "https://127.0.0.1:9",
+          "api_key": "",
+          "model": "qa",
+          "voice": "alloy",
+          "has_key": true
+        },
+        "translation": {
+          "base_url": "",
+          "api_key": "",
+          "model": "",
+          "voice": "alloy",
+          "has_key": false
+        },
+        "tts": {
+          "base_url": "",
+          "api_key": "",
+          "model": "",
+          "voice": "alloy",
+          "has_key": false
+        }
+      }
+    },
+    {
+      "label": "D-services-badurl",
+      "method": "POST",
+      "path": "/api/translation/services",
+      "payload": {
+        "asr": {
+          "base_url": "javascript:alert(1)",
+          "api_key": "",
+          "model": "",
+          "voice": "alloy"
+        }
+      },
+      "status": 400,
+      "body": {
+        "detail": "服务地址格式无效"
+      }
+    },
+    {
+      "label": "E-hardware",
+      "method": "GET",
+      "path": "/api/hardware",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "gpus": [
+          {
+            "name": "NVIDIA GeForce RTX 5060",
+            "memory_mb": 8151,
+            "driver": "616.64"
+          }
+        ],
+        "encoders": {
+          "h264_nvenc": {
+            "available": true,
+            "reason": ""
+          },
+          "h264_qsv": {
+            "available": false,
+            "reason": "实际试编码未通过"
+          },
+          "h264_amf": {
+            "available": false,
+            "reason": "实际试编码未通过"
+          }
+        },
+        "encoder": "h264_nvenc",
+        "checked": 1794640612.6209433,
+        "ai": "AI 后端按模型试运行，失败时回退 CPU"
+      }
+    },
+    {
+      "label": "F-extract",
+      "method": "POST",
+      "path": "/api/extract-local",
+      "payload": {
+        "path": "E:\\VideoDesk\\repro\\samples\\qa_av_6s.mp4",
+        "output": "E:\\VideoDesk\\repro\\qa\\output",
+        "frames": {
+          "mode": "seconds",
+          "value": 2,
+          "limit": 100,
+          "audio": false
+        }
+      },
+      "status": 200,
+      "body": {
+        "id": "c766a4875e42"
+      }
+    },
+    {
+      "label": "F-cleanup-preview",
+      "method": "GET",
+      "path": "/api/materials/c766a4875e42/cleanup",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "files": [
+          ".frames.log",
+          "frames/000001.jpg",
+          "frames/000002.jpg",
+          "frames/000003.jpg",
+          "timeline.json",
+          "manifest.json"
+        ],
+        "skipped": [
+          {
+            "name": "AI分析提示词.txt",
+            "reason": "已修改或属于视频来源"
+          }
+        ],
+        "bytes": 24086,
+        "directory": "E:\\VideoDesk\\repro\\qa\\output\\20261114-151902_c766a4875e42"
+      }
+    },
+    {
+      "label": "F-cleanup-run",
+      "method": "POST",
+      "path": "/api/materials/c766a4875e42/cleanup",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "deleted": 6,
+        "skipped": [
+          {
+            "name": "AI分析提示词.txt",
+            "reason": "已修改或属于视频来源",
+            "job_id": "c766a4875e42"
+          }
+        ],
+        "errors": [],
+        "warnings": [
+          {
+            "name": "timeline.json",
+            "reason": "系统回收站报告异常（HRESULT 80070002）；原路径已移走，请核对回收站",
+            "job_id": "c766a4875e42"
+          },
+          {
+            "name": "manifest.json",
+            "reason": "系统回收站报告异常（HRESULT 80070002）；原路径已移走，请核对回收站",
+            "job_id": "c766a4875e42"
+          }
+        ]
+      }
+    },
+    {
+      "label": "F-cleanup-state",
+      "method": "GET",
+      "path": "/api/state",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "token": "<redacted>",
+        "settings": {
+          "output": "E:\\VideoDesk\\repro\\qa\\output"
+        },
+        "jobs": [
+          {
+            "id": "c766a4875e42",
+            "kind": "extract",
+            "title": "直接抽帧 · qa_av_6s.mp4",
+            "status": "done",
+            "message": "抽帧完成，原视频未复制、未修改。",
+            "progress": 100,
+            "created": 1794640742.2686305,
+            "updated": 1794640744.205551,
+            "directory": "E:\\VideoDesk\\repro\\qa\\output\\20261114-151902_c766a4875e42",
+            "source": "E:\\VideoDesk\\repro\\samples\\qa_av_6s.mp4",
+            "options": {
+              "mode": "seconds",
+              "value": 2.0,
+              "crop": null,
+              "start": 0,
+              "duration": 0,
+              "limit": 100,
+              "audio": false,
+              "video_saved": false,
+              "source_mode": "local-path"
+            },
+            "frames": 0,
+            "files": [
+              {
+                "name": "AI分析提示词.txt",
+                "size": 558
+              },
+              {
+                "name": "sentinel_original.mp4",
+                "size": 69734
+              },
+              {
+                "name": "sentinel_shared.dat",
+                "size": 168
+              },
+              {
+                "name": "sentinel_user_added.txt",
+                "size": 34
+              }
+            ],
+            "progress_detail": {},
+            "progress_indeterminate": false,
+            "materials_deleted": true,
+            "material_cleanup": {
+              "deleted": 6,
+              "skipped": [
+                {
+                  "name": "AI分析提示词.txt",
+                  "reason": "已修改或属于视频来源",
+                  "job_id": "c766a4875e42"
+                }
+              ],
+              "errors": [],
+              "warnings": [
+                {
+                  "name": "timeline.json",
+                  "reason": "系统回收站报告异常（HRESULT 80070002）；原路径已移走，请核对回收站",
+                  "job_id": "c766a4875e42"
+                },
+                {
+                  "name": "manifest.json",
+                  "reason": "系统回收站报告异常（HRESULT 80070002）；原路径已移走，请核对回收站",
+                  "job_id": "c766a4875e42"
+                }
+              ]
+            }
+          },
+          {
+            "id": "841c275ef2d9",
+            "kind": "live-recording",
+            "title": "输出目录验证 · 直播录播",
+            "status": "error",
+            "message": "已停止读取直播间；可改用手机检测／录制，或打开专用浏览器确认直播能正常播放",
+            "progress": 0,
+            "created": 1794640739.8385136,
+            "updated": 1794640740.65912,
+            "directory": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_C\\20261114-151859_841c275ef2d9",
+            "source": "https://live.douyin.com/7000000000000000202",
+            "options": {
+              "anchor_id": "5f4c5a1c40b2",
+              "automatic": false,
+              "quality": "origin"
+            },
+            "frames": 0,
+            "files": [],
+            "progress_detail": {},
+            "progress_indeterminate": false
+          },
+          {
+            "id": "2f398eab94cd",
+            "kind": "live-recording",
+            "title": "输出目录验证 · 直播录播",
+            "status": "error",
+            "message": "已停止读取直播间；可改用手机检测／录制，或打开专用浏览器确认直播能正常播放",
+            "progress": 0,
+            "created": 1794640738.2355716,
+            "updated": 1794640739.297315,
+            "directory": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_A\\20261114-151858_2f398eab94cd",
+            "source": "https://live.douyin.com/7000000000000000201",
+            "options": {
+              "anchor_id": "980a933cc49e",
+              "automatic": false,
+              "quality": "origin"
+            },
+            "frames": 0,
+            "files": [],
+            "progress_detail": {},
+            "progress_indeterminate": false
+          },
+          {
+            "id": "49dfb788bd40",
+            "kind": "extract",
+            "title": "直接抽帧 · QA27 中文,空格 样本.mp4",
+            "status": "done",
+            "message": "抽帧完成，原视频未复制、未修改。",
+            "progress": 100,
+            "created": 1794640651.5658479,
+            "updated": 1794640653.2916873,
+            "directory": "E:\\VideoDesk\\repro\\qa\\output\\20261114-151731_49dfb788bd40",
+            "source": "E:\\VideoDesk\\repro\\samples\\QA27 中文,空格 样本.mp4",
+            "options": {
+              "mode": "seconds",
+              "value": 3,
+              "crop": null,
+              "start": 0,
+              "duration": 0,
+              "limit": 2000,
+              "audio": true,
+              "video_saved": false,
+              "source_mode": "local-path"
+            },
+            "frames": 2,
+            "files": [
+              {
+                "name": "AI分析提示词.txt",
+                "size": 540
+              },
+              {
+                "name": "audio.m4a",
+                "size": 39730
+              },
+              {
+                "name": "frames/000001.jpg",
+                "size": 6373
+              },
+              {
+                "name": "frames/000002.jpg",
+                "size": 6356
+              },
+              {
+                "name": "manifest.json",
+                "size": 538
+              },
+              {
+                "name": "timeline.json",
+                "size": 193
+              }
+            ],
+            "progress_detail": {},
+            "progress_indeterminate": false
+          },
+          {
+            "id": "31d315995036",
+            "kind": "extract",
+            "title": "直接抽帧 · qa_broken.mp4",
+            "status": "error",
+            "message": "视频抽帧失败：[in#0 @ 0000018e1033ac40] Error opening input: Invalid data found when processing input\nError opening input file E:\\VideoDesk\\repro\\samples\\qa_broken.mp4.\nError opening input files: Invalid data found when processing input\n",
+            "progress": 0,
+            "created": 1794640650.7698412,
+            "updated": 1794640651.3899817,
+            "directory": "E:\\VideoDesk\\repro\\qa\\output\\20261114-151730_31d315995036",
+            "source": "E:\\VideoDesk\\repro\\samples\\qa_broken.mp4",
+            "options": {
+              "mode": "seconds",
+              "value": 3,
+              "crop": null,
+              "start": 0,
+              "duration": 0,
+              "limit": 2000,
+              "audio": true,
+              "video_saved": false,
+              "source_mode": "local-path"
+            },
+            "frames": 0,
+            "files": [],
+            "progress_detail": {},
+            "progress_indeterminate": false
+          },
+          {
+            "id": "f440f90f38be",
+            "kind": "extract",
+            "title": "直接抽帧 · qa_av_6s.mp4",
+            "status": "done",
+            "message": "抽帧完成，原视频未复制、未修改。",
+            "progress": 100,
+            "created": 1794640648.7349987,
+            "updated": 1794640650.5505471,
+            "directory": "E:\\VideoDesk\\repro\\qa\\output\\20261114-151728_f440f90f38be",
+            "source": "E:\\VideoDesk\\repro\\samples\\qa_av_6s.mp4",
+            "options": {
+              "mode": "seconds",
+              "value": 2.0,
+              "crop": null,
+              "start": 0,
+              "duration": 0,
+              "limit": 100,
+              "audio": false,
+              "video_saved": false,
+              "source_mode": "local-path"
+            },
+            "frames": 0,
+            "files": [
+              {
+                "name": "AI分析提示词.txt",
+                "size": 558
+              },
+              {
+                "name": "sentinel_original.mp4",
+                "size": 69734
+              },
+              {
+                "name": "sentinel_shared.dat",
+                "size": 168
+              },
+              {
+                "name": "sentinel_user_added.txt",
+                "size": 34
+              }
+            ],
+            "progress_detail": {},
+            "progress_indeterminate": false,
+            "materials_deleted": true,
+            "material_cleanup": {
+              "deleted": 6,
+              "skipped": [
+                {
+                  "name": "AI分析提示词.txt",
+                  "reason": "已修改或属于视频来源",
+                  "job_id": "f440f90f38be"
+                }
+              ],
+              "errors": [],
+              "warnings": [
+                {
+                  "name": "timeline.json",
+                  "reason": "系统回收站报告异常（HRESULT 80070002）；原路径已移走，请核对回收站",
+                  "job_id": "f440f90f38be"
+                },
+                {
+                  "name": "manifest.json",
+                  "reason": "系统回收站报告异常（HRESULT 80070002）；原路径已移走，请核对回收站",
+                  "job_id": "f440f90f38be"
+                }
+              ]
+            }
+          },
+          {
+            "id": "ce754c0c3dee",
+            "kind": "live-recording",
+            "title": "输出目录验证 · 直播录播",
+            "status": "error",
+            "message": "已停止读取直播间；可改用手机检测／录制，或打开专用浏览器确认直播能正常播放",
+            "progress": 0,
+            "created": 1794640645.6937003,
+            "updated": 1794640646.8593633,
+            "directory": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_C\\20261114-151725_ce754c0c3dee",
+            "source": "https://live.douyin.com/7000000000000000202",
+            "options": {
+              "anchor_id": "70a8df9cee8e",
+              "automatic": false,
+              "quality": "origin"
+            },
+            "frames": 0,
+            "files": [],
+            "progress_detail": {},
+            "progress_indeterminate": false
+          },
+          {
+            "id": "ff6b373bccfc",
+            "kind": "live-recording",
+            "title": "输出目录验证 · 直播录播",
+            "status": "error",
+            "message": "已停止读取直播间；可改用手机检测／录制，或打开专用浏览器确认直播能正常播放",
+            "progress": 0,
+            "created": 1794640643.8411655,
+            "updated": 1794640645.0197067,
+            "directory": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_A\\20261114-151723_ff6b373bccfc",
+            "source": "https://live.douyin.com/7000000000000000201",
+            "options": {
+              "anchor_id": "d58292f548c7",
+              "automatic": false,
+              "quality": "origin"
+            },
+            "frames": 0,
+            "files": [],
+            "progress_detail": {},
+            "progress_indeterminate": false
+          },
+          {
+            "id": "9115f34e6d2e",
+            "kind": "extract",
+            "title": "直接抽帧 · qa_av_6s.mp4",
+            "status": "done",
+            "message": "抽帧完成，原视频未复制、未修改。",
+            "progress": 100,
+            "created": 1794640612.8448637,
+            "updated": 1794640619.9877017,
+            "directory": "E:\\VideoDesk\\repro\\qa\\output\\20261114-151652_9115f34e6d2e",
+            "source": "E:\\VideoDesk\\repro\\samples\\qa_av_6s.mp4",
+            "options": {
+              "mode": "seconds",
+              "value": 2.0,
+              "crop": null,
+              "start": 0,
+              "duration": 0,
+              "limit": 100,
+              "audio": false,
+              "video_saved": false,
+              "source_mode": "local-path"
+            },
+            "frames": 0,
+            "files": [
+              {
+                "name": "AI分析提示词.txt",
+                "size": 558
+              },
+              {
+                "name": "sentinel_original.mp4",
+                "size": 69734
+              },
+              {
+                "name": "sentinel_shared.dat",
+                "size": 168
+              },
+              {
+                "name": "sentinel_user_added.txt",
+                "size": 34
+              }
+            ],
+            "progress_detail": {},
+            "progress_indeterminate": false,
+            "materials_deleted": true,
+            "material_cleanup": {
+              "deleted": 6,
+              "skipped": [
+                {
+                  "name": "AI分析提示词.txt",
+                  "reason": "已修改或属于视频来源",
+                  "job_id": "9115f34e6d2e"
+                }
+              ],
+              "errors": [],
+              "warnings": [
+                {
+                  "name": "timeline.json",
+                  "reason": "系统回收站报告异常（HRESULT 80070002）；原路径已移走，请核对回收站",
+                  "job_id": "9115f34e6d2e"
+                },
+                {
+                  "name": "manifest.json",
+                  "reason": "系统回收站报告异常（HRESULT 80070002）；原路径已移走，请核对回收站",
+                  "job_id": "9115f34e6d2e"
+                }
+              ]
+            }
+          },
+          {
+            "id": "59b459a07f58",
+            "kind": "live-recording",
+            "title": "输出目录验证 · 直播录播",
+            "status": "error",
+            "message": "已停止读取直播间；可改用手机检测／录制，或打开专用浏览器确认直播能正常播放",
+            "progress": 0,
+            "created": 1794640593.712935,
+            "updated": 1794640594.662904,
+            "directory": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_C\\20261114-151633_59b459a07f58",
+            "source": "https://live.douyin.com/7000000000000000202",
+            "options": {
+              "anchor_id": "271aeb53cbf0",
+              "automatic": false,
+              "quality": "origin"
+            },
+            "frames": 0,
+            "files": [],
+            "progress_detail": {},
+            "progress_indeterminate": false
+          },
+          {
+            "id": "251b23416d7f",
+            "kind": "live-recording",
+            "title": "输出目录验证 · 直播录播",
+            "status": "error",
+            "message": "已停止读取直播间；可改用手机检测／录制，或打开专用浏览器确认直播能正常播放",
+            "progress": 0,
+            "created": 1794640592.019092,
+            "updated": 1794640593.192883,
+            "directory": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_A\\20261114-151631_251b23416d7f",
+            "source": "https://live.douyin.com/7000000000000000201",
+            "options": {
+              "anchor_id": "fd50374262f4",
+              "automatic": false,
+              "quality": "origin"
+            },
+            "frames": 0,
+            "files": [],
+            "progress_detail": {},
+            "progress_indeterminate": false
+          },
+          {
+            "id": "6f10fb5d0a1a",
+            "kind": "extract",
+            "title": "直接抽帧 · sentinel_broken.mp4",
+            "status": "error",
+            "message": "视频抽帧失败：[in#0 @ 000001e14fb7ac40] Error opening input: Invalid data found when processing input\nError opening input file E:\\VideoDesk\\repro\\qa\\materials\\sentinel_broken.mp4.\nError opening input files: Invalid data found when processing input\n",
+            "progress": 0,
+            "created": 1794639120.5402896,
+            "updated": 1794639121.01486,
+            "directory": "E:\\VideoDesk\\repro\\qa\\output\\20261114-145200_6f10fb5d0a1a",
+            "source": "E:\\VideoDesk\\repro\\qa\\materials\\sentinel_broken.mp4",
+            "options": {
+              "mode": "seconds",
+              "value": 3,
+              "crop": null,
+              "start": 0,
+              "duration": 0,
+              "limit": 2000,
+              "audio": true,
+              "video_saved": false,
+              "source_mode": "local-path"
+            },
+            "frames": 0,
+            "files": [],
+            "progress_detail": {},
+            "progress_indeterminate": false
+          }
+        ],
+        "ffmpeg": true,
+        "version": "2.7.0",
+        "application": "video-desk",
+        "installation_id": "bdbfa8b441cc4ed89f9537d7401e17d3",
+        "engines": {
+          "yt_dlp": true,
+          "mediacrawler": true
+        },
+        "youtube": {
+          "ready": true,
+          "node": true,
+          "ejs": "0.8.0"
+        },
+        "runtime": {
+          "managed": true,
+          "degraded": false,
+          "components": [
+            {
+              "id": "base",
+              "name": "基础工作台",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "media",
+              "name": "音视频处理",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "download",
+              "name": "链接下载",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "node",
+              "name": "分镜与 YouTube 脚本",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "browser",
+              "name": "登录浏览器",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "dedup",
+              "name": "相似图片去重",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "ocr",
+              "name": "画面文字识别",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "asr",
+              "name": "本地语音识别",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "crawler",
+              "name": "MediaCrawler 平台采集",
+              "ready": true,
+              "message": "已就绪"
+            }
+          ],
+          "repair_hint": "从系统托盘打开“检测并修复”。修复保留账号、设置和素材。"
+        }
+      }
+    },
+    {
+      "label": "F-trav-1",
+      "method": "GET",
+      "path": "/api/jobs/c766a4875e42/files/../sentinel_original.mp4",
+      "payload": null,
+      "status": 404,
+      "body": {
+        "detail": "文件不存在"
+      }
+    },
+    {
+      "label": "F-trav-2",
+      "method": "GET",
+      "path": "/api/jobs/c766a4875e42/files/..%2f..%2fsettings.json",
+      "payload": null,
+      "status": 404,
+      "body": {
+        "detail": "文件不存在"
+      }
+    },
+    {
+      "label": "F-trav-3",
+      "method": "GET",
+      "path": "/api/jobs/c766a4875e42/files/....//....//app.py",
+      "payload": null,
+      "status": 404,
+      "body": {
+        "detail": "文件不存在"
+      }
+    },
+    {
+      "label": "F-trav-4",
+      "method": "GET",
+      "path": "/api/jobs/c766a4875e42/files/sub/../../secret.txt",
+      "payload": null,
+      "status": 404,
+      "body": {
+        "detail": "文件不存在"
+      }
+    },
+    {
+      "label": "F-bad-1",
+      "method": "POST",
+      "path": "/api/extract-local",
+      "payload": {
+        "path": "E:\\VideoDesk\\repro\\samples\\qa_zero_byte.mp4"
+      },
+      "status": 400,
+      "body": {
+        "detail": "视频文件为空"
+      }
+    },
+    {
+      "label": "F-bad-2",
+      "method": "POST",
+      "path": "/api/extract-local",
+      "payload": {
+        "path": "E:\\VideoDesk\\repro\\samples\\qa_broken.mp4"
+      },
+      "status": 200,
+      "body": {
+        "id": "bd03fc04de35"
+      }
+    },
+    {
+      "label": "F-oddpath",
+      "method": "POST",
+      "path": "/api/extract-local",
+      "payload": {
+        "path": "E:\\VideoDesk\\repro\\samples\\QA27 中文,空格 样本.mp4"
+      },
+      "status": 200,
+      "body": {
+        "id": "f57ade4ece06"
+      }
+    }
+  ]
+}

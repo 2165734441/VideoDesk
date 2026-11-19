@@ -1,0 +1,73 @@
+{
+  "payload_root": "repro\\qa\\home\\versions\\2.7.0-e5df71c0b1\\app",
+  "checked": 11,
+  "all_match": true,
+  "files": [
+    {
+      "file": "app.py",
+      "source_sha256": "2756b9c8ff11961eac12f80618b8d6f988775e4910ce76147b771bf19da9f432",
+      "payload_sha256": "2756b9c8ff11961eac12f80618b8d6f988775e4910ce76147b771bf19da9f432",
+      "match": true
+    },
+    {
+      "file": "version.json",
+      "source_sha256": "26092b2ac28d2900215927029ba5548a3a73f78a21af69ec5f9847fddd3713b8",
+      "payload_sha256": "26092b2ac28d2900215927029ba5548a3a73f78a21af69ec5f9847fddd3713b8",
+      "match": true
+    },
+    {
+      "file": "integrations/live.py",
+      "source_sha256": "78ec4cd9c3385b2fb62fa5290efc351bbcd891f37edba6040c6e84c65cfb21c1",
+      "payload_sha256": "78ec4cd9c3385b2fb62fa5290efc351bbcd891f37edba6040c6e84c65cfb21c1",
+      "match": true
+    },
+    {
+      "file": "integrations/live_browser.py",
+      "source_sha256": "860d7cf9be08e5a942198c6d30960ed35b2e203fbfb4ecfda7090cec1746c9c2",
+      "payload_sha256": "860d7cf9be08e5a942198c6d30960ed35b2e203fbfb4ecfda7090cec1746c9c2",
+      "match": true
+    },
+    {
+      "file": "integrations/following.py",
+      "source_sha256": "c403688552592bc2ea61c3b8d36cdfd4815c21a30a0df183ccdd645e073918a0",
+      "payload_sha256": "c403688552592bc2ea61c3b8d36cdfd4815c21a30a0df183ccdd645e073918a0",
+      "match": true
+    },
+    {
+      "file": "integrations/mobile.py",
+      "source_sha256": "99b3b369e96cec8a9e0646f73c261fc71ef1fd43c52f5ba8c851cd5875d03782",
+      "payload_sha256": "99b3b369e96cec8a9e0646f73c261fc71ef1fd43c52f5ba8c851cd5875d03782",
+      "match": true
+    },
+    {
+      "file": "integrations/translation.py",
+      "source_sha256": "70b49adaebf2cbfbc525e8538ff54edac43710630dfdfd0512063c5e70598f58",
+      "payload_sha256": "70b49adaebf2cbfbc525e8538ff54edac43710630dfdfd0512063c5e70598f58",
+      "match": true
+    },
+    {
+      "file": "integrations/material_history.py",
+      "source_sha256": "8dba52c9555fba96e2705bd8e2e0eca432e1bfabe312fea721021fe2afe6f4ad",
+      "payload_sha256": "8dba52c9555fba96e2705bd8e2e0eca432e1bfabe312fea721021fe2afe6f4ad",
+      "match": true
+    },
+    {
+      "file": "integrations/hardware.py",
+      "source_sha256": "1340921eb91d3ad25d8ec6f355b06ae450e7d6ba89b431b9c149053637324cbd",
+      "payload_sha256": "1340921eb91d3ad25d8ec6f355b06ae450e7d6ba89b431b9c149053637324cbd",
+      "match": true
+    },
+    {
+      "file": "static/media26.js",
+      "source_sha256": "e109ec80952fade7c83e6e26a4df5e9e8799a75eac6d30630b6dd0ca7e0b7e19",
+      "payload_sha256": "e109ec80952fade7c83e6e26a4df5e9e8799a75eac6d30630b6dd0ca7e0b7e19",
+      "match": true
+    },
+    {
+      "file": "mobile/src/org/videodesk/mobile/MainActivity.java",
+      "source_sha256": "0178afb375b10b3e9c1a1e45d52e0813d82e1e4e93cc95a6443993aaa053264b",
+      "payload_sha256": "0178afb375b10b3e9c1a1e45d52e0813d82e1e4e93cc95a6443993aaa053264b",
+      "match": true
+    }
+  ]
+}

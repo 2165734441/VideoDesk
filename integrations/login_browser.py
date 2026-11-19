@@ -2,6 +2,7 @@
 import concurrent.futures
 import os
 from pathlib import Path
+import threading
 import time
 from urllib.parse import urlparse
 
@@ -26,11 +27,34 @@ def detail_media(payload, video_id):
 class LoginBrowser:
     def __init__(self, data):
         self.data=Path(data)
+        # One worker is not a tuning choice: Playwright's sync API and the
+        # persistent context belong to the thread that created them. Every
+        # caller therefore shares a queue, and the queue depth has to be
+        # visible so a waiter knows how long its own turn is away.
         self.pool=concurrent.futures.ThreadPoolExecutor(max_workers=1,thread_name_prefix='login')
         self.context=None
         self.engine=None
         self.details={}
         self.observed=set()
+        # Tabs this module opened for live checks. They are recycled through
+        # about:blank instead of being left on a Douyin page, which otherwise
+        # keeps several hundred MB alive per anchor for as long as the app runs.
+        self.scratch=set()
+        self.queue_lock=threading.Lock()
+        self.queued=0
+
+    def submit(self, fn):
+        """Queue work and expose how much of it is still waiting."""
+        with self.queue_lock: self.queued += 1
+        def wrapped():
+            # The moment this runs the job has left the queue; the waiter only
+            # needs to know what is still ahead of it.
+            with self.queue_lock: self.queued = max(0, self.queued - 1)
+            return fn()
+        return self.pool.submit(wrapped)
+
+    def depth(self):
+        with self.queue_lock: return self.queued
 
     def observe(self,page):
         if page in self.observed:return
@@ -38,7 +62,30 @@ class LoginBrowser:
         def response(value):
             # These are normal responses to the user's browser navigation.
             # Do not construct signed API requests or solve challenges.
-            if '/aweme/v1/web/aweme/detail/' not in value.url or value.status != 200:return
+            if value.status != 200:return
+            from . import following
+            if '/user/profile/self/' in value.url or following.is_following_response(value.url):
+                # Bind responses to the current cookie session; a delayed response
+                # from the previous account must not repopulate its cleared cache.
+                from http.cookies import SimpleCookie
+                marker=following.session_fingerprint(self.context.cookies(['https://www.douyin.com']))
+                jar=SimpleCookie();jar.load(value.request.header_value('cookie') or '')
+                requested=following.session_fingerprint([{'name':k,'value':v.value} for k,v in jar.items()])
+                following.set_session(self,marker)
+                if requested!=marker:return
+            if '/user/profile/self/' in value.url:
+                try:
+                    payload=value.json();user=payload.get('user') or (payload.get('data') or {}).get('user') or {}
+                    following.set_profile(self,user)
+                except Exception:pass
+            if following.is_following_response(value.url):
+                try:
+                    from .live_browser import following_data
+                    payload=value.json()
+                    following.observe(self,value.url,payload,following_data)
+                except Exception:pass
+                return
+            if '/aweme/v1/web/aweme/detail/' not in value.url:return
             try:
                 payload=value.json();detail=payload.get('aweme_detail') or {}
                 vid=str(detail.get('aweme_id',''));media=detail_media(payload,vid)
@@ -70,14 +117,61 @@ class LoginBrowser:
 
     def page_for(self,url,navigate=False):
         context=self.ensure();vid=douyin_video_id(url)
-        page=next((p for p in reversed(context.pages) if not p.is_closed() and
+        pages=[p for p in context.pages if not p.is_closed()]
+        page=next((p for p in reversed(pages) if
                    (douyin_video_id(p.url)==vid if vid else p.url==url)),None)
         if page is None:
-            page=context.new_page();self.observe(page)
+            # Reuse a recycled check tab before opening another one. Leftover
+            # tabs are the reason a long run climbed to several GB.
+            page=next((p for p in pages if p.url=='about:blank' and p in self.scratch),None)
+            if page is None:
+                page=context.new_page();self.scratch.add(page);self.observe(page)
             if navigate:
                 try:page.goto(url,wait_until='domcontentloaded',timeout=30000)
                 except Exception:pass
         return page
+
+    def release(self,page,keep=False):
+        """Close a check tab so its renderer (and video buffers) are freed.
+
+        keep=True parks the tab on about:blank and leaves it in scratch. One
+        warm renderer makes every later navigation much faster than building a
+        fresh one, and about:blank still drops the player and its buffers.
+        """
+        if page is None or page not in self.scratch:return
+        if keep and not page.is_closed():
+            try:
+                page.goto('about:blank',wait_until='domcontentloaded',timeout=5000)
+                try:page.evaluate('() => { try { window.__vd_seen = null } catch (e) {} }')
+                except Exception:pass
+                for key in [k for k in self.details if k[0] is page]:self.details.pop(key,None)
+                return
+            except Exception:pass
+        try:
+            if not page.is_closed():page.close()
+        except Exception:
+            # Leave it in scratch: recycle() retries instead of leaking the tab.
+            try:
+                if not page.is_closed():page.goto('about:blank',wait_until='domcontentloaded',timeout=5000)
+            except Exception:pass
+            return
+        self.scratch.discard(page);self.observed.discard(page)
+        for key in [k for k in self.details if k[0] is page]:self.details.pop(key,None)
+
+    def recycle(self):
+        """Close every check tab this module opened; used before a new sweep.
+
+        A single blank tab is kept: with one worker there is never a second
+        check running, so that tab is the warm renderer the next check reuses.
+        """
+        warm=None
+        for page in list(self.scratch):
+            try:
+                if warm is None and not page.is_closed() and page.url=='about:blank':
+                    warm=page;continue
+            except Exception:pass
+            self.release(page)
+        return warm
 
     def open(self,url):
         def action():

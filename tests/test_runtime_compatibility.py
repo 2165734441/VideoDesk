@@ -17,6 +17,29 @@ ROOT=Path(__file__).resolve().parents[1]
 
 
 class RuntimeCompatibility(unittest.TestCase):
+    @unittest.skipUnless(os.name=='nt','Windows metadata fallback')
+    def test_machine_metadata_and_scientific_imports_do_not_wait_for_wmi(self):
+        code='''
+import json,os,platform,sys
+sys.path.insert(0,sys.argv[1])
+class UnavailableWmi:
+    def exec_query(self,*args):raise AssertionError('WMI backend must not run')
+platform._wmi=UnavailableWmi()
+from integrations.runtime_support import configure_platform
+configure_platform()
+configure_platform()
+assert platform.system()=='Windows'
+assert platform.machine()==(os.environ.get('PROCESSOR_ARCHITEW6432') or os.environ['PROCESSOR_ARCHITECTURE'])
+assert platform.win32_ver()[1]
+from PIL import Image
+import imagehash
+assert str(imagehash.phash(Image.new('RGB',(32,32))))=='0000000000000000'
+print(json.dumps({'native_metadata':True,'scientific_imports':True}))
+'''
+        result=subprocess.run([sys.executable,'-X','utf8','-c',code,str(ROOT)],capture_output=True,text=True,encoding='utf-8',timeout=30)
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertTrue(json.loads(result.stdout)['scientific_imports'])
+
     def test_public_status_excludes_raw_diagnostics_and_accounts(self):
         with tempfile.TemporaryDirectory() as tmp:
             report=Path(tmp)/'report.json'
@@ -109,7 +132,7 @@ print('server and settings isolated')
             self.assertEqual(result.returncode,0,result.stdout+result.stderr)
 
     def test_unknown_probe_returns_an_error_in_its_own_process(self):
-        result=subprocess.run([sys.executable,str(ROOT/'integrations/runtime_probe.py'),'unknown'],
+        result=subprocess.run([sys.executable,'-X','utf8',str(ROOT/'integrations/runtime_probe.py'),'unknown'],
                               capture_output=True,text=True,timeout=15,
                               creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
         self.assertNotEqual(result.returncode,0);self.assertIn('Unknown probe',result.stderr)

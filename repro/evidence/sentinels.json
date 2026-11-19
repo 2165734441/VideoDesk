@@ -1,0 +1,48 @@
+{
+  "generated_by": "repro/scripts/make_sentinels.py",
+  "note": "Re-run to recreate; verify_sentinel.py checks hashes are unchanged.",
+  "files": [
+    {
+      "file": "repro/qa/materials/sentinel_original.mp4",
+      "sha256": "ff9adc3b43f041a6bfb5be16a8552024bbe35e7dec84dca4dd4bb3ada80d1ae6",
+      "bytes": 416,
+      "purpose": "original user media (must never be deleted)"
+    },
+    {
+      "file": "repro/qa/materials/sentinel_user_added.txt",
+      "sha256": "0ab1690cb981c8f56e3d826dbbece2a3ab2f23338698ef1c4040fdb599ea4610",
+      "bytes": 352,
+      "purpose": "file added by user after generation (must never be deleted)"
+    },
+    {
+      "file": "repro/qa/materials/sentinel_shared.dat",
+      "sha256": "8cbc07cc2d14f7225e8f8edb28744eba40710cfaeca39e4e10171ffd99661502",
+      "bytes": 384,
+      "purpose": "file shared by more than one job (must never be deleted)"
+    },
+    {
+      "file": "repro/qa/output/sentinel_derived_copy.bin",
+      "sha256": "e051dbc43385a4c56e999e4be7e758d86a631e7f2c908b876411e1e0efa54791",
+      "bytes": 424,
+      "purpose": "generated derived copy (recyclable only if ownership is certain)"
+    },
+    {
+      "file": "repro/qa/materials/sentinel_zero_byte.mp4",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "purpose": "zero-byte media edge case"
+    },
+    {
+      "file": "repro/qa/materials/sentinel_broken.mp4",
+      "sha256": "e5c7fd1fcfc122c2c7aa7d9e825081b06d2db7f533b6087b0271f22c9877dbf7",
+      "bytes": 88,
+      "purpose": "corrupted media edge case"
+    },
+    {
+      "file": "repro/qa/materials/QA27 中文,空格 与 长名字/子目录 子目录 子目录/QA27_中文,空格_长文件名_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.mp4",
+      "sha256": "8f4dd1b240ca4c00165048af82a474e8d1a50259117b5af0ffb58fe58df15374",
+      "bytes": 140,
+      "purpose": "long / Chinese / space / comma path sentinel"
+    }
+  ]
+}

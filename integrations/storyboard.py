@@ -5,6 +5,7 @@ import http.cookiejar
 import json
 import os
 from pathlib import Path
+from . import material_history
 import queue
 import re
 import shutil
@@ -366,7 +367,7 @@ class Engine:
             if info.get('source_has_audio') is None:info['source_has_audio']=probe['hasAudio']
             if req['start']>=probe['duration']:raise ValueError('起始时间已经超过视频时长')
             if req['kind']=='probe':
-                a.atomic_json(base/'probe.json',{**probe,'path':req['input']});a.write_bundle(jid);return '视频信息已读取'
+                a.atomic_json(base/'probe.json',{**probe,'path':req['input']});material_history.register_created(a,jid,[base/'probe.json']);a.write_bundle(jid);return '视频信息已读取'
             if req['kind']=='subtitles':
                 a.change(jid,message='裁剪字幕带并拼接长图',progress=35)
                 result=self.node(jid,{'command':'subtitles','input':source,'out':str(base/'subtitle-strip.jpg'),
@@ -377,6 +378,7 @@ class Engine:
                     try:a.atomic_json(base/'字幕OCR.json',ai_models.ocr_image(base/'subtitle-strip.jpg'))
                     except Exception as exc:result['ocr_warning']='OCR 未完成：'+str(exc)[:200]
                 a.atomic_json(base/'subtitle-timeline.json',result)
+                material_history.register_created(a,jid,[base/'subtitle-strip.jpg',base/'subtitle-timeline.json',base/'字幕OCR.json'])
                 a.write_bundle(jid,{'subtitles':result});return '字幕长图已生成；采样间隔内可能存在未截取的字幕，请按需加密或指定时间范围'
             transcript_path,transcript=self.transcribe(jid,source,audio,info,req,base)
             a.atomic_json(base/'transcript.json',transcript.get('segments',[]))
@@ -412,6 +414,7 @@ class Engine:
                         'scanGap':req['scan_gap'],'integral':req['integral'],'integralSeconds':req['integral_seconds'],'tierMap':req['tier_map']}},direct)
                 result['transcript']=all_evidence['transcript']
                 a.atomic_json(out/'evidence.json',result)
+                material_history.register_created(a,jid,[out/'evidence.json',out/'分镜与台词清单.txt',*[out/s['file'] for s in result['sheets']]])
                 for s in result['sheets']:
                     all_evidence['sheets'].append({**s,'file':f'part-{index+1:03d}/'+s['file'],'part':index+1})
                 for c in result['cells']:
@@ -431,6 +434,7 @@ class Engine:
                     a.change(jid,message=f"保存高清单图 {index+1} / {len(all_evidence['cells'])}",progress=frame_base+int((index+1)/max(1,len(all_evidence['cells']))*5))
                 a.atomic_json(base/'evidence.json',all_evidence)
             a.atomic_json(base/'timeline.json',timeline)
+            material_history.register_created(a,jid,[base/'timeline.json',base/'evidence.json',base/'transcript.json',base/'transcript-info.json',base/'完整台词.txt',*[base/t['file'] for t in timeline]])
             if req['audio'] and info.get('source_has_audio',probe['hasAudio']):
                 args=['-ss',str(req['start']),'-i',audio]
                 if req['duration']:args+=['-t',str(req['duration'])]

@@ -1,0 +1,26 @@
+[
+  {
+    "tag": "r1",
+    "out_a": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_A",
+    "out_b": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_B",
+    "frozen": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_A",
+    "live_after": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_A",
+    "global_after": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_B",
+    "diverged": true,
+    "job_directory": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_A\\20261114-151858_2f398eab94cd",
+    "job_uses_stale_output": true,
+    "job_id": "2f398eab94cd"
+  },
+  {
+    "tag": "r2",
+    "out_a": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_C",
+    "out_b": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_D",
+    "frozen": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_C",
+    "live_after": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_C",
+    "global_after": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_D",
+    "diverged": true,
+    "job_directory": "E:\\VideoDesk\\repro\\qa\\output\\qa_global_C\\20261114-151859_841c275ef2d9",
+    "job_uses_stale_output": true,
+    "job_id": "841c275ef2d9"
+  }
+]

@@ -3,6 +3,23 @@ import json
 import os
 from pathlib import Path
 
+
+def configure_platform():
+    """Use CPython's native Windows fallback for optional machine metadata.
+
+    WMI can hang indefinitely inside platform.machine()/win32_ver(), including
+    when imported by NumPy, SciPy and Playwright. CPython already falls back to
+    Windows APIs, the registry and PROCESSOR_* when this backend is unavailable.
+    This only disables that optional backend in this process; encoder/CUDA
+    capability probes and Windows services are unchanged.
+    https://github.com/python/cpython/issues/112278
+    """
+    if os.name == 'nt':
+        import platform
+        if hasattr(platform, '_wmi'):
+            platform._wmi = None
+
+
 LABELS = {'base':'基础工作台','media':'音视频处理','ocr':'画面文字识别', 'asr':'本地语音识别', 'dedup':'相似图片去重',
           'node':'分镜与 YouTube 脚本', 'crawler':'MediaCrawler 平台采集',
           'download':'链接下载', 'browser':'登录浏览器'}

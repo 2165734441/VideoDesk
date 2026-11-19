@@ -337,12 +337,14 @@ class Materials:
             def progress(done,total):self.a.change(jid,progress=5+int(done/max(1,total)*90),message=f'合并已有素材 {done} / {total} · 不重新解析视频')
             result=merge_packages(stage,entries,lambda:self.a.check_cancel(jid),progress,req.title)
             self.a.check_cancel(jid)
+            generated=[p.relative_to(stage) for p in stage.rglob('*') if p.is_file()]
             for p in list(stage.iterdir()):p.rename(empty/p.name)
             stage.rmdir()
             target=empty.parent/title_name(req.title)
             if target.exists():target=empty.parent/(title_name(req.title)+'_'+jid[:8])
             empty.rename(target);result['title']=req.title
             self.a.change(jid,directory=str(target),ai_package=result,progress=99)
+            self.a.MATERIAL_HISTORY.created(jid,[target/p for p in generated])
             self.a.refresh_files(jid);self.a.MATERIAL_HISTORY.record(jid)
             with self.lock:self.register(target);self.save()
             return '资料合并完成；请上传“一起上传给AI”文件夹内全部文件'

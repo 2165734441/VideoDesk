@@ -23,15 +23,19 @@ import uuid
 # Resolve imports relative to this copy, including when running source checkout.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from integrations.runtime_support import configure_platform
+configure_platform()
+
 from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Form
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 import imageio_ffmpeg
-from integrations import image_dedup, video_sources, storyboard, local_sources, batch_pipeline, material_history, material_packages, runtime_support
+from integrations import image_dedup, video_sources, storyboard, local_sources, batch_pipeline, material_history, material_packages, runtime_support, live, translation, hardware, media_probe,mobile
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(os.environ.get('VIDEO_DESK_APP_ROOT') or Path(__file__).resolve().parent)
+VERSION = json.loads((ROOT/'version.json').read_text('utf-8'))['version']
 DATA = Path(os.environ.get('VIDEO_DESK_DATA', str(ROOT / '.local')))
 DATA.mkdir(parents=True, exist_ok=True)
 TOKEN = secrets.token_urlsafe(32)
@@ -48,7 +52,7 @@ LOCAL_PREVIEWS: dict[str, Path] = {}
 REPAIR_PENDING = False
 
 
-from integrations.storage import atomic_json
+from integrations.storage import atomic_text, atomic_json, flush_deferred
 from integrations.job_recovery import load_jobs
 
 
@@ -68,9 +72,58 @@ for item in load_jobs(DATA,SETTINGS['output']):
     SESSION_LOCKS[item['id']] = threading.RLock()
 
 
-def persist():
+_PERSIST_EVENT = threading.Event()
+_PERSIST_STOP = threading.Event()
+_PERSIST_THREAD = None
+_PERSIST_BACKUP_AT = 0.0
+
+
+def _jobs_text():
     with LOCK:
-        atomic_json(DATA / 'jobs.json', list(JOBS.values()), backup=True)
+        return json.dumps(list(JOBS.values()), ensure_ascii=False, indent=2)
+
+
+def _persist_loop():
+    """Write jobs.json on a background thread.
+
+    The metadata file reaches hundreds of kilobytes and every state change used
+    to rewrite it, with fsync, while LOCK was held. One stalled disk call then
+    froze every API request behind it, which looks exactly like a deadlock.
+    Callers only flag work now; the writer coalesces bursts and returns.
+    """
+    global _PERSIST_BACKUP_AT
+    while not _PERSIST_STOP.is_set():
+        if not _PERSIST_EVENT.wait(1.0): continue
+        _PERSIST_EVENT.clear()
+        time.sleep(.2)
+        try:
+            path = DATA / 'jobs.json'
+            backup = None
+            if time.time() - _PERSIST_BACKUP_AT > 300 and path.is_file():
+                backup = DATA / 'jobs.json.bak'
+                _PERSIST_BACKUP_AT = time.time()
+            atomic_text(path, _jobs_text(), backup_from=backup)
+        except Exception:
+            pass
+
+
+def start_persist_thread():
+    global _PERSIST_THREAD
+    if _PERSIST_THREAD and _PERSIST_THREAD.is_alive(): return
+    _PERSIST_THREAD = threading.Thread(target=_persist_loop, name='jobs-persist', daemon=True)
+    _PERSIST_THREAD.start()
+
+
+def persist():
+    start_persist_thread()
+    _PERSIST_EVENT.set()
+
+
+def flush_jobs():
+    """Synchronous write, used on shutdown when the process is about to exit."""
+    _PERSIST_EVENT.clear()
+    try: atomic_text(DATA / 'jobs.json', _jobs_text())
+    except Exception: pass
 
 
 def change(jid, **values):
@@ -84,18 +137,26 @@ def change(jid, **values):
         persist()
 
 
+_VERIFIED_OUTPUTS: set[str] = set()
+
+
 def output_dir(value='') -> Path:
     path = Path(value or SETTINGS['output']).expanduser()
     if not path.is_absolute():
-        raise HTTPException(400, '请输入完整的本机目录路径，例如 D:\\视频素材')
+        raise HTTPException(400, '请输入完整的本机目录路径，例如 D:\视频素材')
     try:
         path.mkdir(parents=True, exist_ok=True)
-        probe = path / ('.video-desk-' + uuid.uuid4().hex)
-        probe.write_bytes(b'')
-        probe.unlink()
+        resolved = path.resolve()
+        # Probing costs a real write; on a stalled disk every job and every live
+        # check paid for it. A directory verified once is reused as is.
+        if str(resolved) not in _VERIFIED_OUTPUTS:
+            probe = resolved / ('.video-desk-' + uuid.uuid4().hex)
+            probe.write_bytes(b'')
+            probe.unlink()
+            _VERIFIED_OUTPUTS.add(str(resolved))
     except OSError as exc:
         raise HTTPException(400, '此目录无法写入，请更换保存位置。') from exc
-    return path.resolve()
+    return resolved
 
 
 def new_job(kind, title, output='', source='', options=None):
@@ -126,6 +187,30 @@ def new_job(kind, title, output='', source='', options=None):
             except OSError: pass
             raise
     return job
+
+
+def drop_job(jid, remove_directory=False):
+    """Forget a job that produced nothing, optionally removing its empty folder.
+
+    Automatic live checks run every minute; leaving a job card and an empty
+    folder behind for each one buries the recordings that actually worked.
+    """
+    with LOCK:
+        job = JOBS.pop(jid, None)
+        EVENTS.pop(jid, None)
+        SESSION_LOCKS.pop(jid, None)
+        if job is None:
+            return False
+        try:
+            persist()
+        except Exception:
+            pass
+    if remove_directory:
+        try:
+            Path(job['directory']).rmdir()
+        except OSError:
+            pass
+    return True
 
 
 def job_by_id(jid):
@@ -168,6 +253,7 @@ def write_bundle(jid, extra=None):
         '3. 提取方法、步骤、数据与待核实说法。\n4. 区分画面、字幕、声音直接提供的信息与推断。\n'
         '5. 若只提供图片，请明确无法从静态图片确认的语音内容，不要编造。\n\n'
         '时间索引见 timeline.json；实时采集时间是本工具的采集时间，不等于播放器进度。\n', encoding='utf-8')
+    material_history.register_created(sys.modules[__name__],jid,[base/'manifest.json',base/'AI分析提示词.txt'])
     refresh_files(jid)
 
 
@@ -206,9 +292,17 @@ def run_ffmpeg(jid, args, private=False):
                 category='unsupported_codec' if re.search(r'unknown decoder|decoder.*not found|unsupported codec',summary,re.I) else 'permission_denied' if 'Permission denied' in summary else 'media_processing_error'
                 change(jid,source_diagnostic={'component':FFMPEG,'exit_code':proc.returncode,'summary':summary,'category':category})
                 raise RuntimeError('FFmpeg 处理失败：' + summary)
+            # FFmpeg can exit successfully after decoding only a damaged prefix.
+            diagnostic=log.read_text(encoding='utf-8',errors='replace')
+            if media_probe.damaged_log(diagnostic):
+                change(jid,source_diagnostic={'component':FFMPEG,'exit_code':0,'category':'incomplete_media','summary':'解码日志报告损坏或提前结束'})
+                raise RuntimeError('视频解码不完整：检测到损坏或截断，已生成的部分文件保留，请检查原视频或缩小到可读取的时间范围')
+            if '%' not in str(args[-1]):material_history.register_created(sys.modules[__name__],jid,[Path(args[-1])])
         finally:
             with LOCK:
                 PROCESSES.pop(jid, None)
+            # Batch logs are archived into the private workspace by Pipeline.run.
+            if job_by_id(jid).get('kind')!='batch-video':material_history.register_created(sys.modules[__name__],jid,[log])
 
 
 class FrameOptions(BaseModel):
@@ -239,6 +333,8 @@ def frame_options(opts):
 
 def extract_frames(jid, source, opts, input_args=None, audio_input=None, source_duration=None):
     opts = frame_options(FrameOptions(**opts))
+    if input_args is None:
+        media_probe.check_transport_tail(source)
     base = Path(job_by_id(jid)['directory'])
     folder = base / 'frames'
     folder.mkdir(exist_ok=True)
@@ -264,6 +360,7 @@ def extract_frames(jid, source, opts, input_args=None, audio_input=None, source_
         args += ['-to', str(opts.start + opts.duration)]
     args += [str(folder / '%06d.jpg')]
     log = base / '.frames.log'
+    decode_damage=threading.Event()
     with log.open('wb') as stream:
         proc = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE if remote else stream,
                                 creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
@@ -271,6 +368,7 @@ def extract_frames(jid, source, opts, input_args=None, audio_input=None, source_
             # Retain source timestamps, never signed CDN URLs or request headers.
             last = 0
             for line in proc.stderr:
+                if media_probe.damaged_log(line):decode_damage.set()
                 match = re.search(rb'\bpts_time:([\d.eE+\-]+)', line)
                 if match:
                     stream.write(b'pts_time:' + match[1] + b'\n')
@@ -301,19 +399,24 @@ def extract_frames(jid, source, opts, input_args=None, audio_input=None, source_
                 reader.join(timeout=10)
             with LOCK:
                 PROCESSES.pop(jid, None)
+    material_history.register_created(sys.modules[__name__],jid,[log])
     logs = log.read_text(encoding='utf-8', errors='replace')
     if proc.returncode:
         if remote:
             raise RuntimeError('直连抽帧失败。请确认网络、登录状态和视频是否可播放；没有保存视频文件。')
         raise RuntimeError('视频抽帧失败：' + logs[-900:])
+    if decode_damage.is_set() or media_probe.damaged_log(logs):
+        change(jid,source_diagnostic={'component':FFMPEG,'exit_code':0,'category':'incomplete_media','summary':'解码日志报告损坏或提前结束'})
+        raise RuntimeError('视频解码不完整：检测到损坏或截断，请检查原视频或缩小到可读取的时间范围')
     stamps = [float(t) for t in re.findall(r'\bpts_time:([\d.eE+\-]+)', logs)]
-    frames = sorted(folder.glob('*.jpg'))
+    frames = [folder/f'{i+1:06d}.jpg' for i in range(len(stamps)) if (folder/f'{i+1:06d}.jpg').is_file()]
     if not frames:
         raise RuntimeError('所选时间范围没有视频帧，请检查起始时间和视频内容。')
     timeline = [dict(file='frames/' + path.name,
                      seconds=round(stamps[i], 6) if i < len(stamps) else None,
                      clock='source_video') for i, path in enumerate(frames)]
     atomic_json(base / 'timeline.json', timeline)
+    material_history.register_created(sys.modules[__name__],jid,[*frames,base/'timeline.json'])
     warnings = []
     if len(frames) >= opts.limit:
         warnings.append(f'已达到 {opts.limit} 张上限；需要更多图片可增大上限或分段抽取。')
@@ -606,7 +709,12 @@ app.add_middleware(TrustedHostMiddleware, allowed_hosts=['127.0.0.1', 'localhost
 
 @app.on_event('shutdown')
 def close_login_browser():
+    LIVE.close()
+    TRANSLATION.close()
     BROWSER.close()
+    _PERSIST_STOP.set()
+    flush_jobs()
+    flush_deferred()
 
 
 @app.middleware('http')
@@ -627,11 +735,31 @@ async def local_guard(request: Request, call_next):
     return response
 
 
+def listed_jobs():
+    """Jobs worth showing in the workbench.
+
+    Automatic live checks run once a minute per anchor; surfacing the ones that
+    are still only checking makes the list flicker with entries that vanish. They
+    appear the moment a segment really starts (or when the user starts them).
+    A recording that runs on the phone has no local segment to wait for, so it is
+    kept by its own flag instead of disappearing while it is actually recording.
+    """
+    visible = []
+    for job in JOBS.values():
+        options = job.get('options') or {}
+        if (job.get('kind') == 'live-recording' and options.get('automatic')
+                and not job.get('replay') and not job.get('live_pending') and not job.get('phone_recording')
+                and job.get('status') in ('queued', 'running', 'waiting')):
+            continue
+        visible.append(job)
+    return visible
+
+
 @app.get('/api/state')
 def state():
     with LOCK:
-        return {'token': TOKEN, 'settings': dict(SETTINGS), 'jobs': list(reversed(list(JOBS.values()))),
-                'ffmpeg': bool(FFMPEG), 'version': os.environ.get('VIDEO_DESK_VERSION', '2.5.0'),
+        return {'token': TOKEN, 'settings': dict(SETTINGS), 'jobs': list(reversed(listed_jobs())),
+                'ffmpeg': bool(FFMPEG), 'version': VERSION,
                 'application': 'video-desk', 'installation_id': os.environ.get('VIDEO_DESK_INSTALLATION_ID', ''),
                 'engines': {'yt_dlp': runtime_support.available('download'), 'mediacrawler': crawler_available()},
                 'youtube': video_sources.youtube_support(), 'runtime':runtime_support.status()}
@@ -1083,9 +1211,8 @@ def finish_capture(jid: str, req: FinishRequest):
                         shutil.copyfileobj(src, out)
             if req.mp4:
                 try:
-                    run_ffmpeg(jid, ['-i', str(raw), '-vf', 'pad=ceil(iw/2)*2:ceil(ih/2)*2',
-                        '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '22', '-c:a', 'aac',
-                        '-movflags', '+faststart', str(base / 'recording.mp4')])
+                    hardware.encode(sys.modules[__name__], jid, ['-i', str(raw), '-vf', 'pad=ceil(iw/2)*2:ceil(ih/2)*2', '-pix_fmt', 'yuv420p'],
+                        ['-c:a', 'aac', '-movflags', '+faststart', str(base / 'recording.mp4')])
                 except RuntimeError:
                     (base / 'recording.mp4').unlink(missing_ok=True)
                     warnings.append('MP4 转换失败，原始 WebM 已保留。')
@@ -1109,9 +1236,15 @@ def cancel(jid: str):
     job = job_by_id(jid)
     if job['kind'] in ('batch', 'batch-video'):
         return BATCH_PIPELINE.cancel(jid)
+    if job['kind']=='live-recording':
+        key=job.get('options',{}).get('anchor_id')
+        if key and (LIVE.active.get(key)==jid or LIVE.pending.get(key)==jid):
+            return LIVE.stop(key)
     if job['kind'] == 'capture' and job['status'] == 'recording':
         raise HTTPException(409, '请在采集页面使用停止并保存，避免丢失录制分段')
     EVENTS[jid].set()
+    if job['kind']=='translation' and job['status']=='waiting':
+        change(jid,status='cancelled',message='已取消，双语字幕与已完成文件仍保留')
     if job['kind']=='analysis' and job['status']=='waiting':
         change(jid,status='cancelled',message='已取消等待人工接管，已保存文件仍保留')
     return {'message': '已请求取消'}
@@ -1120,6 +1253,11 @@ def cancel(jid: str):
 @app.post('/api/jobs/{jid}/resume')
 def resume(jid: str):
     job = job_by_id(jid)
+    if job['kind'] == 'translation':
+        if job['status'] not in ('waiting','error','interrupted','cancelled'):
+            raise HTTPException(409,'此翻译任务正在处理或已经完成')
+        TRANSLATION.schedule(jid)
+        return {'id':jid,'message':'已重新排队翻译，已完成阶段保留'}
     if job['kind'] in ('batch', 'batch-video'):
         return BATCH_PIPELINE.retry(jid)
     if job['kind'] == 'analysis':
@@ -1173,6 +1311,9 @@ LOCAL_SOURCES = local_sources.install(app, sys.modules[__name__])
 MATERIAL_HISTORY = material_history.install(app, sys.modules[__name__])
 BATCH_PIPELINE = batch_pipeline.install(app, sys.modules[__name__], LOCAL_SOURCES)
 MATERIAL_PACKAGES = material_packages.install(app, sys.modules[__name__])
+LIVE = live.install(app, sys.modules[__name__])
+MOBILE = mobile.install(app, sys.modules[__name__])
+TRANSLATION = translation.install(app, sys.modules[__name__])
 app.mount('/static', StaticFiles(directory=ROOT / 'static'), name='static')
 
 

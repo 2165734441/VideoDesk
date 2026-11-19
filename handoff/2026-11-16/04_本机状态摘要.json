@@ -1,0 +1,57 @@
+{
+  "collected_at": "2026-11-16T00:33:05.216869+08:00",
+  "source_version": {
+    "version": "2.8.2"
+  },
+  "scope": "Read-only on-disk aggregates; no live phone/recording verification",
+  "contains_names_urls_ids_tokens_or_file_paths": false,
+  "locations": {
+    "installed_user_data": {
+      "exists": true,
+      "anchors": {
+        "total": 7,
+        "enabled": 4,
+        "monitor_device": {
+          "phone": 7
+        },
+        "record_target": {
+          "phone": 7
+        },
+        "with_time_windows": 0
+      },
+      "live_settings": {
+        "concurrency": 4,
+        "segment_minutes": 30,
+        "follow_global": true
+      },
+      "jobs": {
+        "total": 23,
+        "kind_and_status": {
+          "analysis / interrupted": 2,
+          "analysis / done": 2,
+          "material-merge / done": 1,
+          "batch / done": 1,
+          "batch-video / done": 1,
+          "live-recording / done": 15,
+          "live-recording / error": 1
+        },
+        "live_with_replay": 12
+      }
+    },
+    "source_default_data": {
+      "exists": true,
+      "jobs": {
+        "total": 9,
+        "kind_and_status": {
+          "extract / done": 3,
+          "download / done": 1,
+          "crawler / done": 1,
+          "dedup / done": 1,
+          "stream / error": 1,
+          "stream / done": 2
+        },
+        "live_with_replay": 0
+      }
+    }
+  }
+}

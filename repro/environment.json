@@ -1,0 +1,124 @@
+{
+  "report": "QA-27 映格 VideoDesk 2.7.0 独立测试环境（已脱敏）",
+  "timezone": "UTC+08:00 (China Standard Time)",
+  "test_window": {
+    "start": "2026-11-14 14:28:21 +0800",
+    "end": "2026-11-14 15:30 +0800"
+  },
+  "artifacts": {
+    "windows_x64_exe": {
+      "file": "release/VideoDesk-2.7.0-Windows-x64.exe",
+      "bytes": 749388800,
+      "sha256": "676a999a093e07d901be809fcb7bcc685de92be703b8e04493427ab3edb97d2d",
+      "target_sha256_matched": true,
+      "payload_sha256": "e5df71c0b18b2992c4e38912b3a4a65cd9b31e63cbf88d2a94725f01067abe9e",
+      "version_reported_by_running_app": "2.7.0"
+    },
+    "android_apk": {
+      "file": "release/VideoDesk-Android-1.0.0.apk",
+      "bytes": 37267,
+      "sha256": "dbfa13c3c270544f95dc543995fb18b326e58a80ad3178372f4977aa86c85c61",
+      "target_sha256_matched": true
+    },
+    "installed_desktop_exe": {
+      "path_redacted": "<USERPROFILE>\\AppData\\Local\\VideoDesk\\VideoDesk.exe",
+      "sha256": "676a999a093e07d901be809fcb7bcc685de92be703b8e04493427ab3edb97d2d",
+      "note": "与 release 目标 EXE 同哈希；属于用户正在使用的实例，本次未启动、未修改、未停止"
+    },
+    "installed_phone_apk": {
+      "package": "org.videodesk.mobile",
+      "versionName": "1.0.0",
+      "versionCode": 1,
+      "sha256": "dbfa13c3c270544f95dc543995fb18b326e58a80ad3178372f4977aa86c85c61",
+      "note": "只读 pm path / sha256sum 查询；未覆盖安装、未清数据、未卸载"
+    },
+    "source_matches_shipped_payload": {
+      "method": "逐一 SHA256 比对 E:/VideoDesk 源码与 repro/qa/home/versions/2.7.0-*/app 内同名文件",
+      "checked": 11,
+      "all_match": true,
+      "evidence": "repro/evidence/payload_match.json"
+    }
+  },
+  "isolated_instance": {
+    "launcher_flags": "--self-test --home <QA绝对路径> --report <报告绝对路径> --stop-file <停止标记绝对路径>",
+    "home": "repro/qa/home",
+    "data": "repro/qa/home/data",
+    "output": "repro/qa/output",
+    "materials": "repro/qa/materials",
+    "installation_id": "bdbfa8b441cc4ed89f9537d7401e17d3",
+    "urls_used": [
+      "http://127.0.0.1:14545",
+      "http://127.0.0.1:7993",
+      "http://127.0.0.1:2746"
+    ],
+    "note": "端口均从该实例 data/server.json 读取，未硬编码；三个 self-test 均正常 10 分钟超时退出(exit 0)，非崩溃"
+  },
+  "host": {
+    "os": "Microsoft Windows NT 10.0.26200.0 (Windows 11 x64)",
+    "cpu": "AMD Ryzen 5 5600 6-Core Processor, 12 logical processors",
+    "ram_total_gb": 15.95,
+    "ram_available_gb_at_measurement": 3.99,
+    "memory_load_pct": 74,
+    "gpu": "NVIDIA GeForce RTX 5060, 8151 MiB",
+    "gpu_driver": "616.64",
+    "cuda_umd": "13.4",
+    "encoder_probe": {
+      "h264_nvenc": true,
+      "h264_qsv": false,
+      "h264_amf": false,
+      "selected": "h264_nvenc"
+    },
+    "disk_free": {
+      "C": "49 GB free / 476 GB",
+      "E": "1.7 TB free / 1.9 TB"
+    },
+    "browsers": ["Microsoft Edge 157.0.4341.46", "Google Chrome 157.0.8103.78"],
+    "toolchain": {
+      "ad_hoc_python": "3.13.14 (无 fastapi/imagehash/yt_dlp 等依赖)",
+      "release_bundled_python": "3.13.17 (完整依赖)",
+      "node": "22.22.2 (测试 shell) / 22.23.4 (发布包内置)",
+      "ffmpeg": "7.1 essentials (发布包内置 imageio_ffmpeg，系统 PATH 中无 ffmpeg)",
+      "ffprobe": "发布包内置 runtime-tools/ffprobe.exe",
+      "adb": "D:/rapoo-otg/tools/platform-tools/adb.exe (仅在隔离实例 phone-settings.json 中配置为只读查询)"
+    }
+  },
+  "ai_and_runtime_components": {
+    "components_ready_first_start": 9,
+    "components_not_ready_first_start": 0,
+    "degraded_first_start": false,
+    "degraded_second_start": true,
+    "second_start_failing_component": "browser (组件检查超时 0xFFFFFFFF，45s)",
+    "translation_runtime": {"cpu": false, "gpu": false},
+    "translation_models": {
+      "english-asr": false,
+      "english-chinese": false,
+      "chinese-voice": false,
+      "background": false
+    },
+    "note": "隔离 home 未安装 AI 模型/翻译组件；安装需数 GB 下载，本轮未安装。首次启动 9/9 组件就绪"
+  },
+  "phone": {
+    "model": "vivo V2304A (PD2304)",
+    "android": "16 (SDK 36)",
+    "security_patch": "2026-08-01",
+    "serial_redacted": true,
+    "screen_state": "Awake",
+    "active_media_projection": false,
+    "companion_installed": true,
+    "douyin_installed": true,
+    "note": "该手机已与用户正在运行的正式实例配对。本轮只做只读 ADB 查询，未执行 pair / install / reverse / 通知读取 / 录屏 / 跳转"
+  },
+  "network": {
+    "http_proxy_present_in_test_shell": true,
+    "proxy_value_redacted": true,
+    "no_proxy_experiment": "设置 no_proxy=127.0.0.1,localhost,::1 后仍有 4 个源码测试模块挂起，排除代理为唯一原因",
+    "platform_login": "无抖音登录态（隔离实例浏览器 profile 为空）；未绕过登录或验证",
+    "external_platform_access": "未进行人工登录，真实平台页面/直播间未打开"
+  },
+  "environment_changes_made_by_tester": [
+    "在 repro/qa/home/data/settings.json 预置 output 为 QA 目录（仅新建，未改用户配置）",
+    "在 repro/qa/home/data/phone-settings.json 写入只读 ADB 路径（仅该隔离实例）",
+    "仅对当前测试进程设置 VIDEO_DESK_DATA / VIDEO_DESK_DEFAULT_OUTPUT / no_proxy；未改系统服务、防火墙、系统 PATH 或全局代理",
+    "未安装/卸载任何系统组件，未改动用户驱动"
+  ]
+}

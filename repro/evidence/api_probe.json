@@ -1,0 +1,1258 @@
+{
+  "instance": "http://127.0.0.1:14545",
+  "installation_id": "bdbfa8b441cc4ed89f9537d7401e17d3",
+  "records": [
+    {
+      "label": "A01 live room",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "",
+        "url": "https://live.douyin.com/7381928374650910000"
+      },
+      "status": 200,
+      "body": {
+        "id": "ed2e591fda5b",
+        "name": "",
+        "url": "https://live.douyin.com/7381928374650910000",
+        "enabled": false,
+        "quality": "origin",
+        "windows": [],
+        "monitor_device": "pc",
+        "record_target": "ask"
+      }
+    },
+    {
+      "label": "A02 same room https www /live/",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "",
+        "url": "https://www.douyin.com/live/7381928374650910000"
+      },
+      "status": 409,
+      "body": {
+        "detail": "此主播已在列表中，请修改已有设置"
+      }
+    },
+    {
+      "label": "A03 same room with tracking query",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "",
+        "url": "https://live.douyin.com/7381928374650910000?utm_source=copy_link"
+      },
+      "status": 409,
+      "body": {
+        "detail": "此主播已在列表中，请修改已有设置"
+      }
+    },
+    {
+      "label": "A04 same room trailing slash",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "",
+        "url": "https://live.douyin.com/7381928374650910000/"
+      },
+      "status": 409,
+      "body": {
+        "detail": "此主播已在列表中，请修改已有设置"
+      }
+    },
+    {
+      "label": "A05 same room webcast reflow",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "",
+        "url": "https://webcast.amemv.com/douyin/webcast/reflow/7381928374650910000/"
+      },
+      "status": 200,
+      "body": {
+        "id": "3eb6a401fbb8",
+        "name": "",
+        "url": "https://webcast.amemv.com/douyin/webcast/reflow/7381928374650910000/",
+        "enabled": false,
+        "quality": "origin",
+        "windows": [],
+        "monitor_device": "pc",
+        "record_target": "ask"
+      }
+    },
+    {
+      "label": "A06 user homepage",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "",
+        "url": "https://www.douyin.com/user/MS4wLjABAAAAqa_synth_anchor_0001"
+      },
+      "status": 200,
+      "body": {
+        "id": "bc45b623b220",
+        "name": "",
+        "url": "https://www.douyin.com/user/MS4wLjABAAAAqa_synth_anchor_0001",
+        "enabled": false,
+        "quality": "origin",
+        "windows": [],
+        "monitor_device": "pc",
+        "record_target": "ask"
+      }
+    },
+    {
+      "label": "A07 short share with text",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "",
+        "url": "  8.86 复制打开抖音，看看主播 https://v.douyin.com/iQaSynth01/ 复制此链接，打开Dou音搜索 "
+      },
+      "status": 200,
+      "body": {
+        "id": "b9bf52f265cd",
+        "name": "",
+        "url": "https://v.douyin.com/iQaSynth01/",
+        "enabled": false,
+        "quality": "origin",
+        "windows": [],
+        "monitor_device": "pc",
+        "record_target": "ask"
+      }
+    },
+    {
+      "label": "A08 leading/trailing spaces",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "",
+        "url": "   https://live.douyin.com/7381928374650910099   "
+      },
+      "status": 200,
+      "body": {
+        "id": "a6ce3380333e",
+        "name": "",
+        "url": "https://live.douyin.com/7381928374650910099",
+        "enabled": false,
+        "quality": "origin",
+        "windows": [],
+        "monitor_device": "pc",
+        "record_target": "ask"
+      }
+    },
+    {
+      "label": "A09 illegal link",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "",
+        "url": "not a url"
+      },
+      "status": 422,
+      "body": {
+        "detail": [
+          {
+            "type": "value_error",
+            "loc": [
+              "body"
+            ],
+            "msg": "Value error, 请粘贴抖音直播间、主播主页或分享链接",
+            "input": {
+              "name": "",
+              "url": "not a url"
+            },
+            "ctx": {
+              "error": {}
+            }
+          }
+        ]
+      }
+    },
+    {
+      "label": "A10 non-douyin",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "",
+        "url": "https://www.example.com/live/123456"
+      },
+      "status": 422,
+      "body": {
+        "detail": [
+          {
+            "type": "value_error",
+            "loc": [
+              "body"
+            ],
+            "msg": "Value error, 当前直播录播仅支持抖音链接",
+            "input": {
+              "name": "",
+              "url": "https://www.example.com/live/123456"
+            },
+            "ctx": {
+              "error": {}
+            }
+          }
+        ]
+      }
+    },
+    {
+      "label": "A11 douyin published video",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "",
+        "url": "https://www.douyin.com/video/7381928374650910000"
+      },
+      "status": 422,
+      "body": {
+        "detail": [
+          {
+            "type": "value_error",
+            "loc": [
+              "body"
+            ],
+            "msg": "Value error, 请使用主播主页或直播间链接，不是已发布的视频链接",
+            "input": {
+              "name": "",
+              "url": "https://www.douyin.com/video/7381928374650910000"
+            },
+            "ctx": {
+              "error": {}
+            }
+          }
+        ]
+      }
+    },
+    {
+      "label": "A12 19-digit exact room id",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "",
+        "url": "https://live.douyin.com/7381928374650910213"
+      },
+      "status": 200,
+      "body": {
+        "id": "dbe08de000cc",
+        "name": "",
+        "url": "https://live.douyin.com/7381928374650910213",
+        "enabled": false,
+        "quality": "origin",
+        "windows": [],
+        "monitor_device": "pc",
+        "record_target": "ask"
+      }
+    },
+    {
+      "label": "A13 name blank",
+      "method": "POST",
+      "path": "/api/live/anchors",
+      "payload": {
+        "name": "",
+        "url": "https://live.douyin.com/9999000011112222"
+      },
+      "status": 200,
+      "body": {
+        "id": "7ffa1c087701",
+        "name": "",
+        "url": "https://live.douyin.com/9999000011112222",
+        "enabled": false,
+        "quality": "origin",
+        "windows": [],
+        "monitor_device": "pc",
+        "record_target": "ask"
+      }
+    },
+    {
+      "label": "A20 state",
+      "method": "GET",
+      "path": "/api/live",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "settings": {
+          "concurrency": 4,
+          "output": "",
+          "segment_minutes": 30
+        },
+        "anchors": [
+          {
+            "id": "ed2e591fda5b",
+            "name": "",
+            "url": "https://live.douyin.com/7381928374650910000",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "3eb6a401fbb8",
+            "name": "",
+            "url": "https://webcast.amemv.com/douyin/webcast/reflow/7381928374650910000/",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "bc45b623b220",
+            "name": "",
+            "url": "https://www.douyin.com/user/MS4wLjABAAAAqa_synth_anchor_0001",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "b9bf52f265cd",
+            "name": "",
+            "url": "https://v.douyin.com/iQaSynth01/",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "a6ce3380333e",
+            "name": "",
+            "url": "https://live.douyin.com/7381928374650910099",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "dbe08de000cc",
+            "name": "",
+            "url": "https://live.douyin.com/7381928374650910213",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "7ffa1c087701",
+            "name": "",
+            "url": "https://live.douyin.com/9999000011112222",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          }
+        ]
+      }
+    },
+    {
+      "label": "B01 concurrency 0",
+      "method": "POST",
+      "path": "/api/live/settings",
+      "payload": {
+        "concurrency": 0,
+        "segment_minutes": 30
+      },
+      "status": 422,
+      "body": {
+        "detail": [
+          {
+            "type": "greater_than_equal",
+            "loc": [
+              "body",
+              "concurrency"
+            ],
+            "msg": "Input should be greater than or equal to 1",
+            "input": 0,
+            "ctx": {
+              "ge": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "label": "B02 concurrency 9",
+      "method": "POST",
+      "path": "/api/live/settings",
+      "payload": {
+        "concurrency": 9,
+        "segment_minutes": 30
+      },
+      "status": 422,
+      "body": {
+        "detail": [
+          {
+            "type": "less_than_equal",
+            "loc": [
+              "body",
+              "concurrency"
+            ],
+            "msg": "Input should be less than or equal to 8",
+            "input": 9,
+            "ctx": {
+              "le": 8
+            }
+          }
+        ]
+      }
+    },
+    {
+      "label": "B03 concurrency 1",
+      "method": "POST",
+      "path": "/api/live/settings",
+      "payload": {
+        "concurrency": 1,
+        "segment_minutes": 30
+      },
+      "status": 200,
+      "body": {
+        "settings": {
+          "concurrency": 1,
+          "output": "E:\\VideoDesk\\repro\\qa\\output",
+          "segment_minutes": 30
+        },
+        "anchors": [
+          {
+            "id": "ed2e591fda5b",
+            "name": "",
+            "url": "https://live.douyin.com/7381928374650910000",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "3eb6a401fbb8",
+            "name": "",
+            "url": "https://webcast.amemv.com/douyin/webcast/reflow/7381928374650910000/",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "bc45b623b220",
+            "name": "",
+            "url": "https://www.douyin.com/user/MS4wLjABAAAAqa_synth_anchor_0001",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "b9bf52f265cd",
+            "name": "",
+            "url": "https://v.douyin.com/iQaSynth01/",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "a6ce3380333e",
+            "name": "",
+            "url": "https://live.douyin.com/7381928374650910099",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "dbe08de000cc",
+            "name": "",
+            "url": "https://live.douyin.com/7381928374650910213",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "7ffa1c087701",
+            "name": "",
+            "url": "https://live.douyin.com/9999000011112222",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          }
+        ]
+      }
+    },
+    {
+      "label": "B04 concurrency 8",
+      "method": "POST",
+      "path": "/api/live/settings",
+      "payload": {
+        "concurrency": 8,
+        "segment_minutes": 30
+      },
+      "status": 200,
+      "body": {
+        "settings": {
+          "concurrency": 8,
+          "output": "E:\\VideoDesk\\repro\\qa\\output",
+          "segment_minutes": 30
+        },
+        "anchors": [
+          {
+            "id": "ed2e591fda5b",
+            "name": "",
+            "url": "https://live.douyin.com/7381928374650910000",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "3eb6a401fbb8",
+            "name": "",
+            "url": "https://webcast.amemv.com/douyin/webcast/reflow/7381928374650910000/",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "bc45b623b220",
+            "name": "",
+            "url": "https://www.douyin.com/user/MS4wLjABAAAAqa_synth_anchor_0001",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "b9bf52f265cd",
+            "name": "",
+            "url": "https://v.douyin.com/iQaSynth01/",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "a6ce3380333e",
+            "name": "",
+            "url": "https://live.douyin.com/7381928374650910099",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "dbe08de000cc",
+            "name": "",
+            "url": "https://live.douyin.com/7381928374650910213",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "7ffa1c087701",
+            "name": "",
+            "url": "https://live.douyin.com/9999000011112222",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          }
+        ]
+      }
+    },
+    {
+      "label": "B05 segment 0",
+      "method": "POST",
+      "path": "/api/live/settings",
+      "payload": {
+        "concurrency": 4,
+        "segment_minutes": 0
+      },
+      "status": 422,
+      "body": {
+        "detail": [
+          {
+            "type": "greater_than_equal",
+            "loc": [
+              "body",
+              "segment_minutes"
+            ],
+            "msg": "Input should be greater than or equal to 1",
+            "input": 0,
+            "ctx": {
+              "ge": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "label": "B06 segment 121",
+      "method": "POST",
+      "path": "/api/live/settings",
+      "payload": {
+        "concurrency": 4,
+        "segment_minutes": 121
+      },
+      "status": 422,
+      "body": {
+        "detail": [
+          {
+            "type": "less_than_equal",
+            "loc": [
+              "body",
+              "segment_minutes"
+            ],
+            "msg": "Input should be less than or equal to 120",
+            "input": 121,
+            "ctx": {
+              "le": 120
+            }
+          }
+        ]
+      }
+    },
+    {
+      "label": "B07 output relative",
+      "method": "POST",
+      "path": "/api/live/settings",
+      "payload": {
+        "concurrency": 4,
+        "segment_minutes": 30,
+        "output": "relative/dir"
+      },
+      "status": 400,
+      "body": {
+        "detail": "请输入完整的本机目录路径，例如 D:\\视频素材"
+      }
+    },
+    {
+      "label": "B08 output missing absolute",
+      "method": "POST",
+      "path": "/api/live/settings",
+      "payload": {
+        "concurrency": 4,
+        "segment_minutes": 30,
+        "output": "E:/VideoDesk/repro/qa/no-such-parent-xyz/sub"
+      },
+      "status": 200,
+      "body": {
+        "settings": {
+          "concurrency": 4,
+          "output": "E:\\VideoDesk\\repro\\qa\\no-such-parent-xyz\\sub",
+          "segment_minutes": 30
+        },
+        "anchors": [
+          {
+            "id": "ed2e591fda5b",
+            "name": "",
+            "url": "https://live.douyin.com/7381928374650910000",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "3eb6a401fbb8",
+            "name": "",
+            "url": "https://webcast.amemv.com/douyin/webcast/reflow/7381928374650910000/",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "bc45b623b220",
+            "name": "",
+            "url": "https://www.douyin.com/user/MS4wLjABAAAAqa_synth_anchor_0001",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "b9bf52f265cd",
+            "name": "",
+            "url": "https://v.douyin.com/iQaSynth01/",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "a6ce3380333e",
+            "name": "",
+            "url": "https://live.douyin.com/7381928374650910099",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "dbe08de000cc",
+            "name": "",
+            "url": "https://live.douyin.com/7381928374650910213",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          },
+          {
+            "id": "7ffa1c087701",
+            "name": "",
+            "url": "https://live.douyin.com/9999000011112222",
+            "enabled": false,
+            "quality": "origin",
+            "windows": [],
+            "monitor_device": "pc",
+            "record_target": "ask",
+            "runtime": {},
+            "active_job": null
+          }
+        ]
+      }
+    },
+    {
+      "label": "C01 settings relative",
+      "method": "POST",
+      "path": "/api/settings",
+      "payload": {
+        "output": "relative"
+      },
+      "status": 400,
+      "body": {
+        "detail": "请输入完整的本机目录路径，例如 D:\\视频素材"
+      }
+    },
+    {
+      "label": "C02 settings QA absolute",
+      "method": "POST",
+      "path": "/api/settings",
+      "payload": {
+        "output": "E:/VideoDesk/repro/qa/output"
+      },
+      "status": 200,
+      "body": {
+        "output": "E:\\VideoDesk\\repro\\qa\\output"
+      }
+    },
+    {
+      "label": "C03 no token",
+      "method": "POST",
+      "path": "/api/settings",
+      "payload": {
+        "output": "E:/VideoDesk/repro/qa/output"
+      },
+      "status": 403,
+      "body": {
+        "detail": "本机会话失效，请刷新网页"
+      }
+    },
+    {
+      "label": "C04 cross origin",
+      "method": "POST",
+      "path": "/api/settings",
+      "payload": {
+        "output": "E:/VideoDesk/repro/qa/output"
+      },
+      "status": 403,
+      "body": {
+        "detail": "拒绝跨站请求"
+      }
+    },
+    {
+      "label": "C05 state",
+      "method": "GET",
+      "path": "/api/state",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "token": "<redacted>",
+        "settings": {
+          "output": "E:\\VideoDesk\\repro\\qa\\output"
+        },
+        "jobs": [],
+        "ffmpeg": true,
+        "version": "2.7.0",
+        "application": "video-desk",
+        "installation_id": "bdbfa8b441cc4ed89f9537d7401e17d3",
+        "engines": {
+          "yt_dlp": true,
+          "mediacrawler": true
+        },
+        "youtube": {
+          "ready": true,
+          "node": true,
+          "ejs": "0.8.0"
+        },
+        "runtime": {
+          "managed": true,
+          "degraded": false,
+          "components": [
+            {
+              "id": "base",
+              "name": "基础工作台",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "media",
+              "name": "音视频处理",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "download",
+              "name": "链接下载",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "node",
+              "name": "分镜与 YouTube 脚本",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "browser",
+              "name": "登录浏览器",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "dedup",
+              "name": "相似图片去重",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "ocr",
+              "name": "画面文字识别",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "asr",
+              "name": "本地语音识别",
+              "ready": true,
+              "message": "已就绪"
+            },
+            {
+              "id": "crawler",
+              "name": "MediaCrawler 平台采集",
+              "ready": true,
+              "message": "已就绪"
+            }
+          ],
+          "repair_hint": "从系统托盘打开“检测并修复”。修复保留账号、设置和素材。"
+        }
+      }
+    },
+    {
+      "label": "D01 hardware",
+      "method": "GET",
+      "path": "/api/hardware",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "gpus": [
+          {
+            "name": "NVIDIA GeForce RTX 5060",
+            "memory_mb": 8151,
+            "driver": "616.64"
+          }
+        ],
+        "encoders": {
+          "h264_nvenc": {
+            "available": true,
+            "reason": ""
+          },
+          "h264_qsv": {
+            "available": false,
+            "reason": "实际试编码未通过"
+          },
+          "h264_amf": {
+            "available": false,
+            "reason": "实际试编码未通过"
+          }
+        },
+        "encoder": "h264_nvenc",
+        "checked": 1794638999.4752505,
+        "ai": "AI 后端按模型试运行，失败时回退 CPU"
+      }
+    },
+    {
+      "label": "D02 components",
+      "method": "GET",
+      "path": "/api/translation/components",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "path": "E:\\VideoDesk\\repro\\qa\\home\\data",
+        "runtime": {
+          "cpu": false,
+          "gpu": false
+        },
+        "models": [
+          {
+            "id": "english-asr",
+            "name": "英文语音识别",
+            "ready": false
+          },
+          {
+            "id": "english-chinese",
+            "name": "英中翻译",
+            "ready": false
+          },
+          {
+            "id": "chinese-voice",
+            "name": "中文配音",
+            "ready": false
+          },
+          {
+            "id": "background",
+            "name": "背景声分离",
+            "ready": false
+          }
+        ]
+      }
+    },
+    {
+      "label": "D03 services",
+      "method": "GET",
+      "path": "/api/translation/services",
+      "payload": null,
+      "status": 200,
+      "body": {}
+    },
+    {
+      "label": "D04 translate missing file",
+      "method": "POST",
+      "path": "/api/translation",
+      "payload": {
+        "paths": [
+          "E:/VideoDesk/repro/qa/materials/nope.mp4"
+        ],
+        "output": "E:/VideoDesk/repro/qa/output"
+      },
+      "status": 400,
+      "body": {
+        "detail": "请选择存在的本地视频文件"
+      }
+    },
+    {
+      "label": "D05 translate relative path",
+      "method": "POST",
+      "path": "/api/translation",
+      "payload": {
+        "paths": [
+          "relative.mp4"
+        ]
+      },
+      "status": 400,
+      "body": {
+        "detail": "请选择存在的本地视频文件"
+      }
+    },
+    {
+      "label": "D06 phone state",
+      "method": "GET",
+      "path": "/api/phone",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "devices": [],
+        "connected": false,
+        "status": {},
+        "events": [],
+        "message": "未检测到手机连接工具，请先运行 scrcpy 并允许 USB 调试"
+      }
+    },
+    {
+      "label": "D07 phone record unknown anchor",
+      "method": "POST",
+      "path": "/api/phone/record",
+      "payload": {
+        "anchor_id": "doesnotexist",
+        "action": "record"
+      },
+      "status": 404,
+      "body": {
+        "detail": "主播不存在"
+      }
+    },
+    {
+      "label": "D08 phone decision unknown",
+      "method": "POST",
+      "path": "/api/phone/decision",
+      "payload": {
+        "event_id": "nope",
+        "target": "pc"
+      },
+      "status": 404,
+      "body": {
+        "detail": "开播通知不存在"
+      }
+    },
+    {
+      "label": "D09 phone state repeat",
+      "method": "GET",
+      "path": "/api/phone",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "devices": [],
+        "connected": false,
+        "status": {},
+        "events": [],
+        "message": "未检测到手机连接工具，请先运行 scrcpy 并允许 USB 调试"
+      }
+    },
+    {
+      "label": "E01 unknown job files",
+      "method": "GET",
+      "path": "/api/jobs/deadbeef000/files/a.txt",
+      "payload": null,
+      "status": 404,
+      "body": {
+        "detail": "任务不存在"
+      }
+    },
+    {
+      "label": "E02 unknown job cleanup",
+      "method": "GET",
+      "path": "/api/materials/deadbeef000/cleanup",
+      "payload": null,
+      "status": 404,
+      "body": {
+        "detail": "任务不存在"
+      }
+    },
+    {
+      "label": "E03 cleanup preview empty",
+      "method": "POST",
+      "path": "/api/materials/cleanup-preview",
+      "payload": {
+        "ids": []
+      },
+      "status": 400,
+      "body": {
+        "detail": "请先选择需要清理的任务"
+      }
+    },
+    {
+      "label": "E04 cleanup preview unknown",
+      "method": "POST",
+      "path": "/api/materials/cleanup-preview",
+      "payload": {
+        "ids": [
+          "deadbeef000"
+        ]
+      },
+      "status": 404,
+      "body": {
+        "detail": "任务不存在"
+      }
+    },
+    {
+      "label": "E05 cleanup batch unknown",
+      "method": "POST",
+      "path": "/api/materials/cleanup-batch",
+      "payload": {
+        "ids": [
+          "deadbeef000"
+        ]
+      },
+      "status": 404,
+      "body": {
+        "detail": "任务不存在"
+      }
+    },
+    {
+      "label": "E06a live replays",
+      "method": "GET",
+      "path": "/api/live/replays",
+      "payload": null,
+      "status": 200,
+      "body": {
+        "jobs": []
+      }
+    },
+    {
+      "label": "E08 replay preview bad jid",
+      "method": "POST",
+      "path": "/api/live/replays/deadbeef000/preview/0",
+      "payload": {},
+      "status": 404,
+      "body": {
+        "detail": "任务不存在"
+      }
+    },
+    {
+      "label": "E09 extract-local nonexistent",
+      "method": "POST",
+      "path": "/api/extract-local",
+      "payload": {
+        "path": "E:/VideoDesk/repro/qa/materials/nope.mp4"
+      },
+      "status": 400,
+      "body": {
+        "detail": "视频文件不存在或无法读取"
+      }
+    },
+    {
+      "label": "E10 extract-local zero byte",
+      "method": "POST",
+      "path": "/api/extract-local",
+      "payload": {
+        "path": "E:/VideoDesk/repro/qa/materials/sentinel_zero_byte.mp4"
+      },
+      "status": 400,
+      "body": {
+        "detail": "视频文件为空"
+      }
+    },
+    {
+      "label": "E11 extract-local broken",
+      "method": "POST",
+      "path": "/api/extract-local",
+      "payload": {
+        "path": "E:/VideoDesk/repro/qa/materials/sentinel_broken.mp4"
+      },
+      "status": 200,
+      "body": {
+        "id": "6f10fb5d0a1a"
+      }
+    },
+    {
+      "label": "E12 local preview nonexistent",
+      "method": "POST",
+      "path": "/api/local-video/preview",
+      "payload": {
+        "path": "E:/VideoDesk/repro/qa/materials/nope.mp4"
+      },
+      "status": 400,
+      "body": {
+        "detail": "视频文件不存在或无法读取"
+      }
+    },
+    {
+      "label": "E13 download empty urls",
+      "method": "POST",
+      "path": "/api/download",
+      "payload": {
+        "urls": []
+      },
+      "status": 422,
+      "body": {
+        "detail": [
+          {
+            "type": "too_short",
+            "loc": [
+              "body",
+              "urls"
+            ],
+            "msg": "List should have at least 1 item after validation, not 0",
+            "input": [],
+            "ctx": {
+              "field_type": "List",
+              "min_length": 1,
+              "actual_length": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "label": "E14 dedup unknown job",
+      "method": "GET",
+      "path": "/api/dedup/deadbeef000",
+      "payload": null,
+      "status": 404,
+      "body": {
+        "detail": "任务不存在"
+      }
+    }
+  ]
+}
