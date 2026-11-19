@@ -1,0 +1,3 @@
+19e1a91e64335dc2623cdfaeb81dd0de2d90d27c303c69c6f0ad8eb861813081  VideoDesk-2.8.0-acceptance.json
+d7cb302adeb50ad1e455b680c251083bdb7bc1cf4b8e7a3aec94a66cf47afe31  VideoDesk-2.8.0-build.json
+a7405eadaa65151b6bb476e144648c8bad9883854d53ffedca6c7fbdd598809c  VideoDesk-2.8.0-Windows-x64.exe

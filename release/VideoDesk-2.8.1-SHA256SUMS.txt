@@ -1,0 +1,2 @@
+7140d6d06f3b12d21583f5a4b851ac71896c061669ffcd87d1cc7a9f30732d30  VideoDesk-2.8.1-build.json
+a1d92441cc1bf30dcc9179c004d63c66031696fe779ab79912edd9cfe664e2ce  VideoDesk-2.8.1-Windows-x64.exe

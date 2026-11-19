@@ -1,0 +1,54 @@
+{
+  "version": "2.9.4",
+  "status": "complete-background-phone-revive-verified",
+  "windows_bytes": 749472768,
+  "windows_sha256": "fa04bff71be0eba71f6f4dc4d47b9414970dbe76a4b058bea1c47d2f753b3065",
+  "payload_sha256": "6f29e7d99c0395d51dd2dd27a612b41d61fda994084fa1b945aac22f8cf4af8f",
+  "installed_running": {
+    "path": "C:/Users/21657/AppData/Local/VideoDesk/versions/2.9.4-6f29e7d99c",
+    "version_reported": "2.9.4",
+    "port_note": "启动器每次随机选端口，本次 6651（以 data/server.json 为准）"
+  },
+  "goal": "手机切到后台、熄屏或进程被系统杀掉后，电脑要自己把通道接回来，不能等用户手动打开 App",
+  "root_cause": "手机伴侣的轮询被 !visible 挡住，界面一退到后台就停止请求；实测按 HOME 后 5 秒内 connected 由 true 变 false，电脑下发的开播命令收不到，直播开场直接丢失",
+  "fixes": [
+    "integrations/mobile.py: 新增 revive()，失联 30 秒后自动 am start 拉起伴侣；熄屏静默唤醒，亮屏最多等 180 秒；45 秒节流",
+    "keep_link() 每 6 秒巡检时顺带 revive()，不影响原有 Wi-Fi/USB 通道切换",
+    "request_record(): 曾经连过、只是静默的手机不再直接 409，改为排队命令并 force 唤醒；从未连过的仍拒绝",
+    "live.py phone(): 用 ADB transport 是否还在判断手机在不在位，而不是 25 秒心跳窗口",
+    "live.py 手机确认窗口 25 秒 -> 40 秒，给后台唤醒留出时间",
+    "手机 1.3.1 MainActivity.poll(): 去掉 !visible 限制，后台继续 8 秒一次心跳（前台 4 秒）",
+    "手机 1.3.1 LiveNoticeService: 借系统绑定的通知监听服务做常驻心跳，每 10 秒拉命令",
+    "手机 1.3.1 StreamService: 前台服务持有 PARTIAL_WAKE_LOCK；onTimeout 不再 stopAll",
+    "tests/test_phone_wireless.py: 新增 ReviveTests 7 项"
+  ],
+  "tests": {
+    "command": "runtime/main/python.exe scripts/run_tests.py",
+    "total": 253,
+    "result": "OK"
+  },
+  "revive_evidence": [
+    "14:14:03 am force-stop 强杀伴侣（旧版逻辑）：50 秒后被电脑 am start 拉起，pid 1912",
+    "14:54 服务重启后 last_seen=0，旧逻辑直接跳过唤醒 —— 已修为「配对过就允许唤醒」",
+    "14:55:05 新服务就绪（2.9.4 / 6651），5 秒后 connected=true，前台窗口为 MainActivity：服务冷启动即可把手机拉回来"
+  ],
+  "background_poll_evidence": [
+    "14:11:34 熄屏后台：connected=false",
+    "14:12:20 熄屏后台：connected=true（心跳被系统放慢到约 40 秒一次）",
+    "14:13:06 / 14:13:52：间歇 false/true，证明 1.3.0 的后台定时器被限流，需要 1.3.1 的唤醒锁"
+  ],
+  "pending_manual_step": "手机 1.3.1 需在手机上点一次安装；vivo 将安装请求转给应用商店并要求人工确认（INSTALL_FAILED_ABORTED: User rejected permissions），电脑无法代点",
+  "android_apk": {
+    "file": "release/VideoDesk-Android-1.3.1.apk",
+    "bytes": 53720,
+    "sha256": "95c6174d8628895cc594011974f2aa40c4e62184b431d91ef555812bc2da6316",
+    "versionCode": 9,
+    "versionName": "1.3.1"
+  },
+  "live_evidence": [
+    "14:56 实测「萝卜」正在直播：手机 active 83.4MB/1555s → 86.5MB/1579s → 89.1MB/1597s，稳定增长",
+    "任务列表显示 running「萝卜 · 直播录播 · 手机正在录制」",
+    "期间我重启过服务，手机 StreamService 独立续录，未中断"
+  ],
+  "note": "手机 1.3.1 安装会杀掉进程并中断当前这场「萝卜」录制，需等这一场结束再装"
+}

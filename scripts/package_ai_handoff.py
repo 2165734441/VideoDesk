@@ -75,7 +75,7 @@ def collect_source():
 
     for name in ROOT_FILES:
         add(ROOT / name)
-    for path in sorted(ROOT.glob('*TEST-REPORT.md')):
+    for path in sorted(ROOT.glob('docs/reports/*TEST-REPORT.md')):
         add(path)
     for folder in CODE_FOLDERS:
         for path in sorted((ROOT / folder).rglob('*')):

@@ -63,4 +63,4 @@ node --test tests/test_dedup_ui.mjs tests/test_progress_ui.mjs tests/test_sheet_
 
 DSH 集成测试 `tests/test_dsh_adapter.mjs` 需要显式设置 `VIDEO_DESK_URL`（隔离测试服务）、`VIDEO_DESK_TEST_VIDEO`（测试视频的完整路径）和 `VIDEO_DESK_TEST_OUTPUT`（测试输出目录）；缺少其中任何一项时自动跳过。请在隔离数据目录启动测试服务，避免写入日常任务库。
 
-既有 2.5.0 验证范围、结果和限制见 [WORKFLOWS25-TEST-REPORT.md](../WORKFLOWS25-TEST-REPORT.md)。需要真实视频或本机应用状态的集成脚本不能代替首次安装验证。
+既有 2.5.0 验证范围、结果和限制见 [WORKFLOWS25-TEST-REPORT.md](reports/WORKFLOWS25-TEST-REPORT.md)。需要真实视频或本机应用状态的集成脚本不能代替首次安装验证。

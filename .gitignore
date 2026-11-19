@@ -5,7 +5,12 @@ __pycache__/
 *.pyc
 .pytest_cache/
 third_party/MediaCrawler/
-release/
+# 安装包体积过大不进仓库，只保留构建记录与校验清单
+release/*
+!release/*.json
+!release/*.txt
+!release/*.md
+!release/*.sha256
 runtime-tools/*.exe
 node_modules/
 .env

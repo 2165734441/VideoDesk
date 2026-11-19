@@ -1,0 +1,66 @@
+{
+  "version": "2.7.1",
+  "completed_at": "2026-11-14T18:46:59.140633+08:00",
+  "status": "completed",
+  "exe": {
+    "file": "VideoDesk-2.7.1-Windows-x64.exe",
+    "bytes": 749395456,
+    "sha256": "39b8ca6e4b19e32cd6947a3cb71461cb5a98577d3f4bb313e9dd4e4eafa8b21a",
+    "payload_sha256": "50d5f3ffbddac8442377e52ad196b8081516a93ac249a82950420151727dfb53"
+  },
+  "python_regressions": {
+    "tests": 190,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": true,
+    "seconds": 22.27
+  },
+  "node_regressions": {
+    "tests": 21,
+    "passed": 21,
+    "failed": 0,
+    "skipped": 0
+  },
+  "packaged_verification": {
+    "version": "2.7.1",
+    "runtime_components_ready": 9,
+    "app_files_match": 145,
+    "reflow_variants_rejected": 3,
+    "directory_following_api_and_ui": true,
+    "explicit_output_override": true,
+    "key_clear_api_and_ui": true,
+    "blank_ui_key_preserves_saved_key": true,
+    "key_not_in_response": true,
+    "javascript_errors": [],
+    "phone_apk_unchanged": true
+  },
+  "desktop": {
+    "version": "2.7.1",
+    "desktop_exe_sha256": "39b8ca6e4b19e32cd6947a3cb71461cb5a98577d3f4bb313e9dd4e4eafa8b21a",
+    "jobs_preserved": 8,
+    "protected_files_unchanged": 9
+  },
+  "bugs": {
+    "VD27-001": "fixed with corrected webRID / room ID distinction and verified alias mapping",
+    "VD27-002": "fixed; isolated account/session snapshots and late-response guard",
+    "VD27-003": "fixed; explicit nonnegative missing count",
+    "VD27-004": "fixed; dynamic inherited directory and explicit override",
+    "VD27-005": "fixed; unknown status cannot start capture or report offline",
+    "VD27-006": "fixed; explicit credential removal and omission semantics"
+  },
+  "original_reports_preserved": true,
+  "android_apk_changed": false,
+  "limitations": [
+    "No new live-platform account login / multi-anchor recording acceptance in this fix run",
+    "No new Android projection consent / true-device recording acceptance in this fix run",
+    "No new complete translation video or CPU/GPU benchmark in this fix run",
+    "Unverified code-review candidates remain separately tracked in BUGFIX271-TEST-REPORT.md"
+  ],
+  "cleanup": {
+    "temporary_targets_recycled": 2,
+    "permanent_deletion": false,
+    "original_reports_preserved": true,
+    "rollback_backup_preserved": true
+  }
+}

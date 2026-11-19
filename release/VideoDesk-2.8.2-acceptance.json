@@ -1,0 +1,162 @@
+{
+  "version": "2.8.2",
+  "status": "complete",
+  "finished_at": "2026-11-15T14:59:58.585290+08:00",
+  "windows_sha256": "775ab0d4a750b70d94094c20a2b2915867b09c369ffd60aa35c84be697fce837",
+  "payload_sha256": "456e8a8c88db0d2d795f77003a336fa1c3eab838bc2fd8c3e7b714ecb94bdda3",
+  "android_version": "1.1.1",
+  "android_unchanged": true,
+  "android_sha256": "6d8e18459bfc40d162bc1b09e84c2e12c14a6cf3cb80f3070e57d43b8b42240e",
+  "report_ids": [
+    "VD281-001",
+    "VD281-002",
+    "VD281-003",
+    "VD281-004",
+    "VD281-005",
+    "VD281-006"
+  ],
+  "python": {
+    "mode": "after",
+    "tests": 217,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": true,
+    "seconds": 29.34
+  },
+  "node": {
+    "collected": 45,
+    "pass": 43,
+    "fail": 0,
+    "skip": 2,
+    "dsh_rerun_pass": 2,
+    "dsh_rerun_skip": 0
+  },
+  "launcher_harness": {
+    "failed": 0,
+    "cases": [
+      {
+        "id": "long_path_extract",
+        "pass": true,
+        "path_length": 280,
+        "home_length": 124
+      },
+      {
+        "id": "custom_default_output",
+        "pass": true
+      },
+      {
+        "id": "default_default_output",
+        "pass": true
+      },
+      {
+        "id": "self-test_default_output",
+        "pass": true
+      }
+    ]
+  },
+  "release_validation": {
+    "version": "2.8.2",
+    "sha256": "775ab0d4a750b70d94094c20a2b2915867b09c369ffd60aa35c84be697fce837",
+    "home_length": 290,
+    "all_components_ready": 9,
+    "app_files_match": 158,
+    "phone_apk_unchanged": true,
+    "custom_output_isolated": true,
+    "mixed_record_dedup_rounds": 2,
+    "oversize_http_statuses": [
+      413,
+      413,
+      413,
+      413,
+      413,
+      413,
+      413,
+      413,
+      413,
+      413
+    ],
+    "replay_import": {
+      "sha256_equal": true,
+      "idempotent": true,
+      "wrong_offset_rejected": true,
+      "full_decode": true,
+      "range_status": 206,
+      "job": "5befb9bd9ff0"
+    },
+    "ui_replay": {
+      "duration": 3,
+      "width": 320,
+      "height": 180,
+      "seek": 1.808882
+    },
+    "javascript_errors": [],
+    "dsh_integration_passed": true,
+    "offline_manual_gate": true,
+    "passed": true
+  },
+  "desktop_validation": {
+    "version": "2.8.2",
+    "desktop_exe_sha256": "775ab0d4a750b70d94094c20a2b2915867b09c369ffd60aa35c84be697fce837",
+    "jobs_preserved": 23,
+    "protected_files_unchanged": 10,
+    "payload_matches": true,
+    "all_components_ready": true
+  },
+  "real_live_validation": {
+    "version": "2.8.2",
+    "layer": "exact packaged app / isolated data / real public source",
+    "attempts": [
+      {
+        "room": "870887192950",
+        "observed": [
+          "running",
+          "running",
+          "running",
+          "running",
+          "running",
+          "running",
+          "running",
+          "running",
+          "running",
+          "running",
+          "running",
+          "running",
+          "running",
+          "running",
+          "running",
+          "running",
+          "running",
+          "running",
+          "running",
+          "running",
+          "running",
+          "running",
+          "running",
+          "running",
+          "running",
+          "running",
+          "recording"
+        ],
+        "final_status": "done",
+        "message": "已保存 1 段回放",
+        "files": 1,
+        "full_decode": true,
+        "bytes": 3291861,
+        "sha256": "85ba23928e73386e37b3b4d164fbbf007e8ef9e22f8edb6661abe5b8c18cac30",
+        "replay": {
+          "duration": 15.532948,
+          "width": 852,
+          "height": 480
+        }
+      }
+    ],
+    "passed": true
+  },
+  "scope_notes": [
+    "Unknown source identity is tested with controlled recommendation/target payloads; real capture alone does not prove identity.",
+    "Custom --home output isolation is an intentional strengthening of the previous data-only option.",
+    "No Android reinstall or new phone multi-stream/physical-cable/long-duration acceptance is claimed.",
+    "NTFS short aliases were available in the tested Windows environment; missing aliases produce an explicit shorter-path instruction."
+  ]
+}

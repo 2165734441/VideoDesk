@@ -1,0 +1,74 @@
+{
+  "version": "2.9.2",
+  "status": "complete-cable-free-phone-recording",
+  "finished_at": "2026-11-16T21:35:00+08:00",
+  "windows_bytes": 749466112,
+  "windows_sha256": "e8e1e1741636f40e501ee0b146a44e683ca44d7b2fc582e6283e1d8cc7cc87d1",
+  "payload_sha256": "7a6563be29bf7fe6fc768a5750458af239ca0343360da90f613e300c47fe9e3f",
+  "installed_running": {
+    "path": "C://Users//21657//AppData//Local//VideoDesk//versions//2.9.2-7a6563be29",
+    "workbench": "http://127.0.0.1:3235",
+    "version_reported": "2.9.2",
+    "launcher_pid": 35440,
+    "python_pid": 21376
+  },
+  "android_version": "1.3.0 (versionCode 8)，手机端无需改动：它一直只认 127.0.0.1:47631",
+  "goal": "手机拔掉数据线后仍能自动检测开播并录到手机；录制中在任务列表里看得见",
+  "root_cause": [
+    "手机伴侣只靠 USB 的 adb reverse 转发 127.0.0.1:47631，拔线即断，电脑检测到开播也送不进手机",
+    "自动检查类任务在没有本地文件时被列表过滤，而手机录制恰恰不落本地文件，于是明明在录却一张卡都不显示"
+  ],
+  "fixes": [
+    "USB / Wi-Fi 双通道：enable_wireless() 打开 adb tcpip 5555，按 wlan0 地址 adb connect，再把反向转发重建在 Wi-Fi transport 上",
+    "preferred()：Wi-Fi 能答就用 Wi-Fi，答不了退回 USB；同一时刻只保留一条反向映射",
+    "keep_link()：每 6 秒巡检；当前转发走 USB 而 USB 设备已消失时立即搬到 Wi-Fi（不等手机先失联 25 秒）",
+    "initial_link()：启动即发布新的本地端口，并把已配对手机静默升级为无线（每台只尝试一次）",
+    "wifi_address()/mdns_wireless()：手机换 DHCP 地址后按 adb mDNS 设备名找回",
+    "devices()：同一台手机的 USB 与 Wi-Fi 两条连接只显示一条",
+    "link_lock：转发重建串行化，避免配对线程与巡检线程同时改映射",
+    "phone_recording 标记：手机确认开录后写入任务，列表不再把它当成“还在检查”而过滤掉（2.9.2）",
+    "static/media26.js：新增“开启无线（拔线也能录）”按钮，状态行显示当前走无线还是 USB"
+  ],
+  "tests": {
+    "command": "runtime/main/python.exe scripts/run_tests.py",
+    "total": 239,
+    "result": "OK",
+    "new": "tests/test_phone_wireless.py 13 项：设备去重、通道优先级、映射重建、拔线即切、静默重连、无线开通与持久化、启动静默升级"
+  },
+  "live_evidence": [
+    "21:05 对运行实例执行 enable_wireless()：wireless={'address':'192.168.0.99:5555','on_wifi':True}，adb reverse --list 只剩 host-21 tcp:47631 tcp:7641（经 Wi-Fi 建立）",
+    "21:05-21:31 手机整条桥（配置轮询、状态上报、回放上传）全部走 Wi-Fi，工作台 connected=true，手机录制字节数 433 MB → 643 MB 持续增长",
+    "20:41:47 手机落盘 VideoDesk-20261116-204147-27654f5d.mp4（253,623,591 字节，时长 1,801,539 ms = 30:01）",
+    "21:14 该 241 MB 片段经 Wi-Fi 回传电脑：任务 40b099fd7697 状态 done，SHA256 校验通过",
+    "21:31 升级 2.9.2 后任务列表出现“胡说老王 · 直播录播 · 手机正在录制”，phone_recording=true（修复前同一状态被过滤掉）",
+    "21:32 重启后无线通道自动恢复（on_wifi=true），手机录制未中断"
+  ],
+  "limits": [
+    "手机与电脑需在同一局域网，路由器不能开 AP 隔离",
+    "手机重启后 adb tcpip 5555 失效，需要再插一次数据线（或重开 USB 调试）",
+    "无线调试会让手机多一条“USB 调试已连接”通知，属正常现象"
+  ],
+  "artifacts": [
+    "release/VideoDesk-2.9.2-Windows-x64.exe",
+    "release/VideoDesk-2.9.2-SHA256SUMS.txt",
+    "release/本次更新-拔线录制-2.9.2.txt",
+    "docs/PHONE-CABLE-FREE.md"
+  ],
+  "overnight_evidence": {
+    "window": "2026-11-16 21:33 → 2026-11-17 01:03",
+    "pc_process_down": "21:33:21 起电脑端进程终止（启动器随控制台关闭收到 CTRL_C，退出码 1073807364），此前未察觉；手机端录制与落盘完全未受影响",
+    "phone_segments_written_while_pc_down": [
+      "21:35 VideoDesk-20261116-213528-86d57cad.mp4 189,570,524 B",
+      "22:06 VideoDesk-20261116-220558-fd7adb45.mp4 253,029,988 B",
+      "22:37 VideoDesk-20261116-223632-40c2133c.mp4 253,910,789 B",
+      "23:07 VideoDesk-20261116-230705-ef4e5404.mp4 254,263,594 B",
+      "23:38 VideoDesk-20261116-233738-81c7b0b5.mp4 252,980,150 B",
+      "00:08 VideoDesk-20261117-000809-4fbaff24.mp4 254,981,299 B",
+      "00:39 VideoDesk-20261117-003843-d72cb04b.mp4 251,434,625 B"
+    ],
+    "restart_recovery": "00:59:33 重启 2.9.2 后 initial_link() 自动把通道架回 Wi-Fi（wireless.on_wifi=true），手机 status 立即上报，累计 2,291 MB / 17,278 s 且仍在增长，当前片段 00:39 起持续写入，录制未中断",
+    "backlog_import": "01:00-01:03 手机积压的 7 段回放自动续传完毕，phone-imports.json 21/21 done，逐段 SHA256 校验通过",
+    "cable_free_proof": "01:02 在无线通道上执行 svc usb setFunctions none（关掉 USB 全部功能）+ adb -s <usb serial> reverse --remove-all（清空 USB 侧转发）：/api/phone connected 保持 true，录制字节 2,412,071,326 → 2,420,418,354（+8.3 MB / 13 s），说明桥与录制都不依赖 USB；随后 svc usb setFunctions mtp 恢复文件传输（current_functions=MTP）",
+    "conclusion": "手机拔线（USB 断开）后检测通道与录制均不受影响；手机端 30 分钟分段落盘连续 9 段、累计约 4.86 小时无空档"
+  }
+}

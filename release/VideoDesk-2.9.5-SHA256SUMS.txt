@@ -1,0 +1,2 @@
+ec468c02d8535ceb482411e4ee52586ba96f0a9ba5b7ea03a82ef5aa9822f8a5  VideoDesk-2.9.5-build.json
+0df97ca2cb3572eb27d389a1f6814be3b9e45758e3c3193d7f75735bb8e3d948  VideoDesk-2.9.5-Windows-x64.exe

@@ -1,0 +1,13 @@
+{
+  "archive": "VideoDesk-2.8.2-AI-Handoff-20261116.zip",
+  "bytes": 1346617,
+  "entries": 339,
+  "sha256": "d60e04efa485ebfde6e12b9ea4e98f240806eec1bfabd936700e7841624549fb",
+  "zip_crc_passed": true,
+  "all_entry_hashes_passed": true,
+  "release_app_files_covered": 157,
+  "privacy_screen_passed": true,
+  "excluded_runtime_user_data_signing_keys": true,
+  "current_user_acceptance": "FAILED",
+  "scope": "handoff only; no new recording test or software fix"
+}

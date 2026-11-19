@@ -27,10 +27,10 @@ FILES = [
 def main():
     entries = {}
     from build_windows_exe import APP_FILES
-    additions=['BUGFIX251-TEST-REPORT.md','EXE-README.txt','MERGE-PLAN.md','MERGE-TEST-REPORT.md','launcher/Program.cs','launcher/app.manifest',
+    additions=['docs/reports/BUGFIX251-TEST-REPORT.md','EXE-README.txt','docs/reports/MERGE-PLAN.md','docs/reports/MERGE-TEST-REPORT.md','launcher/Program.cs','launcher/app.manifest',
         'launcher/Compatibility.cs','scripts/prepare_vc_runtime.py','tests/test_runtime_compatibility.py',
         'tests/CompatibilityHarness.cs','tests/CompatibilityFake.cs',
-        'scripts/verify_compatibility.py','COMPATIBILITY-TEST-REPORT.md',
+        'scripts/verify_compatibility.py','docs/reports/COMPATIBILITY-TEST-REPORT.md',
         'scripts/build_windows_exe.py','scripts/prepare_merge.py','scripts/verify_merge.py','scripts/verify_windows_exe.py',
         'scripts/verify_tray.py','scripts/verify_packaged_merge.py',
         'tests/test_storyboard.py','tests/test_dsh_adapter.mjs','tests/test_dedup_ui.mjs','scripts/verify_release25.py']

@@ -1,0 +1,166 @@
+{
+  "exe": "VideoDesk-2.6.1-Windows-x64.exe",
+  "sha256": "424f4688389259a22995b1c123f5191079b20252fcbeac8288916fa2e63dea2c",
+  "bytes": 749320192,
+  "version": "2.6.1",
+  "degraded": false,
+  "extraction_runs": [
+    {
+      "case": "truncated.mkv",
+      "run": 1,
+      "status": "error",
+      "frames": 1
+    },
+    {
+      "case": "truncated.mkv",
+      "run": 2,
+      "status": "error",
+      "frames": 1
+    },
+    {
+      "case": "truncated.mkv",
+      "run": 3,
+      "status": "error",
+      "frames": 1
+    },
+    {
+      "case": "truncated.ts",
+      "run": 1,
+      "status": "error",
+      "frames": 0
+    },
+    {
+      "case": "truncated.ts",
+      "run": 2,
+      "status": "error",
+      "frames": 0
+    },
+    {
+      "case": "truncated.ts",
+      "run": 3,
+      "status": "error",
+      "frames": 0
+    },
+    {
+      "case": "truncated-faststart.mp4",
+      "run": 1,
+      "status": "error",
+      "frames": 1
+    },
+    {
+      "case": "truncated-faststart.mp4",
+      "run": 2,
+      "status": "error",
+      "frames": 1
+    },
+    {
+      "case": "truncated-faststart.mp4",
+      "run": 3,
+      "status": "error",
+      "frames": 1
+    },
+    {
+      "case": "landscape.mp4",
+      "run": 1,
+      "status": "done",
+      "frames": 2
+    },
+    {
+      "case": "landscape.mp4",
+      "run": 2,
+      "status": "done",
+      "frames": 2
+    },
+    {
+      "case": "landscape.mp4",
+      "run": 3,
+      "status": "done",
+      "frames": 2
+    },
+    {
+      "case": "full.mkv",
+      "run": 1,
+      "status": "done",
+      "frames": 2
+    },
+    {
+      "case": "full.mkv",
+      "run": 2,
+      "status": "done",
+      "frames": 2
+    },
+    {
+      "case": "full.mkv",
+      "run": 3,
+      "status": "done",
+      "frames": 2
+    },
+    {
+      "case": "full.ts",
+      "run": 1,
+      "status": "done",
+      "frames": 3
+    },
+    {
+      "case": "full.ts",
+      "run": 2,
+      "status": "done",
+      "frames": 3
+    },
+    {
+      "case": "full.ts",
+      "run": 3,
+      "status": "done",
+      "frames": 3
+    }
+  ],
+  "checks": [
+    "input validation precedes component validation",
+    "invalid subtitle encoding returns Chinese UTF-8 guidance",
+    "same room query variants rejected",
+    "cloud missing background offers explicit choice",
+    "actual cloud protocol completes without local AI",
+    "cloud UI choice and video playback",
+    "packaged CLI help version",
+    "CLI status for translation job",
+    "invalid CLI option exits without dialog",
+    "build receipt and aggregate checksums agree",
+    "declining cloud background choice creates no job and keeps the selected option"
+  ],
+  "cloud_scope": "Controlled local HTTP protocol fixture; not paid-provider acceptance",
+  "browser_errors": [],
+  "regression_suites": {
+    "python_source": {
+      "passed": 158,
+      "note": "Completed before documentation-only repack"
+    },
+    "node_ui_adapter": {
+      "passed": 8,
+      "skipped": 0
+    }
+  },
+  "sample_sha256": {
+    "full.mkv": "6c62c01b07cbdac0ccd38775e7f5322e68a541f13b055578789e8463d211a60f",
+    "full.ts": "68456d85d3dac06ed9e3f6efca60a5e472607b068064f736e648cda33839b66f",
+    "invalid-utf8.srt": "06252111e4285fe337d57c8e90a6578b6c5dd2cca6ac66e289e59739a50c6b33",
+    "landscape.mp4": "43f41819fb237060e1838728e2b99d983f9e892a5e74736ee20f18ead78a769f",
+    "truncated-faststart.mp4": "7f39ee208517a93fbb4f2ac1425ed67b57eff6cf7a43860c8ecbb2102bad1a2a",
+    "truncated.mkv": "1f730dda20492c07be08168d2df7492a9c393839058a7575180da08ccc66be00",
+    "truncated.ts": "47cd7c960b799451464c852db346e19278681c61b3a9ee10ffece0c00a64445e"
+  },
+  "issue_resolution": {
+    "VD26-01": "EXE, build record, acceptance and checksums bound to the same SHA256",
+    "VD26-02": "Reported truncated MKV/TS/faststart MP4 samples reject; full controls pass, three runs each",
+    "VD26-03": "CLI help and executable use version.json",
+    "VD26-04": "Validate inputs first; local background component optional only after explicit choice",
+    "VD26-05": "Canonicalize duplicate Douyin room URLs",
+    "VD26-06": "UTF-8/UTF-16 BOM handling and actionable input errors",
+    "VD26-07": "Documented Douyin-only input scope and historical injected-resolver test scope"
+  },
+  "limits": [
+    "This hotfix run does not rerun all 100 cases from the independent report.",
+    "Cloud test uses a local protocol fixture, not a paid provider.",
+    "A TS cut exactly on a complete packet boundary cannot be inferred without expected length/duration.",
+    "Hardware/model-quality and live-platform acceptance are outside this hotfix run."
+  ]
+}

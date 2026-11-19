@@ -22,7 +22,7 @@ ROOT_FILES = ['.gitignore','.gitattributes','LICENSE','NOTICE','THIRD_PARTY_NOTI
               'README.md','SHARE-README.txt','EXE-README.txt','app.py','version.json',
               'requirements.txt','requirements-lock.txt','setup.ps1','install.cmd',
               'start.ps1','start.cmd','stop.ps1','stop.cmd','AI-HANDOFF-20261116.md',
-              'BUGFIX282-TEST-REPORT.md']
+              'docs/reports/BUGFIX282-TEST-REPORT.md']
 
 
 def digest(data):

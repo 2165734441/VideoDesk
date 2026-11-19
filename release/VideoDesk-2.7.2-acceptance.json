@@ -1,0 +1,64 @@
+{
+  "version": "2.7.2",
+  "status": "accepted",
+  "date": "2026-11-14",
+  "windows_sha256": "82571979262a239be84990bbca0d775dc3e073e796b1e92a59d9baeaebf00aae",
+  "android_version": "1.0.1",
+  "android_sha256": "6bb844a56ab01299ba31321ad16e4a981e89e0bc612d46f18389c78d7961c1fb",
+  "python_tests_passed": 195,
+  "javascript_tests_passed": 23,
+  "package": {
+    "version": "2.7.2",
+    "runtime_components_ready": 9,
+    "app_files_match": 146,
+    "reflow_variants_rejected": 3,
+    "directory_following_api_and_ui": true,
+    "explicit_output_override": true,
+    "key_clear_api_and_ui": true,
+    "blank_ui_key_preserves_saved_key": true,
+    "key_not_in_response": true,
+    "javascript_errors": [],
+    "phone_apk_matches_101": true
+  },
+  "desktop": {
+    "jobs_preserved_on_update": 10,
+    "protected_files_preserved_on_update": 9,
+    "shortcut_target": "%LOCALAPPDATA%/VideoDesk/VideoDesk.exe"
+  },
+  "live_test": {
+    "remark": "车厘子",
+    "actual_room_id": "7707985402921356041",
+    "installed_pc_job": "9f04d243a4bc",
+    "installed_pc_seconds": 28.41,
+    "installed_pc_decode_pass": true,
+    "installed_pc_replay_ui": {
+      "replay_selected_in_ui": true,
+      "playback_advanced": true,
+      "video": {
+        "width": 480,
+        "height": 852,
+        "duration": 28.41,
+        "currentTime": 2.006248,
+        "error": null
+      },
+      "range_http_status": 206,
+      "javascript_errors": []
+    },
+    "phone_seconds": 66.332812,
+    "phone_decode_pass": true,
+    "phone_video_size": "720x1600",
+    "phone_audio_mean": "-13.6 dB",
+    "pc_stop_saved_phone_file": true
+  },
+  "usb_reconnection": {
+    "paired_device_only": true,
+    "forwarding_restored_without_manual_pair": true,
+    "companion_connected": true,
+    "seconds": 32.62,
+    "screen_capture_started": false
+  },
+  "limitations": [
+    "Android 每次新的录屏会话仍须使用者确认授权",
+    "手机网页自动检测需保持伴侣前台；手机同一时刻录一路"
+  ]
+}

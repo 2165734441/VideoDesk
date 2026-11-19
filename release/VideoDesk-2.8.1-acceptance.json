@@ -1,0 +1,432 @@
+{
+  "version": "2.8.1",
+  "status": "complete",
+  "verified_at": "2026-11-15T12:12:31.365281+08:00",
+  "desktop": {
+    "build": {
+      "file": "VideoDesk-2.8.1-Windows-x64.exe",
+      "bytes": 749442048,
+      "sha256": "a1d92441cc1bf30dcc9179c004d63c66031696fe779ab79912edd9cfe664e2ce",
+      "payload_sha256": "e5f9be64cac0d187db96e67cf566f153745d7f72368d4c3e4752750e7b1b0bba",
+      "files": 16028,
+      "version": "2.8.1",
+      "validation": "built; runtime acceptance recorded separately"
+    },
+    "installed_package": {
+      "version": "2.8.1",
+      "installed_app_files_match": 155,
+      "runtime_components_ready": 9,
+      "phone_apk_matches_final": true,
+      "installed_exe_sha256": "a1d92441cc1bf30dcc9179c004d63c66031696fe779ab79912edd9cfe664e2ce",
+      "install": "C:\\Users\\21657\\AppData\\Local\\VideoDesk\\versions\\2.8.1-e5f9be64ca"
+    },
+    "update_preserved": {
+      "version": "2.8.1",
+      "desktop_exe_sha256": "a1d92441cc1bf30dcc9179c004d63c66031696fe779ab79912edd9cfe664e2ce",
+      "jobs_preserved": 19,
+      "protected_files_unchanged": 9,
+      "url": "http://127.0.0.1:2649",
+      "current_install": {
+        "path": "C:\\Users\\21657\\AppData\\Local\\VideoDesk\\versions\\2.8.1-e5f9be64ca",
+        "payload_hash": "e5f9be64cac0d187db96e67cf566f153745d7f72368d4c3e4752750e7b1b0bba"
+      }
+    },
+    "current_job_count": 23,
+    "record_stop_play_test": {
+      "job": "e01229aeb36f",
+      "media_file": "E:\\新建文件夹 (2)\\20261115-010639_e01229aeb36f\\part-0001-834f6375.mp4",
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 480,
+            "height": 864
+          },
+          {
+            "codec_name": "aac",
+            "codec_type": "audio"
+          }
+        ],
+        "format": {
+          "duration": "28.456000",
+          "size": "2884832"
+        }
+      },
+      "full_decode": true,
+      "ui_record_stop_play": true,
+      "javascript_errors": []
+    },
+    "final_build_phone_replay_ui": {
+      "replays": [
+        {
+          "job": "7748c1fcf3f7",
+          "video": {
+            "width": 480,
+            "height": 864,
+            "duration": 24.0127,
+            "currentTime": 2.009106,
+            "error": null
+          },
+          "range_http_status": 206,
+          "mean_audio_db": -15.9,
+          "ui_playback_advanced": true
+        },
+        {
+          "job": "6776e1dfc72a",
+          "video": {
+            "width": 1088,
+            "height": 1920,
+            "duration": 39.7137,
+            "currentTime": 2.007459,
+            "error": null
+          },
+          "range_http_status": 206,
+          "mean_audio_db": -16.3,
+          "ui_playback_advanced": true
+        }
+      ],
+      "javascript_errors": []
+    },
+    "same_version_same_length_shortcut_update_verified": true
+  },
+  "phone": {
+    "version": "1.1.1",
+    "installed_apk": {
+      "installed_sha256": "6d8e18459bfc40d162bc1b09e84c2e12c14a6cf3cb80f3070e57d43b8b42240e",
+      "matches_final": true
+    },
+    "final_apk_recording": {
+      "apk_sha256": "6d8e18459bfc40d162bc1b09e84c2e12c14a6cf3cb80f3070e57d43b8b42240e",
+      "phone_ui_start_stop": true,
+      "two_direct_live_rooms_recorded": true,
+      "two_real_phone_streams": true,
+      "background_both_advanced": true,
+      "usb_imports_complete": true,
+      "snapshots": [
+        {
+          "stage": "two",
+          "active": [
+            {
+              "anchor_id": "a97ea1cb3f50",
+              "name": "艳姐（短视频教学验收）",
+              "bytes": 577355,
+              "seconds": 2,
+              "message": "正在录制"
+            },
+            {
+              "anchor_id": "6e19d2d3e8e0",
+              "name": "喜哥（短视频教学验收）",
+              "bytes": 7485908,
+              "seconds": 14,
+              "message": "正在录制"
+            }
+          ]
+        },
+        {
+          "stage": "background",
+          "active": [
+            {
+              "anchor_id": "a97ea1cb3f50",
+              "name": "艳姐（短视频教学验收）",
+              "bytes": 1364556,
+              "seconds": 10,
+              "message": "正在录制"
+            },
+            {
+              "anchor_id": "6e19d2d3e8e0",
+              "name": "喜哥（短视频教学验收）",
+              "bytes": 13307996,
+              "seconds": 22,
+              "message": "正在录制"
+            }
+          ]
+        }
+      ],
+      "clips": [
+        {
+          "id": "5489021b539847008786456179b31cce",
+          "job": "7748c1fcf3f7",
+          "name": "艳姐（短视频教学验收）",
+          "file": "E:\\新建文件夹 (2)\\20261115-120654_7748c1fcf3f7\\phone-replay.mp4",
+          "sha256": "e1d2d41a81880262209eaf0fd2efe74c502073dcb25fc47fab064e16c5da6e37",
+          "phone_original_hash_matches": true,
+          "probe": {
+            "programs": [],
+            "stream_groups": [],
+            "streams": [
+              {
+                "codec_name": "h264",
+                "codec_type": "video",
+                "width": 480,
+                "height": 864
+              },
+              {
+                "codec_name": "aac",
+                "codec_type": "audio"
+              }
+            ],
+            "format": {
+              "duration": "24.012700",
+              "size": "2096237"
+            }
+          },
+          "full_decode": true,
+          "frame": "E:\\VideoDesk\\.local\\live280\\final-phone-5489021b.jpg"
+        },
+        {
+          "id": "7c1a441532054074a5a2c72c1f967325",
+          "job": "6776e1dfc72a",
+          "name": "喜哥（短视频教学验收）",
+          "file": "E:\\新建文件夹 (2)\\20261115-120659_6776e1dfc72a\\phone-replay.mp4",
+          "sha256": "d05cb2bc5c9792b490c780734eead48216052b1a71066a2c21b6c55a3b5aea7c",
+          "phone_original_hash_matches": true,
+          "probe": {
+            "programs": [],
+            "stream_groups": [],
+            "streams": [
+              {
+                "codec_name": "h264",
+                "codec_type": "video",
+                "width": 1088,
+                "height": 1920
+              },
+              {
+                "codec_name": "aac",
+                "codec_type": "audio"
+              }
+            ],
+            "format": {
+              "duration": "39.713700",
+              "size": "17004611"
+            }
+          },
+          "full_decode": true,
+          "frame": "E:\\VideoDesk\\.local\\live280\\final-phone-7c1a4415.jpg"
+        }
+      ]
+    },
+    "configuration_sync": {
+      "final_apk_sha256": "6d8e18459bfc40d162bc1b09e84c2e12c14a6cf3cb80f3070e57d43b8b42240e",
+      "offline_anchor_survived_reconnect": true,
+      "draft_preserved_across_config_polls": true,
+      "poll_window_seconds": 15,
+      "offline_anchor_manual_sync_passed": true,
+      "temporary_anchor_removed": true
+    },
+    "manual_resend": {
+      "manual_resend_no_duplicate_jobs": true,
+      "job_count_before_and_after": 23,
+      "existing_imports_reused": 8,
+      "all_imports_completed": true
+    },
+    "implemented_parallel_limit": 4,
+    "actual_parallel_anchors_tested": 2,
+    "earlier_stop_one_other_continued": true,
+    "earlier_background_and_usb_disconnect_test": {
+      "background_both_advanced": true,
+      "usb_reconnected_imports_complete": true,
+      "method": "Removed only the paired ADB reverse mapping to simulate USB bridge disconnection; cable was not physically unplugged."
+    },
+    "profile_link_test": {
+      "profile_to_live_recording_passed": true,
+      "anchor_id": "425041c0934b",
+      "profile_url": "https://www.douyin.com/user/MS4wLjABAAAAf9Ma9FMlJfFRabEMDGA-jfu0RYem8X0rflvxAvEi0oj02GAPB3znLim-WnKL7xvl",
+      "first_live_snapshot": {
+        "anchor_id": "425041c0934b",
+        "name": "辉辉 呀（开播教学）",
+        "bytes": 566184,
+        "seconds": 5,
+        "message": "正在录制"
+      },
+      "phone_ui_start_stop": true
+    },
+    "capture_sources_unchanged_from_interim": [
+      {
+        "file": "mobile\\src\\org\\videodesk\\mobile\\Bridge.java",
+        "sha256": "67db44815e3adfe9ec5fa3a4fe990d6d72fbac53296eb4e6b656736b6b08df56"
+      },
+      {
+        "file": "mobile\\src\\org\\videodesk\\mobile\\FlvMp4.java",
+        "sha256": "0bcdf14308cd22570b6d7fbdc946aedeae832fdfdb2fdec05f75bc33d2678597"
+      },
+      {
+        "file": "mobile\\src\\org\\videodesk\\mobile\\LiveNoticeService.java",
+        "sha256": "2f72b50de5769fe9d4d5bb843f86b0b0f7a8b02c8cb38476ac63e0975d3da6c9"
+      },
+      {
+        "file": "mobile\\src\\org\\videodesk\\mobile\\RecordingService.java",
+        "sha256": "2b56cebae6cfb9ba69f5673d7d2647f9192afc8bd5f86c80127f6e73399811e6"
+      },
+      {
+        "file": "mobile\\src\\org\\videodesk\\mobile\\StreamResolver.java",
+        "sha256": "7adb37d5cb7f78a8e91883762205316353f4900e2d5c17056fa82126d1a1c217"
+      },
+      {
+        "file": "mobile\\src\\org\\videodesk\\mobile\\StreamService.java",
+        "sha256": "b9450c9724cb225813064fd8b490530b7c0fc8fda23f079670623d390b3ef197"
+      },
+      {
+        "file": "mobile\\src\\org\\videodesk\\mobile\\VideoLibrary.java",
+        "sha256": "cba7d4391e94a96a2eb7b97df0aaa963bed45b13c5ea46ec78ac4b836b0dd554"
+      }
+    ],
+    "profile_and_stop_one_test_scope": "Performed on interim APK 1a8387242ed36f7a74506f8cd776b5d40199bcf9075b070f9e45f3ff5b2d6428. Final patch changes configuration merging; final APK dual-stream recording, background capture, USB import and playback were rechecked separately."
+  },
+  "requested_room_earlier_test": {
+    "url": "https://live.douyin.com/667494621873",
+    "desktop_seconds": 27.456,
+    "phone_seconds": 90.982,
+    "full_decode_and_usb_import_passed": true,
+    "evidence": "VideoDesk-2.8.0-acceptance.json",
+    "note": "Historical test. Later live tests used other online teaching broadcasters after these original rooms ended."
+  },
+  "durable_import_resume": {
+    "service_restart_resumed_at": 2097152,
+    "file_size": 17653864,
+    "sha256_matches": true,
+    "duplicate_import_idempotent": true,
+    "job": "a24dc4a516a8"
+  },
+  "python_tests": {
+    "tests": 201,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": true,
+    "seconds": 28.28
+  },
+  "javascript_retained_run": {
+    "tests": 43,
+    "passed": 43,
+    "failed": 0,
+    "skipped": 0,
+    "evidence": ".local/live280/node-tests.log"
+  },
+  "cleanup": {
+    "items": [
+      {
+        "path": "E:\\VideoDesk\\release\\VideoDesk-2.7.0-Windows-x64.exe",
+        "bytes": 749388800,
+        "recoverable": true
+      },
+      {
+        "path": "E:\\VideoDesk\\release\\VideoDesk-2.7.0-Windows-x64.exe.sha256",
+        "bytes": 99,
+        "recoverable": true
+      },
+      {
+        "path": "E:\\VideoDesk\\release\\VideoDesk-2.7.1-Windows-x64.exe",
+        "bytes": 749395456,
+        "recoverable": true
+      },
+      {
+        "path": "E:\\VideoDesk\\release\\VideoDesk-2.7.1-Windows-x64.exe.sha256",
+        "bytes": 99,
+        "recoverable": true
+      },
+      {
+        "path": "E:\\VideoDesk\\release\\VideoDesk-2.7.2-Windows-x64.exe",
+        "bytes": 749400064,
+        "recoverable": true
+      },
+      {
+        "path": "E:\\VideoDesk\\release\\VideoDesk-2.7.2-Windows-x64.exe.sha256",
+        "bytes": 99,
+        "recoverable": true
+      },
+      {
+        "path": "E:\\VideoDesk\\release\\VideoDesk-Android-1.0.0.apk",
+        "bytes": 37267,
+        "recoverable": true
+      },
+      {
+        "path": "E:\\VideoDesk\\release\\VideoDesk-Android-1.0.0.apk.sha256",
+        "bytes": 95,
+        "recoverable": true
+      },
+      {
+        "path": "E:\\VideoDesk\\release\\VideoDesk-Android-1.0.1.apk",
+        "bytes": 37267,
+        "recoverable": true
+      },
+      {
+        "path": "E:\\VideoDesk\\release\\VideoDesk-Android-1.0.1.apk.sha256",
+        "bytes": 95,
+        "recoverable": true
+      },
+      {
+        "path": "E:\\VideoDesk\\release\\VideoDesk-Android-1.1.0.apk",
+        "bytes": 53720,
+        "recoverable": true
+      },
+      {
+        "path": "E:\\VideoDesk\\release\\VideoDesk-Android-1.1.0.apk.sha256",
+        "bytes": 95,
+        "recoverable": true
+      },
+      {
+        "path": "C:\\Users\\21657\\AppData\\Local\\VideoDesk\\versions\\2.7.2-efd5e5b64c",
+        "bytes": 1933195876,
+        "recoverable": true
+      },
+      {
+        "path": "C:\\Users\\21657\\AppData\\Local\\VideoDesk\\versions\\2.8.1-a91838ec2e",
+        "bytes": 1933291276,
+        "recoverable": true
+      },
+      {
+        "path": "E:\\VideoDesk\\.local\\build-exe\\payload.zip",
+        "bytes": 749333339,
+        "recoverable": true
+      },
+      {
+        "path": "E:\\VideoDesk\\.local\\live280\\installed-phone.apk",
+        "bytes": 57816,
+        "recoverable": true
+      },
+      {
+        "path": "E:\\VideoDesk\\.local\\live280\\config-sync-phone-ui.xml",
+        "bytes": 14951,
+        "recoverable": true
+      },
+      {
+        "path": "E:\\VideoDesk\\.local\\live280\\current-phone-ui.xml",
+        "bytes": 14969,
+        "recoverable": true
+      },
+      {
+        "path": "E:\\VideoDesk\\.local\\live280\\final-config-ui.xml",
+        "bytes": 15055,
+        "recoverable": true
+      },
+      {
+        "path": "E:\\VideoDesk\\.local\\live280\\phone-ui.xml",
+        "bytes": 115361,
+        "recoverable": true
+      },
+      {
+        "path": "E:\\VideoDesk\\.local\\live280\\usb-offline-phone-ui.xml",
+        "bytes": 15023,
+        "recoverable": true
+      },
+      {
+        "path": "E:\\VideoDesk\\.local\\live280\\current-phone-ui.xml",
+        "bytes": 25888,
+        "recoverable": true
+      }
+    ],
+    "total_bytes_moved_to_recycle_bin": 6864392710,
+    "current_version_preserved": "C:\\Users\\21657\\AppData\\Local\\VideoDesk\\versions\\2.8.1-e5f9be64ca",
+    "rollback_version_preserved": "2.8.0-6f0831a92c",
+    "user_data_and_recordings_preserved": true
+  },
+  "limits": [
+    "Independent phone recording requires an available H.264/AAC FLV stream from the requested broadcaster.",
+    "Screen capture fallback records one screen and requires Android system permission.",
+    "Android background service time limits, battery policy, network and source login/verification still apply."
+  ],
+  "evidence_directory": "E:\\VideoDesk\\.local\\live280"
+}

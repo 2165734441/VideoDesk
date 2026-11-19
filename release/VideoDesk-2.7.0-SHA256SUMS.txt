@@ -1,0 +1,3 @@
+12b532a24f1c662624ea59cad25d1a7bdc43cd0ab013f5d7b2c2d3f5c63f338b  VideoDesk-2.7.0-acceptance.json
+7b9fdd4a2ccb65d7abdfd8d4d061bab6ce3e58e6541b75e4c5b1daf41fb632a2  VideoDesk-2.7.0-build.json
+676a999a093e07d901be809fcb7bcc685de92be703b8e04493427ab3edb97d2d  VideoDesk-2.7.0-Windows-x64.exe

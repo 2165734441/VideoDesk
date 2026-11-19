@@ -1,0 +1,110 @@
+{
+  "version": "2.7.0",
+  "completed_date": "2026-11-14",
+  "status": "completed",
+  "exe_sha256": "676a999a093e07d901be809fcb7bcc685de92be703b8e04493427ab3edb97d2d",
+  "payload_sha256": "e5df71c0b18b2992c4e38912b3a4a65cd9b31e63cbf88d2a94725f01067abe9e",
+  "desktop": {
+    "version": "2.7.0",
+    "jobs_preserved": 8,
+    "protected_files_unchanged": 9,
+    "exe_sha256": "676a999a093e07d901be809fcb7bcc685de92be703b8e04493427ab3edb97d2d",
+    "apk_sha256": "dbfa13c3c270544f95dc543995fb18b326e58a80ad3178372f4977aa86c85c61",
+    "runtime_components_ready": 9,
+    "translation_cpu_ready": true,
+    "translation_gpu_ready": true,
+    "translation_models_ready": 4,
+    "url": "http://127.0.0.1:7485"
+  },
+  "packaged_verification": {
+    "version": "2.7.0",
+    "runtime_components": 9,
+    "degraded": false,
+    "all_app_files_match_source": 144,
+    "apk_sha256": "dbfa13c3c270544f95dc543995fb18b326e58a80ad3178372f4977aa86c85c61",
+    "desktop_ui": true,
+    "optional_name": true,
+    "normalized_duplicate_rejected": true,
+    "phone_write_auth": true,
+    "disconnected_phone_error": true,
+    "system_metadata_fallback_included": true
+  },
+  "source_regression": {
+    "tests": 175,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": true,
+    "seconds": 35.86,
+    "frontend_and_mobile_detector_pass": 19,
+    "targeted_worker_regressions_pass": 22,
+    "final_runtime_compatibility_pass": 8
+  },
+  "phone_installation": {
+    "desktop_version": "2.7.0",
+    "usb_paired_to_installed_desktop": true,
+    "installed_apk_sha256": "dbfa13c3c270544f95dc543995fb18b326e58a80ad3178372f4977aa86c85c61",
+    "latest_apk_sha256": "dbfa13c3c270544f95dc543995fb18b326e58a80ad3178372f4977aa86c85c61",
+    "latest_phone_patch_installed": true
+  },
+  "real_phone_automatic_live_detection": {
+    "apk_sha256": "dbfa13c3c270544f95dc543995fb18b326e58a80ad3178372f4977aa86c85c61",
+    "paired_at": 1794632843.8909836,
+    "automatic_live_detection": true,
+    "manual_confirmation_used": false,
+    "event": {
+      "id": "e9606f875b0d",
+      "anchor_id": "c7a95ec7559f",
+      "name": "直播联动验证",
+      "state": "online",
+      "time": 1794632877.208854,
+      "decision": "pending",
+      "message": "手机主播页面检测"
+    }
+  },
+  "real_phone_recording": {
+    "apk_sha256": "dbfa13c3c270544f95dc543995fb18b326e58a80ad3178372f4977aa86c85c61",
+    "installed_apk_matches_source": true,
+    "native_douyin_live_activity": true,
+    "phone_filename": "VideoDesk-20261114-131050-effc8.mp4",
+    "media": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "start_time": "0.000000",
+          "duration": "58.320499"
+        },
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 720,
+          "height": 1600,
+          "start_time": "0.031400",
+          "duration": "58.223389"
+        }
+      ],
+      "format": {
+        "duration": "58.320499",
+        "size": "12985920"
+      }
+    },
+    "pc_stop_command_saved_recording": true,
+    "full_decode_pass": true,
+    "audible_internal_audio_verified": true,
+    "measured_mean_volume_db": -13.6
+  },
+  "cleanup": {
+    "removed_gib": 5.01,
+    "targets": 15
+  },
+  "known_limits": [
+    "The phone records one screen at a time; the PC supports multiple live rooms.",
+    "Web-page monitoring needs the phone companion in the foreground. Douyin notification access and each new Android screen-capture session require the user.",
+    "USB must remain connected for phone-to-PC notifications and PC-to-phone commands.",
+    "Playback audio depends on the source app and Android capture permission.",
+    "The exact real-account following total was not supplied and the platform previously returned HTTP 444. Observed pagination and count completeness are covered by regression tests; the UI does not label a partial list complete."
+  ]
+}

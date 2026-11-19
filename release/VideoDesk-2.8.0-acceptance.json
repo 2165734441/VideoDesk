@@ -1,0 +1,106 @@
+{
+  "version": "2.8.0",
+  "status": "desktop_installed_phone_final_acceptance_pending",
+  "desktop": {
+    "installed": true,
+    "package": {
+      "version": "2.8.0",
+      "installed_app_files_match": 155,
+      "runtime_components_ready": 9,
+      "phone_apk_matches_final": true,
+      "sha256": "a7405eadaa65151b6bb476e144648c8bad9883854d53ffedca6c7fbdd598809c"
+    },
+    "preserved": {
+      "version": "2.8.0",
+      "desktop_exe_sha256": "a7405eadaa65151b6bb476e144648c8bad9883854d53ffedca6c7fbdd598809c",
+      "jobs_preserved": 14,
+      "protected_files_unchanged": 9,
+      "url": "http://127.0.0.1:9596",
+      "current_install": {
+        "path": "C:\\Users\\21657\\AppData\\Local\\VideoDesk\\versions\\2.8.0-6f0831a92c",
+        "payload_hash": "6f0831a92cb23588101643fef9cb4c66ab33e936027b6b21a9bfa1e7733c0ae2"
+      }
+    },
+    "live_room": "https://live.douyin.com/667494621873",
+    "recording": {
+      "job": "e82f6c40a97a",
+      "media_file": "E:\\新建文件夹 (2)\\20261114-204438_e82f6c40a97a\\part-0001-4de21460.mp4",
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 480,
+            "height": 852
+          },
+          {
+            "codec_name": "aac",
+            "codec_type": "audio"
+          }
+        ],
+        "format": {
+          "duration": "27.456000",
+          "size": "2899300"
+        }
+      },
+      "full_decode": true,
+      "ui_record_stop_play": true,
+      "javascript_errors": []
+    }
+  },
+  "phone": {
+    "release_version": "1.1.0",
+    "release_apk_sha256": "53a0b3ab3aa1fb690bf28f870bae5a77857bc8365fe10ada95de66be82e28022",
+    "tested_earlier_apk_sha256": "2074d3415f6637a9578beee3a1104baaee2ad8bff0ea2adae0f493c5957057e6",
+    "real_single_recording_seconds": 90.982,
+    "real_single_recording_full_decode": true,
+    "real_usb_transfer_completed": true,
+    "installed_desktop_replay": {
+      "done": true,
+      "job": "8de96c287e97",
+      "sha256": "fd8a18dd2400ea96826152fac2e5f992fd41472533a2cfa4267858f3781923d6",
+      "file": "E:\\新建文件夹 (2)\\20261114-204557_8de96c287e97\\phone-replay.mp4",
+      "size": 17653864,
+      "phone_original_retained": true
+    },
+    "installed_desktop_playback": {
+      "replay_selected_in_ui": true,
+      "playback_advanced": true,
+      "video": {
+        "width": 720,
+        "height": 1280,
+        "duration": 90.982,
+        "currentTime": 2.008291,
+        "error": null
+      },
+      "range_http_status": 206,
+      "javascript_errors": []
+    },
+    "implemented_parallel_limit": 4,
+    "two_live_anchor_device_test": "PENDING",
+    "final_apk_installation": "PENDING: vivo rejected USB installation; user must allow update and open companion",
+    "adb_launch": "Automatic approval rejected: blocked by policy"
+  },
+  "resume": {
+    "service_restart_resumed_at": 2097152,
+    "file_size": 17653864,
+    "sha256_matches": true,
+    "duplicate_import_idempotent": true,
+    "job": "a24dc4a516a8"
+  },
+  "python_tests": {
+    "tests": 201,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": true,
+    "seconds": 23.67
+  },
+  "javascript_tests": {
+    "total": 43,
+    "passed": 43
+  },
+  "material_notes": "Original recordings retained on the phone; PC and phone clips contain audible audio and the requested broadcaster; frame images and volume measurements retained in local evidence."
+}

@@ -1,0 +1,9 @@
+{
+  "file": "VideoDesk-2.9.1-Windows-x64.exe",
+  "bytes": 749465088,
+  "sha256": "6bdf57ee940a27e41b75c1433c904228c7a7ec797a11fca583544211dd94e59d",
+  "payload_sha256": "afb843d89cec2a9e79b5ed24c712abd2ee25236e2c3373b8d88b23d6031928e1",
+  "files": 16036,
+  "version": "2.9.1",
+  "validation": "built; runtime acceptance recorded separately"
+}
