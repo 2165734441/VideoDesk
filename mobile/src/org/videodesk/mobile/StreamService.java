@@ -14,6 +14,38 @@ public class StreamService extends Service {
  static final Set<String> rawIds=ConcurrentHashMap.newKeySet();static volatile String lastCaptureMessage="",resolverMessage="";
  static volatile String transferMessage="接线并连接手机伴侣后自动传到电脑";
  static StreamService instance;final ScheduledExecutorService bridge=Executors.newSingleThreadScheduledExecutor();
+ // 检测专用线程，和 bridge 分开：bridge 要等电脑回话，被拖住时不能连带检测一起停。
+ final ScheduledExecutorService detect=Executors.newSingleThreadScheduledExecutor();
+ // 界面退到后台后由这个检测器接手；它跑在服务里，所以划掉界面也不影响开播检测。
+ final android.os.Handler ui=new android.os.Handler(android.os.Looper.getMainLooper());
+ Detector detector;static volatile boolean desktopLinked=false;
+ final Runnable detectTick=new Runnable(){
+  long beat=0;
+  public void run(){
+   try{
+    long now=System.currentTimeMillis();
+    if(now>beat){
+     beat=now+60000;
+     MainActivity live=MainActivity.current;
+     Detector.log("心跳 可见="+(live!=null&&live.visible)+" 电脑="+desktopLinked+" 检测器="+(detector!=null)+" 录制="+captures.size());
+    }
+    detectorStep();
+   }catch(Throwable ignored){}
+   ui.postDelayed(this,3000);
+  }
+ };
+ /** 创建（首次）并驱动后台检测；主线程 Handler 和检测线程两条通道都会调它。 */
+ void detectorStep(){
+  if(desktopLinked)return;                                  // 电脑在线时手机不重复检测
+  MainActivity live=MainActivity.current;
+  if(live!=null&&live.visible&&!live.isFinishing())return;   // 界面在前台，交给界面扫
+  if(detector==null){
+   try{detector=new Detector(this);Detector.log("后台检测器已接管 可见="+(live!=null&&live.visible));}
+   catch(Exception e){Detector.log("后台检测器创建失败："+e);return;}
+  }
+  try{detector.step();}catch(Throwable ignored){}
+ }
+ volatile long beatAt=0;
  // A partial wake lock keeps the six-second command poll running while the
  // screen is off. Without it vivo parks the CPU and the phone silently stops
  // answering the desktop, which is how the first minutes of a live got lost.
@@ -50,14 +82,24 @@ public class StreamService extends Service {
  @Override public void onCreate(){super.onCreate();instance=this;NotificationManager n=getSystemService(NotificationManager.class);n.createNotificationChannel(new NotificationChannel("streams","多主播录制与 USB 回放传输",NotificationManager.IMPORTANCE_LOW));keepAwake(this);
   bridge.scheduleWithFixedDelay(()->{try{
    if(awake==null||!awake.isHeld())keepAwake(this);
-   consume(this,Bridge.call(this,"/v1/config",null));
-  }catch(Exception e){transferMessage=e instanceof Bridge.Rejected?"回放传输："+e.getMessage():"等待 USB 连接，回放保留在手机；重连后自动续传";}
+   consume(this,Bridge.call(this,"/v1/config",null));desktopLinked=true;
+  }catch(Exception e){desktopLinked=false;transferMessage=e instanceof Bridge.Rejected?"回放传输："+e.getMessage():"等待 USB 连接，回放保留在手机；重连后自动续传";}
   },2,6,TimeUnit.SECONDS);
+  // 检测的驱动必须有自己的通道：桥接那个线程还要等电脑回话，
+  // 一旦电脑离线把调用拖住，共用同一个线程池就会让检测跟着一起停摆。
+  // 这里用主线程 Handler（前台服务期间不会冻结）+ 独立心跳两条线互相兜底。
+  ui.postDelayed(detectTick,5000);
+  detect.scheduleWithFixedDelay(()->{
+   try{ui.post(()->{try{detectorStep();}catch(Throwable ignored){}});}catch(Throwable ignored){}
+  },5,6,TimeUnit.SECONDS);
+  // 开播检测的备份通道：界面还活着时由界面自己扫描（后台也照扫），
+  // 界面被系统回收后才在这里按需创建解析组件接管，平时不占内存。
+  Detector.log("服务已就绪 界面="+(MainActivity.current!=null));
  }
  static String nameFor(JSONObject conf,String id){try{JSONArray list=conf.optJSONArray("anchors");for(int i=0;list!=null&&i<list.length();i++){JSONObject a=list.optJSONObject(i);if(a!=null&&id.equals(a.optString("id")))return a.optString("name","主播");}}catch(Exception ignored){}return "主播";}
  Notification notification(){PendingIntent open=PendingIntent.getActivity(this,1,new Intent(this,MainActivity.class),PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);PendingIntent stop=PendingIntent.getService(this,2,new Intent(this,StreamService.class).setAction("STOP_ALL"),PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);return new Notification.Builder(this,"streams").setSmallIcon(android.R.drawable.ic_menu_save).setContentTitle("映格："+captures.size()+" 位主播录制中").setContentText(transferMessage).setContentIntent(open).setOngoing(!captures.isEmpty()).addAction(new Notification.Action.Builder(null,"停止全部并保存",stop).build()).build();}
  void update(){getSystemService(NotificationManager.class).notify(280,notification());}
- @Override public int onStartCommand(Intent i,int flags,int id){startForeground(280,notification());if(i==null)return START_NOT_STICKY;String action=i.getAction();if("STOP_ALL".equals(action))stopAll();else if("RECORD".equals(action))try{JSONObject anchor=new JSONObject(i.getStringExtra("anchor"));String key=anchor.getString("id");if(captures.containsKey(key))return START_NOT_STICKY;if(captures.size()>=4)throw new IOException("手机最多同时录制 4 位主播，请先停止一路");Capture c=new Capture(anchor,i.getStringExtra("url"),i.getStringExtra("cookie"),i.getStringExtra("agent"));captures.put(key,c);new Thread(c,"record-"+key).start();}catch(Exception e){transferMessage=e.getMessage();}update();return START_NOT_STICKY;}
+ @Override public int onStartCommand(Intent i,int flags,int id){startForeground(280,notification());if(i==null)return START_STICKY;String action=i.getAction();if("STOP_ALL".equals(action))stopAll();else if("RECORD".equals(action))try{JSONObject anchor=new JSONObject(i.getStringExtra("anchor"));String key=anchor.getString("id");if(captures.containsKey(key))return START_STICKY;if(captures.size()>=4)throw new IOException("手机最多同时录制 4 位主播，请先停止一路");Capture c=new Capture(anchor,i.getStringExtra("url"),i.getStringExtra("cookie"),i.getStringExtra("agent"));captures.put(key,c);new Thread(c,"record-"+key).start();}catch(Exception e){transferMessage=e.getMessage();}update();return START_STICKY;}
  @Override public IBinder onBind(Intent i){return null;}
  // API 35+ calls this when the system dataSync window expires; older releases
  // never call it, so the annotation would break builds with an older platform.
@@ -69,7 +111,12 @@ public class StreamService extends Service {
   try{stopForeground(STOP_FOREGROUND_REMOVE);}catch(Exception ignored){}
   try{Context c=getApplicationContext();c.startForegroundService(new Intent(c,StreamService.class).setAction("SYNC"));}catch(Exception ignored){transferMessage="请打开伴侣以继续后台录制";}
  }
- @Override public void onDestroy(){stopAll();bridge.shutdownNow();instance=null;try{if(awake!=null&&awake.isHeld())awake.release();}catch(Exception ignored){}super.onDestroy();}
+ @Override public void onTaskRemoved(Intent root){
+  // 从最近任务里划掉伴侣时，录制和检测都要接着跑：把服务立刻挂回去。
+  super.onTaskRemoved(root);
+  try{getApplicationContext().startForegroundService(new Intent(getApplicationContext(),StreamService.class).setAction("SYNC"));}catch(Exception ignored){}
+ }
+ @Override public void onDestroy(){ui.removeCallbacksAndMessages(null);if(detector!=null){detector.destroy();detector=null;}stopAll();bridge.shutdownNow();detect.shutdownNow();instance=null;try{if(awake!=null&&awake.isHeld())awake.release();}catch(Exception ignored){}super.onDestroy();}
  final class Capture implements Runnable{
   final JSONObject anchor;final String url,cookie,agent;volatile boolean cancelled=false;volatile HttpURLConnection connection;volatile long bytes=0;final long started=System.currentTimeMillis();volatile String message="连接直播视频流";
   Capture(JSONObject a,String u,String c,String ua){anchor=a;url=u;cookie=c;agent=ua;}

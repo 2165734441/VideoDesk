@@ -537,6 +537,7 @@ public class MainActivity extends Activity {
  void scan(){
   long now=System.currentTimeMillis();
   if(now<nextScan||streams==null)return;
+  Detector.log("界面扫描 可见="+visible+" 电脑在线="+linked+" 主播="+anchors.length());
   // A page that never answers must not freeze every later check.
   if(streams.started>0&&now-streams.started>90000){
    streams.forceNext();nextScan=now+15000;return;
