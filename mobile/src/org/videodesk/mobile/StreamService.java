@@ -63,6 +63,8 @@ public class StreamService extends Service {
  static void stop(String id){Capture c=captures.get(id);if(c!=null)c.stop();}
  static void stopAll(){for(Capture c:captures.values())c.stop();}
  static void record(Context c,JSONObject anchor,String url,String cookie,String agent){c.startForegroundService(new Intent(c,StreamService.class).setAction("RECORD").putExtra("anchor",anchor.toString()).putExtra("url",url).putExtra("cookie",cookie).putExtra("agent",agent));}
+ /** 闹钟叫醒：把服务重新拉成前台，并立刻补一轮检测。 */
+ static void wake(Context c){try{c.startForegroundService(new Intent(c,StreamService.class).setAction("DETECT"));}catch(Exception ignored){}}
  static void sync(Context c){c.startForegroundService(new Intent(c,StreamService.class).setAction("SYNC"));}
  static void consume(Context c,JSONObject conf){
   try{
@@ -95,11 +97,14 @@ public class StreamService extends Service {
   // 开播检测的备份通道：界面还活着时由界面自己扫描（后台也照扫），
   // 界面被系统回收后才在这里按需创建解析组件接管，平时不占内存。
   Detector.log("服务已就绪 界面="+(MainActivity.current!=null));
+  DetectAlarm.arm(this);
  }
  static String nameFor(JSONObject conf,String id){try{JSONArray list=conf.optJSONArray("anchors");for(int i=0;list!=null&&i<list.length();i++){JSONObject a=list.optJSONObject(i);if(a!=null&&id.equals(a.optString("id")))return a.optString("name","主播");}}catch(Exception ignored){}return "主播";}
  Notification notification(){PendingIntent open=PendingIntent.getActivity(this,1,new Intent(this,MainActivity.class),PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);PendingIntent stop=PendingIntent.getService(this,2,new Intent(this,StreamService.class).setAction("STOP_ALL"),PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);return new Notification.Builder(this,"streams").setSmallIcon(android.R.drawable.ic_menu_save).setContentTitle("映格："+captures.size()+" 位主播录制中").setContentText(transferMessage).setContentIntent(open).setOngoing(!captures.isEmpty()).addAction(new Notification.Action.Builder(null,"停止全部并保存",stop).build()).build();}
  void update(){getSystemService(NotificationManager.class).notify(280,notification());}
- @Override public int onStartCommand(Intent i,int flags,int id){startForeground(280,notification());if(i==null)return START_STICKY;String action=i.getAction();if("STOP_ALL".equals(action))stopAll();else if("RECORD".equals(action))try{JSONObject anchor=new JSONObject(i.getStringExtra("anchor"));String key=anchor.getString("id");if(captures.containsKey(key))return START_STICKY;if(captures.size()>=4)throw new IOException("手机最多同时录制 4 位主播，请先停止一路");Capture c=new Capture(anchor,i.getStringExtra("url"),i.getStringExtra("cookie"),i.getStringExtra("agent"));captures.put(key,c);new Thread(c,"record-"+key).start();}catch(Exception e){transferMessage=e.getMessage();}update();return START_STICKY;}
+ @Override public int onStartCommand(Intent i,int flags,int id){startForeground(280,notification());if(i==null)return START_STICKY;String action=i.getAction();
+  if("DETECT".equals(action)){Detector.log("闹钟唤醒：补一轮检测");try{detectorStep();}catch(Throwable ignored){}DetectAlarm.arm(this);return START_STICKY;}
+  if("STOP_ALL".equals(action))stopAll();else if("RECORD".equals(action))try{JSONObject anchor=new JSONObject(i.getStringExtra("anchor"));String key=anchor.getString("id");if(captures.containsKey(key))return START_STICKY;if(captures.size()>=4)throw new IOException("手机最多同时录制 4 位主播，请先停止一路");Capture c=new Capture(anchor,i.getStringExtra("url"),i.getStringExtra("cookie"),i.getStringExtra("agent"));captures.put(key,c);new Thread(c,"record-"+key).start();}catch(Exception e){transferMessage=e.getMessage();}update();return START_STICKY;}
  @Override public IBinder onBind(Intent i){return null;}
  // API 35+ calls this when the system dataSync window expires; older releases
  // never call it, so the annotation would break builds with an older platform.
