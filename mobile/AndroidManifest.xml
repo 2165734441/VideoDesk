@@ -1,4 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="org.videodesk.mobile" android:versionCode="20" android:versionName="1.4.2">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="org.videodesk.mobile" android:versionCode="21" android:versionName="1.4.3">
  <uses-sdk android:minSdkVersion="29" android:targetSdkVersion="36"/>
  <uses-permission android:name="android.permission.INTERNET"/>
  <uses-permission android:name="android.permission.RECORD_AUDIO"/>
