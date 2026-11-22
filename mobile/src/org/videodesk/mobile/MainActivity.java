@@ -48,7 +48,7 @@ public class MainActivity extends Activity {
  final java.util.Map<String,Long> scanAt=new java.util.HashMap<>();
 
  @Override public void onCreate(Bundle saved){
-  super.onCreate(saved);current=this;
+  super.onCreate(saved);current=this;Detector.attach(this);
   getWindow().setStatusBarColor(Color.rgb(20,107,99));
   getWindow().setNavigationBarColor(Color.WHITE);
   getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);

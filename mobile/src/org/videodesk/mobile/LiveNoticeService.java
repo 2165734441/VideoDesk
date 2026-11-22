@@ -13,12 +13,15 @@ public class LiveNoticeService extends NotificationListenerService {
  // sits in a pocket with the screen off.
  static final Handler beat=new Handler(Looper.getMainLooper());
  static volatile boolean beating=false;
- @Override public void onCreate(){super.onCreate();startBeat();}
+ @Override public void onCreate(){super.onCreate();Detector.attach(this);startBeat();}
  @Override public void onDestroy(){beat.removeCallbacksAndMessages(null);beating=false;super.onDestroy();}
  void startBeat(){
   if(beating)return;beating=true;
   beat.postDelayed(new Runnable(){public void run(){
    new Thread(()->{try{StreamService.consume(LiveNoticeService.this,Bridge.call(LiveNoticeService.this,"/v1/config",null));}catch(Exception ignored){}},"notice-beat").start();
+   // 通知监听服务由系统绑着，进程被杀或被冻结时它往往还在；顺手把检测闹钟接上，
+   // 这样即使前台服务已经没了，闹钟链条也不会一直断着。
+   try{if(DetectAlarm.stale()&&System.currentTimeMillis()-DetectAlarm.lastArmAt>60000)DetectAlarm.arm(LiveNoticeService.this);}catch(Exception ignored){}
    beat.postDelayed(this,10000);
   }},3000);
  }

@@ -112,13 +112,20 @@ final class Detector {
         nextScan = now + 30000;
     }
 
+    /** 没有服务实例时的落盘上下文：闹钟冷唤醒、更新接管都发生在服务起来之前。 */
+    private static volatile Context logContext;
+
+    static void attach(Context context) {
+        if (context != null) logContext = context.getApplicationContext();
+    }
+
     /**
      * 排查用：vivo 等系统会把第三方应用日志整段吞掉，所以同时写一份到应用目录，
      * 出问题时可以从手机的 Android/data/org.videodesk.mobile/files/detector.log 取。
      */
     static void log(String message) {
         android.util.Log.e("VDDetect", message);
-        Context context = StreamService.instance;
+        Context context = StreamService.instance != null ? StreamService.instance : logContext;
         if (context == null) return;
         try {
             java.io.File file = new java.io.File(context.getExternalFilesDir(null), "detector.log");
