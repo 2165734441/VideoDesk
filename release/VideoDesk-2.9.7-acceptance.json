@@ -1,0 +1,69 @@
+{
+  "version": "2.9.7",
+  "status": "complete-direct-collect-download-build",
+  "windows_bytes": 749533696,
+  "windows_sha256": "14078af3faf236675fc2524c3bf085e128e91cbac3e56a74ec87662fe7d686c8",
+  "payload_sha256": "286f72f8c4cace6c7016e059b785a4afe00eb62bea283c3c3acbd6ce3caff6b6",
+  "payload_files": 16049,
+  "manifest_files": 16048,
+  "build": {
+    "mode": "bundle（复用已验证的运行时，只重打应用层）",
+    "runtime": {
+      "python": "3.13.17",
+      "node": "v22.23.4",
+      "ffmpeg": "7.1"
+    },
+    "validation": [
+      "主运行时冒烟：fastapi/uvicorn/yt_dlp/playwright/PIL/imagehash/sherpa_onnx/rapidocr/onnxruntime 导入正常，Main embedded runtime OK",
+      "采集桥冒烟：{\"ready\": true, \"javascript\": \"Node.js (V8)\", \"platforms\": [\"dy\", \"bili\"]}",
+      "node v22.23.4，FFmpeg 7.1 可执行",
+      "runtime-manifest.json 共 16048 个文件；payload.zip 16049 项（含清单）",
+      "payload 内 app/integrations/collect.py、app/app.py、app/static/index.html、app/static/app.js、app/tests/test_collect1123.py、app/version.json 与源码哈希逐项一致",
+      "release EXE 实测 sha256 与 build.json 一致"
+    ]
+  },
+  "feature": {
+    "name": "采集清单直接下载视频",
+    "default_mode": "video",
+    "modes": {
+      "video": "直接保存原视频、字幕和 video-info.json；不生成 manifest/AI分析提示词/分镜/台词/AI 包",
+      "package": "原 AI 包管线，每期各一份",
+      "package-combined": "原 AI 包管线，合并成一份"
+    },
+    "backend": "POST /api/collect/download 的 mode=video 通过 queue_direct_videos 创建普通 download 任务，逐个提交 WORKERS；复用 app.download_video 的 yt-dlp 链路，传 bundle=False",
+    "ui": "static/index.html 的 collectMode 下拉，默认“直接下载视频（不生成包）”；static/app.js 按模式切换按钮文案与提示，POST mode 字段",
+    "compatibility": "mode 为空时继续用 combined 决定 package/package-combined，旧调用不破"
+  },
+  "tests": {
+    "command": "E:/VideoDesk/.local/mediacrawler-venv/Scripts/python.exe -m pytest tests -q",
+    "total": 293,
+    "passed": 293,
+    "failed": 0,
+    "warnings": 2,
+    "subtests": 36,
+    "duration_seconds": 42.03,
+    "targeted_collect": "tests/test_collect1123.py 27 passed",
+    "frontend_syntax": "node --check static/app.js passed",
+    "live_ui_e2e": "未执行：服务当前未运行，2.9.7 未在本机覆盖安装；无真实平台登录态下的直接下载 UI 端到端记录"
+  },
+  "installed_running": {
+    "path": "C:/Users/21657/AppData/Local/VideoDesk/versions/2.9.5-2362bcf295-repair-d65f6c",
+    "version_reported": "2.9.5（repair 热修；2.9.7 只打正式包，未在本机覆盖安装）",
+    "port_note": "服务当前未运行；http://127.0.0.1:4528 拒绝连接，需用户双击托盘启动，端口以运行目录 data/server.json 为准"
+  },
+  "known_limits": [
+    "直接下载清晰度取决于平台当前给游客/登录账号的可用流；需要更高清晰度时先在平台登录",
+    "未做真实平台登录态下的直接下载 UI 端到端验证；已用单元测试和构建哈希覆盖分流",
+    "B 站收藏夹正常账号真机读取未补验；当前账号封禁、SESSDATA 过期",
+    "P2 自动录播开关语义等用户拍板，代码未改",
+    "2.9.7 未在本机安装覆盖；当前运行目录仍是 2.9.5-repair",
+    "output 下空任务目录和两个测试主播属用户数据，未动"
+  ],
+  "constraints_respected": {
+    "git_push": false,
+    "release_created": false,
+    "readme_public_intro_changed": false,
+    "readme_author_tribute_changed": false,
+    "third_party_MediaCrawler_touched": false
+  }
+}

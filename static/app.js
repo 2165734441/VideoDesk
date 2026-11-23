@@ -401,10 +401,16 @@ if($('crawlerMode')) $('crawlerMode').addEventListener('change',()=>{
   const mode=$('crawlerMode').value;
   $('crawlerQuery').placeholder=mode==='search'?'输入关键词，多个关键词用英文逗号分隔':mode==='detail'?'每行一个视频网址或视频 ID':'每行一个作者主页网址或作者 ID';
 });
-// 先读清单，再按勾选下载。下载复用批量管线，所以能直接产出合并的 AI 包。
+// 先读清单，再按勾选下载。默认直接保存原视频；也可以选生成 AI 包。
 let collectItems=[];
 let collectFolderList=[];
 const collectBoxes=()=>[...document.querySelectorAll('#collectResult [data-collect-index]')];
+const COLLECT_MODE_TEXT={
+  video:['直接下载所选视频','只保存原视频、字幕和视频信息，不生成 AI 包。'],
+  package:['下载并生成 AI 包（每期各一份）','每期视频各自分析，各生成一份 AI 阅读包。'],
+  'package-combined':['下载并生成合并 AI 包','所有选中的视频合并分析，生成一份 AI 阅读包。'],
+};
+function collectModeText(mode){return COLLECT_MODE_TEXT[mode]||COLLECT_MODE_TEXT.video;}
 
 // 两个平台的“喜欢/点赞”“收藏/收藏夹”叫法不一样，按平台把文案和选项都换掉，
 // 避免用户把“喜欢”（点赞）当成“收藏”。
@@ -454,7 +460,8 @@ async function collectReadList(folder='',folderName='',folderIndex=null){
     $('collectResult').innerHTML=`<p class="mini-note">${html(data.hint||'')}</p>
       <div class="button-row"><button class="text-btn" data-collect="all">全选</button><button class="text-btn" data-collect="none">全不选</button><button class="text-btn" data-collect="invert">反选</button></div>
       <div data-collect-list>${collectItems.map((it,i)=>`<label class="checkbox-line"><input type="checkbox" data-collect-index="${i}" ${it.kind==='note'?'':'checked'}><span>${String(i+1).padStart(2,'0')} · ${html(it.title||it.url)}${it.kind==='note'?'（图文，暂不自动下载）':''}</span></label>`).join('')}</div>
-      <button class="primary wide" data-collect="download">下载所选并生成 AI 包</button>`;
+      <button class="primary wide" data-collect="download">${collectModeText($('collectMode').value)[0]}</button>
+      <p class="mini-note" id="collectDownloadHint">${collectModeText($('collectMode').value)[1]}</p>`;
   }catch(error){
     $('collectResult').innerHTML=`<p class="mini-note">${html(error.message)}</p>`;
     throw error;
@@ -469,6 +476,12 @@ if($('collectPlatform')) $('collectPlatform').addEventListener('change',()=>{
   collectRefreshControls();
 });
 if($('collectSource')) $('collectSource').addEventListener('change',collectRefreshControls);
+if($('collectMode')) $('collectMode').addEventListener('change',()=>{
+  const [label,hint]=collectModeText($('collectMode').value);
+  const button=$('collectResult').querySelector('[data-collect="download"]');
+  if(button)button.textContent=label;
+  const note=$('collectDownloadHint');if(note)note.textContent=hint;
+});
 collectRefreshControls();
 
 if($('collectListBtn')) $('collectListBtn').addEventListener('click',async()=>{
@@ -531,9 +544,10 @@ if($('collectResult')) $('collectResult').addEventListener('click',async e=>{
   if(!picked.length){toast('请至少勾选一条视频',true);return;}
   if(b.dataset.pending==='1')return;b.dataset.pending='1';
   try{
-    const combined=$('collectCombined').value==='1';
-    const job=await api('/api/collect/download',{method:'POST',timeoutMs:60000,body:{items:picked.map(i=>({url:i.url,title:i.title||'',kind:i.kind||'video'})),combined,output:$('output').value}});
-    toast(`已建立任务：${job.count} 期${combined?'，完成后合并成一份 AI 包':'，每期各一份'}`);
+    const mode=$('collectMode').value||'video';
+    const job=await api('/api/collect/download',{method:'POST',timeoutMs:60000,body:{items:picked.map(i=>({url:i.url,title:i.title||'',kind:i.kind||'video'})),mode,output:$('output').value}});
+    if(job.mode==='video')toast(`已建立 ${job.count} 个视频下载任务，完成后在素材库查看；未生成 AI 包`);
+    else toast(`已建立任务：${job.count} 期${job.combined?'，完成后合并成一份 AI 包':'，每期各一份 AI 包'}`);
     await refresh();goto('library');
   }catch(err){toast(err.message,true);}finally{delete b.dataset.pending;}
 });

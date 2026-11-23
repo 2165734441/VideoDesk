@@ -113,6 +113,62 @@ class Folders(unittest.TestCase):
         self.assertEqual(rows, [{'id': '', 'name': '摄影', 'count': 2}])
 
 
+class DownloadMode(unittest.TestCase):
+    def test_legacy_combined_flag_keeps_old_package_behaviour(self):
+        self.assertEqual(collect.resolve_download_mode('', True), 'package-combined')
+        self.assertEqual(collect.resolve_download_mode('', False), 'package')
+
+    def test_new_modes(self):
+        self.assertEqual(collect.resolve_download_mode('video'), 'video')
+        self.assertEqual(collect.resolve_download_mode('package'), 'package')
+        self.assertEqual(collect.resolve_download_mode('package-combined'), 'package-combined')
+
+    def test_unknown_mode_is_rejected(self):
+        with self.assertRaises(ValueError):
+            collect.resolve_download_mode('bundle')
+
+
+class DirectQueue(unittest.TestCase):
+    def test_plain_download_jobs_keep_titles_and_skip_the_bundle(self):
+        class Workers:
+            def __init__(self):
+                self.calls = []
+
+            def submit(self, fn, jid, action):
+                self.calls.append((jid, action()))
+
+        class FakeApp:
+            def __init__(self):
+                self.jobs = []
+                self.downloads = []
+                self.WORKERS = Workers()
+
+            def new_job(self, kind, title, output='', source='', options=None):
+                jid = str(len(self.jobs) + 1)
+                self.jobs.append(dict(id=jid, kind=kind, title=title, output=output,
+                                      source=source, options=options))
+                return {'id': jid}
+
+            def guarded(self, *args):
+                return None
+
+            def download_video(self, jid, req):
+                self.downloads.append((jid, req))
+                return 'ok'
+
+        a = FakeApp()
+        items = [collect.Picked(url='https://www.douyin.com/video/1', title='第一期'),
+                 collect.Picked(url='https://www.douyin.com/video/2', title='第二期')]
+        ids = collect.queue_direct_videos(a, items, 'D:/media')
+        self.assertEqual(ids, ['1', '2'])
+        self.assertEqual([j['title'] for j in a.jobs], ['直接采集 · 第一期', '直接采集 · 第二期'])
+        self.assertEqual([j['options'].get('collect_direct') for j in a.jobs], [True, True])
+        self.assertEqual(len(a.downloads), 2)
+        for _, req in a.downloads:
+            self.assertFalse(req['extract'])
+            self.assertFalse(req['bundle'])
+
+
 class Blocked(unittest.TestCase):
     def test_captcha_interstitial_is_reported(self):
         reason = collect._blocked({'url': 'https://www.douyin.com/search/x', 'title': '验证码中间页', 'text': ''})

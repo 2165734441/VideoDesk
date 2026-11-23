@@ -649,6 +649,24 @@ class FoldersRequest(BaseModel):
     target: str = ''
 
 
+DOWNLOAD_MODES = ('video', 'package', 'package-combined')
+
+
+def resolve_download_mode(mode: str, combined: bool = True) -> str:
+    """Normalise the picker's download mode.
+
+    An empty mode is the legacy API contract: ``combined`` decides whether the
+    selected episodes become one AI package or one package per episode.  New
+    callers use ``video`` for a plain download with no AI package at all.
+    """
+    value = (mode or '').strip()
+    if not value:
+        return 'package-combined' if combined else 'package'
+    if value not in DOWNLOAD_MODES:
+        raise ValueError('未知下载方式')
+    return value
+
+
 class Picked(BaseModel):
     url: str = Field(min_length=3, max_length=2048)
     title: str = ''
@@ -657,8 +675,24 @@ class Picked(BaseModel):
 
 class DownloadRequest(BaseModel):
     items: list[Picked] = Field(min_length=1, max_length=100)
+    mode: str = Field(default='', max_length=20)
     combined: bool = True
     output: str = ''
+
+
+def queue_direct_videos(a, picked, output: str) -> list[str]:
+    """Queue plain download jobs without the batch/AI package pipeline."""
+    jobs = []
+    for index, item in enumerate(picked):
+        title = (item.title.strip() or ('视频 %02d' % (index + 1)))[:120]
+        job = a.new_job('download', '直接采集 · ' + title, output, item.url,
+                        {'video_saved': True, 'max_height': 0, 'collect_direct': True})
+        request = {'login': True, 'cookie_id': '', 'extract': False, 'frames_only': False,
+                   'max_height': 0, 'frames': {}, 'bundle': False}
+        a.WORKERS.submit(a.guarded, job['id'],
+                         lambda jid=job['id'], req=request: a.download_video(jid, req))
+        jobs.append(job['id'])
+    return jobs
 
 
 def install(app, a, pipeline):
@@ -720,17 +754,32 @@ def install(app, a, pipeline):
             lead = '已按页面顺序读取 %d 条。' % len(items)
         return {'items': items, 'count': len(items), 'page': result['page'],
                 'elapsed': result['elapsed'],
-                'hint': '%s勾选要下载的几期，再生成 AI 包。' % lead}
+                'hint': '%s勾选要下载的几期；可直接下载视频，也可生成 AI 包。' % lead}
 
     @app.post('/api/collect/download')
     def collect_download(req: DownloadRequest):
-        # Same batch pipeline as the manual episode list: each picked video is
-        # one episode, and "combined" writes the single upload-ready AI pack.
+        # Same picker, two destinations: "video" saves the original files
+        # through the normal download queue; package modes keep the existing
+        # batch pipeline and AI package.
         from . import batch_pipeline
         picked = [item for item in req.items
                   if item.url.startswith(('http://', 'https://')) and item.kind != 'note']
         if not picked:
             raise HTTPException(400, '图文笔记暂不支持自动下载，请只勾选视频')
+        try:
+            mode = resolve_download_mode(req.mode, req.combined)
+        except ValueError as exc:
+            raise HTTPException(400, str(exc))
+        if mode == 'video':
+            try:
+                ids = queue_direct_videos(a, picked, req.output)
+            except HTTPException:
+                raise
+            except Exception as exc:
+                raise HTTPException(400, str(exc)[:200])
+            return {'ids': ids, 'title': '直接下载视频', 'count': len(ids),
+                    'mode': 'video', 'combined': False}
+        combined = mode == 'package-combined'
         sources = [
             batch_pipeline.OnlineSource(
                 input=item.url,
@@ -746,7 +795,7 @@ def install(app, a, pipeline):
             performance='auto',
             output=req.output,
             outputs=batch_pipeline.Outputs(puzzles=True, transcript=True, ai=True),
-            ai_package=batch_pipeline.AIPackage(enabled=True, combined=req.combined),
+            ai_package=batch_pipeline.AIPackage(enabled=True, combined=combined),
             request_id='collect-' + uuid.uuid4().hex,
         )
         try:
@@ -756,4 +805,4 @@ def install(app, a, pipeline):
         except Exception as exc:
             raise HTTPException(400, str(exc)[:200])
         return {'id': job['id'], 'title': job.get('title'), 'count': len(sources),
-                'combined': req.combined}
+                'mode': mode, 'combined': combined}

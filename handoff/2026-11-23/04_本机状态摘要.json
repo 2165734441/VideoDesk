@@ -1,36 +1,40 @@
 {
-  "handoff_at": "2026-11-23T11:14:31+08:00",
+  "handoff_at": "2026-11-23T17:55:00+08:00",
   "source": {
     "root": "E:\\VideoDesk",
-    "version": "2.9.6",
+    "version": "2.9.7",
     "git_branch": "main",
     "git_remote": "https://github.com/2165734441/VideoDesk.git",
-    "git_head_note": "本轮收尾提交已完成，提交号见 git log -1；未 push",
+    "git_head_note": "本轮 2.9.7 提交已完成，提交号见 git log -1；未 push",
     "uncommitted": [],
     "untracked_ignored": [
       ".workbuddy/（本地工具目录，用户要求不提交、不删除）"
     ]
   },
   "release": {
-    "windows": "E:\\VideoDesk\\release\\VideoDesk-2.9.6-Windows-x64.exe",
-    "windows_bytes": 749532160,
-    "windows_sha256": "7042212dd51c2740bd2bde2ca0dd4c394057b84b796ef2d7e50804afdac641df",
-    "payload_sha256": "b3190f5468b8d89141074acd093fba68d6d5ad97e18167bf616754b74599e937",
+    "windows": "E:\\VideoDesk\\release\\VideoDesk-2.9.7-Windows-x64.exe",
+    "windows_bytes": 749533696,
+    "windows_sha256": "14078af3faf236675fc2524c3bf085e128e91cbac3e56a74ec87662fe7d686c8",
+    "payload_sha256": "286f72f8c4cace6c7016e059b785a4afe00eb62bea283c3c3acbd6ce3caff6b6",
     "manifest_files": 16048,
     "metadata": [
-      "release\\VideoDesk-2.9.6-build.json",
-      "release\\VideoDesk-2.9.6-SHA256SUMS.txt",
-      "release\\VideoDesk-2.9.6-acceptance.json",
-      "release\\本次更新-平台采集收尾-2.9.6.txt"
+      "release\\VideoDesk-2.9.7-build.json",
+      "release\\VideoDesk-2.9.7-SHA256SUMS.txt",
+      "release\\VideoDesk-2.9.7-acceptance.json",
+      "release\\本次更新-直接下载视频-2.9.7.txt"
     ],
-    "note": "只打正式包，未覆盖安装；未建 Release、未 push"
+    "share_zip": "E:\\VideoDesk\\release\\VideoDesk-2.9.7-分享版.zip",
+    "share_zip_bytes": 749623310,
+    "share_zip_sha256": "0cb6647edfd4b01b73b54e0d5e07e8eb86e71c1b3151a86a70a5c737c837469f",
+    "note": "只打正式包，未覆盖安装；未建 Release、未 push。2.9.6 旧包和 2.9.6 分享包已清理，保留 2.9.5 回滚版。"
   },
   "installed": {
     "exe": "C:\\Users\\21657\\AppData\\Local\\VideoDesk\\VideoDesk.exe",
     "current": "C:\\Users\\21657\\AppData\\Local\\VideoDesk\\versions\\2.9.5-2362bcf295-repair-d65f6c",
     "app_dir": "C:\\Users\\21657\\AppData\\Local\\VideoDesk\\versions\\2.9.5-2362bcf295-repair-d65f6c\\app",
-    "version_reported": "2.9.5（repair 热修，非 2.9.6）",
-    "service_state": "stopped_after_computer_sleep；http://127.0.0.1:4528 拒绝连接，需用户双击托盘启动",
+    "version_reported": "2.9.5（repair 热修，非 2.9.7）",
+    "code_sync": "app.py / integrations/collect.py / static/index.html / static/app.js 已同步到该运行目录，但 version.json 仍是 2.9.5；服务未启动",
+    "service_state": "stopped；http://127.0.0.1:4528 拒绝连接，需用户双击托盘启动",
     "start_rule": "必须用户双击托盘启动；终端启动会被系统回收（1073807364）",
     "port": "每次随机，读运行目录 data\\server.json 的 url；所有 /api/* 带 X-App-Token（取自 /api/state）"
   },
@@ -47,29 +51,31 @@
   },
   "tests": {
     "runner": "E:\\VideoDesk\\.local\\mediacrawler-venv\\Scripts\\python.exe -m pytest tests -q",
-    "total": 289,
-    "passed": 289,
+    "total": 293,
+    "passed": 293,
     "failed": 0,
     "warnings": 2,
     "subtests": 36,
-    "duration_seconds": 40.73,
-    "log": "E:\\VideoDesk\\.tmp\\pytest-full-final.log",
-    "collect_targeted": "tests\\test_collect1123.py 23 passed",
-    "ui": "Playwright 独立浏览器 E2E 6 项通过（早前记录）"
+    "duration_seconds": 44.9,
+    "log": "E:\\VideoDesk\\.tmp\\pytest-297-final.log",
+    "collect_targeted": "tests\\test_collect1123.py 27 passed（新增下载模式解析 + 直接下载任务）",
+    "ui": "node --check static/app.js 通过；真实平台直接下载 UI 端到端未跑（服务未启动）"
   },
   "work_in_progress": {
     "completed": [
+      "2.9.7 采集清单直接下载视频：mode=video 走普通 download 任务，不生成 AI 包/分镜/台词；UI 默认直接下载，保留两种 AI 包模式",
       "C1～C4 平台采集：抖音收藏夹/喜欢收藏语义/搜索排序翻页/B 站收藏夹选择器",
       "P1 手机 1.4.4 2 小时锁屏 + Doze 长稳（61 次唤醒，最大间隔 155 秒）",
       "P3 抖音验证码 400 提示复核",
-      "C9 2.9.6 正式包 + build.json + SHA256SUMS + acceptance + 更新说明",
-      "C10 本地 git 提交（未 push、未建 Release、未改 README 对外简介和作者致敬段）"
+      "2.9.7 正式包 + build.json + SHA256SUMS + acceptance + 更新说明 + 分享 ZIP",
+      "本地 git 提交（未 push、未建 Release、未改 README 对外简介和作者致敬段）"
     ],
     "open_items": [
       "P2 自动录播开关语义：A 保持电脑优先 / B 手机完全独立 / C 只改文案；用户未回答，代码未改",
       "C4 正常 B 站账号真机补验；当前账号封禁/SESSDATA 过期，只验到错误提示",
       "P1 真实电池耗电、真实主播开播录制重连、12 小时以上 Doze 未测",
-      "P6 output 下 6 个空任务目录、P7 两个测试主播是否保留；用户数据，未动，需用户确认"
+      "2.9.7 未在本机覆盖安装；真实平台登录态的直接下载 UI 端到端未跑",
+      "output 下空任务目录、两个测试主播是否保留；用户数据，未动，需用户确认"
     ]
   }
 }

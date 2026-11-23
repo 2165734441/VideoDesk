@@ -85,10 +85,10 @@
     </section>
 
     <section id="page-crawler" class="page" hidden>
-      <div class="page-heading"><div><div class="eyebrow">POWERED BY MEDIACRAWLER</div><h1>从平台发现，到素材入库。</h1><p>选择抖音或 B 站：先读博主主页、我的点赞、我的收藏或关键词结果，勾选要的几期再下载，可直接合并成一份 AI 阅读包。</p></div><span id="engineStatus" class="badge">正在检测引擎</span></div>
+      <div class="page-heading"><div><div class="eyebrow">POWERED BY MEDIACRAWLER</div><h1>从平台发现，到素材入库。</h1><p>选择抖音或 B 站：先读博主主页、我的点赞、我的收藏或关键词结果，勾选要的几期再下载；可直接保存原视频，也可生成 AI 阅读包。</p></div><span id="engineStatus" class="badge">正在检测引擎</span></div>
       <section class="panel padded" id="collectPanel">
         <h2>先读清单，再挑几期</h2>
-        <p class="mini-note">读取博主主页、我的喜欢（点赞）、我的收藏夹或关键词结果，勾出要的几期再下载；下完可以直接合并成一份 AI 阅读包。抖音的“喜欢”就是点赞过的作品，“收藏”下面再分收藏夹；B 站同理。会复用已登录的映格浏览器，读取期间请不要关闭那个窗口。</p>
+        <p class="mini-note">读取博主主页、我的喜欢（点赞）、我的收藏夹或关键词结果，勾出要的几期再下载；可直接保存原视频和字幕，也可生成 AI 阅读包。抖音的“喜欢”就是点赞过的作品，“收藏”下面再分收藏夹；B 站同理。会复用已登录的映格浏览器，读取期间请不要关闭那个窗口。</p>
         <div class="inline-fields">
           <label class="field">视频平台<select id="collectPlatform"><option value="dy">抖音</option><option value="bili">哔哩哔哩</option></select></label>
           <label class="field">来源<select id="collectSource"><option value="creator">博主主页</option><option value="liked">我的喜欢（点赞）</option><option value="fav">我的收藏夹</option><option value="search">关键词搜索</option></select></label>
@@ -96,7 +96,7 @@
         <label class="field">主页链接 / 空间链接 / UID / 关键词<input id="collectTarget" placeholder="粘贴博主主页、个人空间链接，或输入关键词；抖音的喜欢和收藏可留空"></label>
         <div class="inline-fields">
           <label class="field">最多读取<input id="collectLimit" type="number" value="30" min="1" max="100"></label>
-          <label class="field">AI 包<select id="collectCombined"><option value="1">合并成一份联合包</option><option value="0">每期各一份</option></select></label>
+          <label class="field">下载方式<select id="collectMode"><option value="video">直接下载视频（不生成包）</option><option value="package">生成 AI 包（每期各一份）</option><option value="package-combined">生成 AI 包（合并成一份）</option></select><small>直接下载只保存视频和字幕</small></label>
         </div>
         <div class="inline-fields" id="collectSearchRow" hidden>
           <label class="field">排序<select id="collectSort"></select></label>

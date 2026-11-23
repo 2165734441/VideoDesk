@@ -1,3 +1,0 @@
-75c26e0cb929f877f523d6066816663b8bcee0633d14a7e5b1a608f697026b59  VideoDesk-2.9.6-acceptance.json
-30e65d1189ac869309216e1a36ac9fff1882dbf3a72dbf5cf3a16f494b98ed88  VideoDesk-2.9.6-build.json
-7042212dd51c2740bd2bde2ca0dd4c394057b84b796ef2d7e50804afdac641df  VideoDesk-2.9.6-Windows-x64.exe

@@ -697,7 +697,8 @@ def download_video(jid, req):
         if req.get('extract'):
             warnings = extract_frames(jid, source, req['frames'])
             return '下载、抽帧完成。' + ' '.join(warnings)
-        write_bundle(jid)
+        if req.get('bundle', True):
+            write_bundle(jid)
         return '视频下载完成，已有字幕会一并保存'
     finally:
         if not imported: cookies_path.unlink(missing_ok=True)

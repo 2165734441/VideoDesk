@@ -1,7 +1,7 @@
 # VideoDesk 2026-11-23 收尾修复报告
 
 - 源码：`E:\VideoDesk`
-- 目标版本：2.9.6
+- 目标版本：2.9.6（主报告）；2.9.7 追加：采集清单直接下载视频（见第十节）
 - 手机伴侣：1.4.4（versionCode 22）
 - 记录时间：2026-11-23
 
@@ -18,8 +18,9 @@
 | P3 抖音验证码提示 | 通过 | 返回 400 + 中文可操作提示；需要用户在登录浏览器手动完成验证 |
 | C9 2.9.6 正式包 | 完成 | 见下方构建结果；`version.json`、build.json、SHA256SUMS、验收记录一起更新 |
 | C10 本地 git 提交 | 完成 | 本地提交完成，提交号见 `git log -1`；不 push、不建 Release、不改 README 对外简介和作者致敬段 |
+| 2.9.7 采集清单直接下载视频 | 完成 | 新增 `mode=video`：逐个普通下载任务保存原视频/字幕，不生成 AI 包；UI 默认直接下载，保留两种 AI 包模式。见第十节 |
 
-全量测试：**289 passed，0 failed**（2 个弃用警告，36 个 subtests 通过）。比交接基线 261 项更好。
+全量测试：**289 passed，0 failed**（2 个弃用警告，36 个 subtests 通过）。比交接基线 261 项更好。2.9.7 追加后全量 **293 passed，0 failed**（42.03 秒）。
 
 ## 二、C1～C4：平台采集收尾
 
@@ -232,3 +233,53 @@ python scripts/build_windows_exe.py bundle
 - 采集 UI 截图：`.tmp\ui-collect-folder.png`、`.tmp\ui-collect-liked.png`、`.tmp\ui-collect-bili.png`
 - 抖音页面侦察：`.tmp\inspect-dy-*.json`
 - 本报告：`reports\fix-report-20261123.md`
+
+---
+
+## 十、2.9.7 追加：采集清单直接下载视频
+
+### 需求与实现
+
+用户要求“电脑版软件添加可以直接采集视频不要做成包的那种”。采集页原来的“下载所选并生成 AI 包”只有一个 AI 包出口；本轮把它拆成三种下载方式：
+
+1. **直接下载视频（不生成包）**
+   - 默认方式。
+   - `POST /api/collect/download` 的 `mode=video` 不走 `batch_pipeline`。
+   - 后端 `queue_direct_videos()` 为每条勾选视频创建普通 `kind='download'` 任务，逐条提交 `WORKERS`。
+   - 复用 `app.download_video()` 的 yt-dlp 链路；新增 `bundle=False`，跳过 `write_bundle()`。
+   - 产物只有原视频、平台字幕（有就保存）和 `video-info.json`；不生成 manifest/AI分析提示词/分镜/台词/AI 包。
+2. **生成 AI 包（每期各一份）**：`mode=package`，原批量管线，`combined=False`。
+3. **生成 AI 包（合并成一份）**：`mode=package-combined`，原批量管线，`combined=True`。
+
+兼容：不传 `mode` 时继续按旧 `combined` 字段决定 package/package-combined，旧调用不破。
+
+### 改动文件
+
+- `integrations/collect.py`：新增 `DOWNLOAD_MODES`、`resolve_download_mode()`、`DownloadRequest.mode`、`queue_direct_videos()`；`collect_download()` 按模式分流；采集清单提示改成“可直接下载视频，也可生成 AI 包”。
+- `app.py`：`download_video()` 的 `write_bundle()` 改为 `if req.get('bundle', True)`，普通链接下载默认行为不变。
+- `static/index.html`：采集页“AI 包”下拉改为“下载方式”，默认“直接下载视频（不生成包）”，保留两种 AI 包选项。
+- `static/app.js`：按钮文案和提示随模式切换；POST 发送 `mode`，不再发送 `combined`；直接下载 toast 明确“未生成 AI 包”。
+- `tests/test_collect1123.py`：新增 `DownloadMode` 和 `DirectQueue`，覆盖模式解析、旧 combined 兼容、直接任务标题/`bundle=False`。
+- `version.json`：2.9.7。
+
+### 验证
+
+- 定向：`tests/test_collect1123.py` 27 passed。
+- 全量：293 passed / 0 failed / 2 warnings / 36 subtests passed，42.03 秒（首次）；最终复跑 44.90 秒，日志 `.tmp/pytest-297-final.log`。
+- 前端：`node --check static/app.js` 通过。
+- 路由级补测（临时脚本 `.tmp/check_collect_route.py`）：`mode=video` 时 `pipeline.create` 调用 0 次、任务类型 `download`、`bundle=False`；`mode=package` 时 `ai_package.combined=False`。
+- 构建：`release/VideoDesk-2.9.7-Windows-x64.exe`，749533696 bytes，sha256 `14078af3faf236675fc2524c3bf085e128e91cbac3e56a74ec87662fe7d686c8`，payload `286f72f8c4cace6c7016e059b785a4afe00eb62bea283c3c3acbd6ce3caff6b6`，16048 files（payload.zip 16049 项）。
+- payload 内 `collect.py`、`app.py`、`static/index.html`、`static/app.js`、`tests/test_collect1123.py`、`version.json` 与源码哈希逐项一致。
+- 分享 ZIP：`release/VideoDesk-2.9.7-分享版.zip`，749623310 bytes，sha256 `0cb6647edfd4b01b73b54e0d5e07e8eb86e71c1b3151a86a70a5c737c837469f`；8 个条目逐项哈希一致。
+
+### 清理
+
+删除：`VideoDesk-2.9.6-Windows-x64.exe`、2.9.6 分享 ZIP、2.9.6 build/acceptance/SHA256SUMS/更新说明、`.tmp/share-296*`、构建中间 `payload.zip`、`.tmp/share-297` 暂存目录。保留：2.9.5 回滚 EXE、2.9.7 正式包/分享包、手机 1.4.4、`.local`/`third_party`/`output`/`.git`/`.workbuddy`。
+
+### 限制与未完成
+
+1. 没有启动电脑服务做真实平台登录态下的直接下载 UI 端到端；服务当前未运行，2.9.7 也未在本机覆盖安装。
+2. 直接下载清晰度取决于平台给当前登录态的可用流。
+3. B 站收藏夹正常账号真机补验、P2 语义拍板、P1 真实电池/12 小时 Doze 仍未完成。
+4. 按用户要求：未 push、未建 Release、未改 README 对外简介和作者致敬段、未改 MediaCrawler 上游代码。
+

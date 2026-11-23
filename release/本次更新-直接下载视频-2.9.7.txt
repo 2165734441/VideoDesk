@@ -1,0 +1,40 @@
+VideoDesk 2.9.7 更新说明（2026-11-23）
+
+一、平台采集新增“直接下载视频”
+1. “先读清单，再挑几期”的采集页新增“下载方式”：
+   - 直接下载视频（不生成包）——默认；
+   - 生成 AI 包（每期各一份）；
+   - 生成 AI 包（合并成一份）。
+2. 选“直接下载视频”后，勾选的视频会按普通下载任务逐个保存：
+   - 原视频（mp4 等，按平台可用清晰度）；
+   - 平台提供的字幕（有就保存）；
+   - video-info.json（标题、作者、时长、原链接等元数据）。
+   不会再走分集分析管线，不生成 manifest.json、AI分析提示词.txt、分镜、台词或 AI 阅读包。
+3. 勾选多条视频时，每条视频单独一个任务、单独一个文件夹，方便在素材库逐条查看；不会再打包成一个联合包。
+4. 仍保留原来的两种 AI 包模式：每期各一份 / 合并成一份。需要分镜、台词和 AI 阅读包时再切换。
+5. 直接下载复用电脑版原有的链接下载能力（yt-dlp），需要先在映格登录浏览器登录抖音/B 站；平台验证码仍由用户手动完成，不做绕过。
+
+二、接口变化
+1. POST /api/collect/download 新增 mode 字段：
+   - mode=video：直接下载视频，不生成 AI 包；
+   - mode=package：生成 AI 包，每期各一份；
+   - mode=package-combined：生成 AI 包，合并成一份。
+2. 不传 mode 的旧调用继续按 combined 字段走原来的 AI 包行为，兼容旧请求。
+3. 直接下载模式复用 app.py 的普通下载任务与 download_video；download_video 新增 bundle=False 选项，只跳过 AI 包文件，不影响普通链接下载的默认行为。
+
+三、验证
+1. 定向采集测试：tests/test_collect1123.py 27 passed（新增下载模式解析和直接下载任务测试）。
+2. 全量 pytest：293 passed / 0 failed / 2 warnings / 36 subtests passed，42.03 秒。
+3. 前端 app.js 通过 node --check。
+4. 2.9.7 payload 内 collect.py、app.py、static/index.html、static/app.js、tests/test_collect1123.py、version.json 与源码哈希逐项一致。
+5. Windows 运行时冒烟通过：主 Python 运行时导入正常，采集桥 ready（dy/bili），Node v22.23.4，FFmpeg 7.1 可执行。
+
+四、安装
+Windows：双击 release\VideoDesk-2.9.7-Windows-x64.exe。不要从终端启动 EXE（会被系统回收，退出码 1073807364）；启动后从托盘退出/重开。
+Android：release\VideoDesk-Android-1.4.4.apk，versionName 1.4.4 / versionCode 22，同签名覆盖安装，数据保留。
+
+五、已知限制
+1. 直接下载的视频清晰度取决于平台当前给游客/登录账号的可用流；需要更高清晰度时先在对应平台登录。
+2. 本次没有启动电脑服务做真实平台的 UI 端到端下载验证；已用单元测试和构建哈希校验覆盖直接下载分流。服务当前未运行，2.9.7 也未在本机覆盖安装。
+3. B 站收藏夹仍只用当前封禁账号验证到错误提示，正常账号真机读文件夹未补验。
+4. 自动录播开关语义（A 保持电脑优先 / B 手机完全独立 / C 只改文案）仍等用户拍板，代码未改。
