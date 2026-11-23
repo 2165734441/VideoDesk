@@ -1,0 +1,34 @@
+你是接手的开发 AI。这个项目叫 VideoDesk（Windows 桌面视频处理工具 + Android 手机伴侣），源码在 E:\VideoDesk，当前源码版本 2.9.6，本机运行的是 2.9.5-repair 热修版。
+
+**先看结论**：本轮 2026-11-23 收尾已经做完 C1～C4、P1、P3、C9、C10；不要再从头做这些，避免重复劳动。开工前按顺序读：
+1. E:\VideoDesk\handoff\2026-11-23\00_先读_交接说明.md
+2. E:\VideoDesk\handoff\2026-11-23\01_待办与新增需求.md
+3. E:\VideoDesk\handoff\2026-11-23\02_已知问题与测试方法.md
+4. E:\VideoDesk\reports\fix-report-20261123.md（本轮真因、改动、验证、限制）
+
+**现在真正剩下的**：
+- P2（需先问用户，不要拍板）：手机「自动录播」开关语义，A 保持电脑优先 / B 手机完全独立 / C 只改文案。用户尚未回答，代码未改。
+- C4 补验：B 站收藏夹正常账号真机读取；当前账号封禁/SESSDATA 过期，只验到 400 提示。需要用户重新登录或提供带 fid= 的收藏夹链接。
+- P1 延伸：真实电池耗电、真实主播开播录制重连、12 小时以上 Doze 还没测；2 小时闹钟链已通过。
+- P6/P7 用户数据：output 下 6 个空任务目录、两个测试主播是否保留，先问用户。
+- 服务当前被电脑休眠收掉，4528 拒绝连接；请用户双击托盘启动，不要从终端启动。
+- 2.9.6 只打了正式包（release\VideoDesk-2.9.6-Windows-x64.exe），没有覆盖安装；用户确认后可装。
+
+**环境和纪律（务必遵守）**：
+- 测试只能用 E:\VideoDesk\.local\mediacrawler-venv\Scripts\python.exe -m pytest tests -q；本轮全量 289 passed / 0 failed。
+- 改完源码要复制到 C:\Users\21657\AppData\Local\VideoDesk\versions\2.9.5-2362bcf295-repair-d65f6c\app\ 并删对应 __pycache__，否则测的是旧代码。
+- 服务不要从终端启动 EXE（会被回收，退出码 1073807364），必须让用户双击托盘启动。端口每次随机，从运行目录 data\server.json 读；所有 /api/* 要带 X-App-Token（取自 /api/state）。
+- 手机桥固定 127.0.0.1:47631，服务重启后必须 adb reverse tcp:47631 tcp:<端口> 重建。
+- adb：C:\Users\21657\AppData\Local\Android\Sdk\platform-tools\adb.exe，设备 10ADA41UT7002GG，包名 org.videodesk.mobile。
+- 不要删除 .workbuddy、.local、.git、output 里的数据；output 里的空目录要先问用户。
+- 不要碰 third_party/MediaCrawler 的上游代码和许可证声明。
+- 绝对不要 git push、不要建 Release、不要改 README 里对外简介和作者致敬那一段。
+- 不要重跑 build_windows_exe.py all（官方 Python/Node 包缓存损坏/缺失会卡下载）；要重打用 bundle，复用已验证 stage runtime。
+
+**交付要求**：
+1. 每改完一个功能点就跑定向测试；全量不能比 289 passed 差。
+2. 新问题写进 reports\ 下的报告，写清真因、改了哪些文件、怎么验证、还有什么没做。
+3. 更新 handoff\2026-11-23\ 里的待办状态，方便下一个人接手。
+4. 用户不懂代码，汇报用中文讲人话：做了什么、现在能不能用、下一步要他做什么。
+
+现在先读上面四份，然后给用户一份「剩余事项 + 打算怎么做」的前 5 步计划，等确认后再动代码。

@@ -1,0 +1,75 @@
+{
+  "handoff_at": "2026-11-23T11:14:31+08:00",
+  "source": {
+    "root": "E:\\VideoDesk",
+    "version": "2.9.6",
+    "git_branch": "main",
+    "git_remote": "https://github.com/2165734441/VideoDesk.git",
+    "git_head_note": "本轮收尾提交已完成，提交号见 git log -1；未 push",
+    "uncommitted": [],
+    "untracked_ignored": [
+      ".workbuddy/（本地工具目录，用户要求不提交、不删除）"
+    ]
+  },
+  "release": {
+    "windows": "E:\\VideoDesk\\release\\VideoDesk-2.9.6-Windows-x64.exe",
+    "windows_bytes": 749532160,
+    "windows_sha256": "7042212dd51c2740bd2bde2ca0dd4c394057b84b796ef2d7e50804afdac641df",
+    "payload_sha256": "b3190f5468b8d89141074acd093fba68d6d5ad97e18167bf616754b74599e937",
+    "manifest_files": 16048,
+    "metadata": [
+      "release\\VideoDesk-2.9.6-build.json",
+      "release\\VideoDesk-2.9.6-SHA256SUMS.txt",
+      "release\\VideoDesk-2.9.6-acceptance.json",
+      "release\\本次更新-平台采集收尾-2.9.6.txt"
+    ],
+    "note": "只打正式包，未覆盖安装；未建 Release、未 push"
+  },
+  "installed": {
+    "exe": "C:\\Users\\21657\\AppData\\Local\\VideoDesk\\VideoDesk.exe",
+    "current": "C:\\Users\\21657\\AppData\\Local\\VideoDesk\\versions\\2.9.5-2362bcf295-repair-d65f6c",
+    "app_dir": "C:\\Users\\21657\\AppData\\Local\\VideoDesk\\versions\\2.9.5-2362bcf295-repair-d65f6c\\app",
+    "version_reported": "2.9.5（repair 热修，非 2.9.6）",
+    "service_state": "stopped_after_computer_sleep；http://127.0.0.1:4528 拒绝连接，需用户双击托盘启动",
+    "start_rule": "必须用户双击托盘启动；终端启动会被系统回收（1073807364）",
+    "port": "每次随机，读运行目录 data\\server.json 的 url；所有 /api/* 带 X-App-Token（取自 /api/state）"
+  },
+  "phone": {
+    "model_note": "vivo，序列号 10ADA41UT7002GG",
+    "package": "org.videodesk.mobile",
+    "versionName": "1.4.4",
+    "versionCode": 22,
+    "installed_apk": "E:\\VideoDesk\\release\\VideoDesk-Android-1.4.4.apk",
+    "apk_bytes": 61912,
+    "apk_sha256": "9641d411476b4cb7485f059512eeb40decd6c8b26fc77a06caa4f39c3d64345e",
+    "installed_note": "2026-11-23 08:35 同签名 adb install -r 覆盖，数据保留；08:35:43 日志出现「更新接管：重排检测闹钟」",
+    "bridge": "adb reverse tcp:47631 tcp:<服务端口>，服务重启必须重建"
+  },
+  "tests": {
+    "runner": "E:\\VideoDesk\\.local\\mediacrawler-venv\\Scripts\\python.exe -m pytest tests -q",
+    "total": 289,
+    "passed": 289,
+    "failed": 0,
+    "warnings": 2,
+    "subtests": 36,
+    "duration_seconds": 40.73,
+    "log": "E:\\VideoDesk\\.tmp\\pytest-full-final.log",
+    "collect_targeted": "tests\\test_collect1123.py 23 passed",
+    "ui": "Playwright 独立浏览器 E2E 6 项通过（早前记录）"
+  },
+  "work_in_progress": {
+    "completed": [
+      "C1～C4 平台采集：抖音收藏夹/喜欢收藏语义/搜索排序翻页/B 站收藏夹选择器",
+      "P1 手机 1.4.4 2 小时锁屏 + Doze 长稳（61 次唤醒，最大间隔 155 秒）",
+      "P3 抖音验证码 400 提示复核",
+      "C9 2.9.6 正式包 + build.json + SHA256SUMS + acceptance + 更新说明",
+      "C10 本地 git 提交（未 push、未建 Release、未改 README 对外简介和作者致敬段）"
+    ],
+    "open_items": [
+      "P2 自动录播开关语义：A 保持电脑优先 / B 手机完全独立 / C 只改文案；用户未回答，代码未改",
+      "C4 正常 B 站账号真机补验；当前账号封禁/SESSDATA 过期，只验到错误提示",
+      "P1 真实电池耗电、真实主播开播录制重连、12 小时以上 Doze 未测",
+      "P6 output 下 6 个空任务目录、P7 两个测试主播是否保留；用户数据，未动，需用户确认"
+    ]
+  }
+}

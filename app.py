@@ -32,7 +32,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 import imageio_ffmpeg
-from integrations import image_dedup, video_sources, storyboard, local_sources, batch_pipeline, material_history, material_packages, runtime_support, live, translation, hardware, media_probe,mobile
+from integrations import image_dedup, video_sources, storyboard, local_sources, batch_pipeline, material_history, material_packages, runtime_support, live, translation, hardware, media_probe,mobile,collect
 
 ROOT = Path(os.environ.get('VIDEO_DESK_APP_ROOT') or Path(__file__).resolve().parent)
 VERSION = json.loads((ROOT/'version.json').read_text('utf-8'))['version']
@@ -1310,6 +1310,7 @@ ANALYSIS_ENGINE = storyboard.install(app, sys.modules[__name__])
 LOCAL_SOURCES = local_sources.install(app, sys.modules[__name__])
 MATERIAL_HISTORY = material_history.install(app, sys.modules[__name__])
 BATCH_PIPELINE = batch_pipeline.install(app, sys.modules[__name__], LOCAL_SOURCES)
+COLLECT = collect.install(app, sys.modules[__name__], BATCH_PIPELINE)
 MATERIAL_PACKAGES = material_packages.install(app, sys.modules[__name__])
 LIVE = live.install(app, sys.modules[__name__])
 MOBILE = mobile.install(app, sys.modules[__name__])

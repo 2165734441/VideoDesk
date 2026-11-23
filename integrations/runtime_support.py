@@ -4,6 +4,18 @@ import os
 from pathlib import Path
 
 
+class _DisabledWmi:
+    """Make platform's optional WMI prober fail with OSError, never AttributeError.
+
+    Some Python builds call ``_wmi.exec_query`` without first checking whether
+    ``_wmi`` is None. Assigning None would therefore crash platform.system()/
+    machine()/win32_ver() instead of taking CPython's native fallback path.
+    """
+    @staticmethod
+    def exec_query(*args, **kwargs):
+        raise OSError('WMI disabled')
+
+
 def configure_platform():
     """Use CPython's native Windows fallback for optional machine metadata.
 
@@ -17,7 +29,7 @@ def configure_platform():
     if os.name == 'nt':
         import platform
         if hasattr(platform, '_wmi'):
-            platform._wmi = None
+            platform._wmi = _DisabledWmi()
 
 
 LABELS = {'base':'基础工作台','media':'音视频处理','ocr':'画面文字识别', 'asr':'本地语音识别', 'dedup':'相似图片去重',

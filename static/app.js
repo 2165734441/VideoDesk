@@ -401,6 +401,142 @@ if($('crawlerMode')) $('crawlerMode').addEventListener('change',()=>{
   const mode=$('crawlerMode').value;
   $('crawlerQuery').placeholder=mode==='search'?'输入关键词，多个关键词用英文逗号分隔':mode==='detail'?'每行一个视频网址或视频 ID':'每行一个作者主页网址或作者 ID';
 });
+// 先读清单，再按勾选下载。下载复用批量管线，所以能直接产出合并的 AI 包。
+let collectItems=[];
+let collectFolderList=[];
+const collectBoxes=()=>[...document.querySelectorAll('#collectResult [data-collect-index]')];
+
+// 两个平台的“喜欢/点赞”“收藏/收藏夹”叫法不一样，按平台把文案和选项都换掉，
+// 避免用户把“喜欢”（点赞）当成“收藏”。
+const COLLECT_SOURCES={
+  dy:[['creator','博主主页'],['liked','我的喜欢（点赞）'],['fav','我的收藏夹'],['search','关键词搜索']],
+  bili:[['creator','UP 主空间'],['liked','我的点赞'],['fav','我的收藏夹'],['search','关键词搜索']],
+};
+const COLLECT_SORTS={
+  dy:[['comprehensive','综合排序'],['latest','最新发布'],['likes','最多点赞']],
+  bili:[['comprehensive','综合排序'],['latest','最新发布'],['plays','最多播放'],['favorites','最多收藏'],['danmaku','最多弹幕']],
+};
+function collectRefreshControls(){
+  const platform=$('collectPlatform').value||'dy';
+  const sourceSelect=$('collectSource'),keep=sourceSelect.value;
+  sourceSelect.innerHTML=COLLECT_SOURCES[platform].map(([v,t])=>`<option value="${v}">${t}</option>`).join('');
+  sourceSelect.value=keep;
+  const source=sourceSelect.value||'creator',search=source==='search';
+  $('collectSort').innerHTML=COLLECT_SORTS[platform].map(([v,t])=>`<option value="${v}">${t}</option>`).join('');
+  $('collectSearchRow').hidden=!search;
+  $('collectPageField').hidden=platform!=='bili';
+  $('collectPublishField').hidden=platform!=='dy';
+  $('collectFolderRow').hidden=true;
+  $('collectFolder').innerHTML='';
+  collectFolderList=[];
+  let placeholder='粘贴主页、个人空间链接或 UID';
+  if(search)placeholder='输入搜索关键词';
+  else if(source==='liked'||source==='fav')placeholder=platform==='dy'?'抖音的喜欢和收藏可以留空；粘贴主页链接则读这位博主的':'粘贴 B 站空间链接或 UID；收藏夹需要先在映格浏览器登录 B 站';
+  $('collectTarget').placeholder=placeholder;
+  $('collectListBtn').textContent=source==='fav'?'读取收藏夹列表（约 10–30 秒）':'读取清单（约 20–60 秒）';
+}
+
+async function collectReadList(folder='',folderName='',folderIndex=null){
+  const platform=$('collectPlatform').value,source=$('collectSource').value,target=$('collectTarget').value.trim();
+  if(!target&&!['liked','fav'].includes(source)) throw new Error(source==='search'?'请输入搜索关键词':'请粘贴主页或空间链接');
+  if(!target&&source==='fav'&&platform==='bili') throw new Error('请粘贴 B 站空间链接或 UID；B 站收藏夹需要先登录');
+  const button=$('collectListBtn'),label=button.textContent;
+  button.disabled=true;button.textContent='正在读取…（30–60 秒）';
+  $('collectResult').innerHTML='<p class="mini-note">正在打开页面并滚动读取，请不要操作弹出的浏览器窗口…</p>';
+  try{
+    const body={platform,source,target,limit:Number($('collectLimit').value)||30,
+      folder:folder||'',folder_name:folderName||'',folder_index:folder?folderIndex:null,
+      sort:source==='search'?$('collectSort').value:'',
+      page:source==='search'?Number($('collectPage').value)||1:1,
+      publish:source==='search'?$('collectPublish').value:''};
+    const data=await api('/api/collect/list',{method:'POST',timeoutMs:180000,body});
+    collectItems=data.items||[];
+    $('collectResult').innerHTML=`<p class="mini-note">${html(data.hint||'')}</p>
+      <div class="button-row"><button class="text-btn" data-collect="all">全选</button><button class="text-btn" data-collect="none">全不选</button><button class="text-btn" data-collect="invert">反选</button></div>
+      <div data-collect-list>${collectItems.map((it,i)=>`<label class="checkbox-line"><input type="checkbox" data-collect-index="${i}" ${it.kind==='note'?'':'checked'}><span>${String(i+1).padStart(2,'0')} · ${html(it.title||it.url)}${it.kind==='note'?'（图文，暂不自动下载）':''}</span></label>`).join('')}</div>
+      <button class="primary wide" data-collect="download">下载所选并生成 AI 包</button>`;
+  }catch(error){
+    $('collectResult').innerHTML=`<p class="mini-note">${html(error.message)}</p>`;
+    throw error;
+  }finally{
+    button.disabled=false;button.textContent=label;
+  }
+}
+
+if($('collectPlatform')) $('collectPlatform').addEventListener('change',()=>{
+  // 平台换了以后，来源和排序都按新平台的叫法重建；页码统一回到第 1 页。
+  const page=$('collectPage');if(page)page.value=Math.min(Number(page.value)||1,50);
+  collectRefreshControls();
+});
+if($('collectSource')) $('collectSource').addEventListener('change',collectRefreshControls);
+collectRefreshControls();
+
+if($('collectListBtn')) $('collectListBtn').addEventListener('click',async()=>{
+  const button=$('collectListBtn');if(button.dataset.pending==='1')return;
+  button.dataset.pending='1';button.setAttribute('aria-busy','true');
+  try{
+    const platform=$('collectPlatform').value,source=$('collectSource').value,target=$('collectTarget').value.trim();
+    if(source!=='fav'){await collectReadList('');return;}
+    // 已经拿到具体收藏夹链接（带 fid=）时不需要再让人选一次。
+    if(platform==='bili'&&/fid=\d+/.test(target)){await collectReadList('');return;}
+    button.disabled=true;button.textContent='正在读取收藏夹…';
+    $('collectResult').innerHTML='<p class="mini-note">正在读取收藏夹列表，请不要操作弹出的浏览器窗口…</p>';
+    try{
+      const data=await api('/api/collect/folders',{method:'POST',timeoutMs:120000,body:{platform,source,target}});
+      collectFolderList=data.folders||[];
+      if(!collectFolderList.length){
+        // 抖音没有收藏夹时直接读“全部视频”；B 站则停下来讲清楚为什么要先登录，
+        // 不再白等一轮“读全部收藏”再报错。
+        if(platform==='dy'){await collectReadList('');return;}
+        $('collectResult').innerHTML=`<p class="mini-note">${html(data.hint||'没有读到收藏夹。')}</p>`;
+        toast('没有读到收藏夹，请按提示登录或粘贴带 fid= 的收藏夹链接',true);
+        return;
+      }
+      $('collectFolder').innerHTML='<option value="">全部视频（默认）</option>'+collectFolderList.map((f,i)=>`<option value="${html(f.id||('idx:'+i))}" data-name="${html(f.name)}" data-index="${i}">${html(f.name)}${f.count!=null?'（'+f.count+'）':''}</option>`).join('');
+      $('collectFolderRow').hidden=false;
+      $('collectResult').innerHTML=`<p class="mini-note">${html(data.hint||'')}</p>`;
+      toast('请选择收藏夹，再点“读取这个收藏夹”');
+    }catch(error){
+      $('collectResult').innerHTML=`<p class="mini-note">${html(error.message)}</p>`;
+      throw error;
+    }finally{
+      button.disabled=false;
+    }
+  }catch(error){
+    if(!$('collectResult').textContent.trim())$('collectResult').innerHTML=`<p class="mini-note">${html(error.message)}</p>`;
+    toast(error.message,true);
+  }finally{
+    delete button.dataset.pending;button.removeAttribute('aria-busy');
+    button.textContent=collectFolderList.length?'重新读取收藏夹列表':($('collectSource').value==='fav'?'读取收藏夹列表（约 10–30 秒）':'读取清单（约 20–60 秒）');
+  }
+});
+
+if($('collectFolderBtn')) $('collectFolderBtn').addEventListener('click',async()=>{
+  const option=$('collectFolder').selectedOptions[0];
+  if(!option){toast('请先选一个收藏夹',true);return;}
+  try{
+    await collectReadList(option.value,option.dataset.name||'',option.value?Number(option.dataset.index||0):null);
+  }catch(error){toast(error.message,true);}
+});
+
+if($('collectResult')) $('collectResult').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-collect]');if(!b)return;
+  const action=b.dataset.collect;
+  if(['all','none','invert'].includes(action)){
+    collectBoxes().forEach(x=>{x.checked=action==='all'?true:action==='none'?false:!x.checked;});
+    return;
+  }
+  if(action!=='download')return;
+  const picked=collectBoxes().filter(x=>x.checked).map(x=>collectItems[Number(x.dataset.collectIndex)]).filter(Boolean);
+  if(!picked.length){toast('请至少勾选一条视频',true);return;}
+  if(b.dataset.pending==='1')return;b.dataset.pending='1';
+  try{
+    const combined=$('collectCombined').value==='1';
+    const job=await api('/api/collect/download',{method:'POST',timeoutMs:60000,body:{items:picked.map(i=>({url:i.url,title:i.title||'',kind:i.kind||'video'})),combined,output:$('output').value}});
+    toast(`已建立任务：${job.count} 期${combined?'，完成后合并成一份 AI 包':'，每期各一份'}`);
+    await refresh();goto('library');
+  }catch(err){toast(err.message,true);}finally{delete b.dataset.pending;}
+});
 refresh().catch(e=>toast(e.message,true));
 let statePollPending=false,stateNextCheck=0,stateBackoff=2500;
 setInterval(async()=>{if(statePollPending||Date.now()<stateNextCheck)return;statePollPending=true;try{await refresh();stateBackoff=2500;}catch(e){$('connectionText').textContent=e.connection?'本机服务已断开':'本机服务响应异常';$('connectionBadge').classList.add('disconnected');stateBackoff=Math.min(30000,stateBackoff*2);}finally{statePollPending=false;stateNextCheck=Date.now()+stateBackoff;}},2500);

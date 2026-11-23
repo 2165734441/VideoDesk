@@ -85,7 +85,31 @@
     </section>
 
     <section id="page-crawler" class="page" hidden>
-      <div class="page-heading"><div><div class="eyebrow">POWERED BY MEDIACRAWLER</div><h1>从平台发现，到素材入库。</h1><p>选择抖音或 B 站，按关键词、指定视频或作者主页采集，自动整理为 AI 分析素材。</p></div><span id="engineStatus" class="badge">正在检测引擎</span></div>
+      <div class="page-heading"><div><div class="eyebrow">POWERED BY MEDIACRAWLER</div><h1>从平台发现，到素材入库。</h1><p>选择抖音或 B 站：先读博主主页、我的点赞、我的收藏或关键词结果，勾选要的几期再下载，可直接合并成一份 AI 阅读包。</p></div><span id="engineStatus" class="badge">正在检测引擎</span></div>
+      <section class="panel padded" id="collectPanel">
+        <h2>先读清单，再挑几期</h2>
+        <p class="mini-note">读取博主主页、我的喜欢（点赞）、我的收藏夹或关键词结果，勾出要的几期再下载；下完可以直接合并成一份 AI 阅读包。抖音的“喜欢”就是点赞过的作品，“收藏”下面再分收藏夹；B 站同理。会复用已登录的映格浏览器，读取期间请不要关闭那个窗口。</p>
+        <div class="inline-fields">
+          <label class="field">视频平台<select id="collectPlatform"><option value="dy">抖音</option><option value="bili">哔哩哔哩</option></select></label>
+          <label class="field">来源<select id="collectSource"><option value="creator">博主主页</option><option value="liked">我的喜欢（点赞）</option><option value="fav">我的收藏夹</option><option value="search">关键词搜索</option></select></label>
+        </div>
+        <label class="field">主页链接 / 空间链接 / UID / 关键词<input id="collectTarget" placeholder="粘贴博主主页、个人空间链接，或输入关键词；抖音的喜欢和收藏可留空"></label>
+        <div class="inline-fields">
+          <label class="field">最多读取<input id="collectLimit" type="number" value="30" min="1" max="100"></label>
+          <label class="field">AI 包<select id="collectCombined"><option value="1">合并成一份联合包</option><option value="0">每期各一份</option></select></label>
+        </div>
+        <div class="inline-fields" id="collectSearchRow" hidden>
+          <label class="field">排序<select id="collectSort"></select></label>
+          <label class="field" id="collectPageField">页码<input id="collectPage" type="number" value="1" min="1" max="50"><small>B 站搜索可翻页</small></label>
+          <label class="field" id="collectPublishField">发布时间<select id="collectPublish"><option value="">不限</option><option value="day">一天内</option><option value="week">一周内</option><option value="half_year">半年内</option><option value="year">一年内</option></select></label>
+        </div>
+        <div class="inline-fields" id="collectFolderRow" hidden>
+          <label class="field">收藏夹<select id="collectFolder"></select></label>
+          <button id="collectFolderBtn" class="subtle" type="button">读取这个收藏夹</button>
+        </div>
+        <button id="collectListBtn" class="subtle wide">读取清单（约 20–60 秒）</button>
+        <div id="collectResult"></div>
+      </section>
       <div class="two-columns"><section class="panel padded"><h2>平台采集任务</h2><div class="inline-fields"><label class="field">视频平台<select id="crawlerPlatform"><option value="dy">抖音</option><option value="bili">哔哩哔哩</option></select></label><label class="field">采集方式<select id="crawlerMode"><option value="detail">指定视频</option><option value="search">关键词搜索</option><option value="creator">作者主页</option></select></label></div><label class="field">采集目标<textarea id="crawlerQuery" rows="6" placeholder="每行一个视频网址或视频 ID"></textarea></label><div class="inline-fields"><label class="field">视频数量上限<input id="crawlerLimit" type="number" value="5" min="1" max="50"><small>按上限尝试下载，达到后停止</small></label><label class="field">处理节奏<input value="单任务 · 串行请求" readonly><small>避免同时启动多个采集浏览器</small></label></div><label class="checkbox-line"><input id="crawlerComments" type="checkbox"> 同时收集评论（每视频最多 20 条）</label><label class="checkbox-line"><input id="crawlerExtract" type="checkbox" checked> 视频保存后自动创建抽帧任务</label><div class="inline-inputs"><select id="crawlerFrameMode"><option value="seconds">每隔几秒一张</option><option value="fps">每秒几张</option><option value="frames">每隔 N 帧一张</option><option value="all">每一帧</option></select><input id="crawlerFrameValue" type="number" value="3" min="0.1" step="0.1"></div><p class="mini-note">自动抽帧每视频最多 2000 张；需要框选区域或调整时间段，可在素材列表中再次抽帧。</p><button id="crawlerBtn" class="primary wide">◈ 开始平台采集</button></section>
       <section class="panel padded"><h2>两个引擎，一个工作空间</h2><div class="notice">MediaCrawler 会打开可见浏览器。请手动登录、扫码或完成平台验证；任务等待期间可以继续使用其他功能。</div><h3>MediaCrawler · 发现与采集</h3><p>关键词搜索、视频详情、作者主页与可选评论；下载视频、封面，保存 JSONL 数据。</p><h3>yt-dlp · 链接下载</h3><p>直接下载已知链接、合并音视频与保存可用字幕。两个入口共享素材目录和后续抽帧能力。</p><div class="button-row"><button class="subtle login-btn" data-url="https://www.douyin.com/">先登录抖音</button><button class="subtle login-btn" data-url="https://www.bilibili.com/">先登录 B 站</button></div><p class="mini-note">优先传递本工具登录浏览器中对应平台的 Cookie；也可直接在采集浏览器登录，两者均保存于本机。平台下载失败时，仍可在网页采集页选择其播放画面录制。</p><p class="license-note">MediaCrawler © relakkes@gmail.com<br><a href="/api/third-party/mediacrawler-license" target="_blank" rel="noopener">NON-COMMERCIAL LEARNING LICENSE 1.1 · 非商业学习许可证</a><br>此集成供个人非商业学习与研究使用，保留上游源码和版权声明。</p></section></div>
     </section>
