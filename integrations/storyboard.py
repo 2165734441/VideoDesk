@@ -29,6 +29,7 @@ from .media_relay import MediaRelay
 class AnalysisRequest(BaseModel):
     input: str = Field(min_length=1,max_length=8000)
     output: str = ''
+    title: str = Field(default='',max_length=200)
     mode: str = 'cache'
     login: bool = True
     cookie_id: str = ''
@@ -469,7 +470,8 @@ class Engine:
             except ValueError as exc:
                 if not value['source_job']:raise HTTPException(400,str(exc))
         self.cookie_path(value['cookie_id'])
-        job=self.a.new_job('analysis','字幕长图' if req.kind=='subtitles' else '分镜分析',req.output,value['input'],value)
+        title=req.title.strip() or ('字幕长图' if req.kind=='subtitles' else '分镜分析')
+        job=self.a.new_job('analysis',title,req.output,value['input'],value)
         self.a.WORKERS.submit(self.a.guarded,job['id'],lambda:self.process(job['id'],value))
         return job
 

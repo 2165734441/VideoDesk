@@ -28,6 +28,11 @@ class Options(BaseModel):
     screen_text: bool = True
     ocr_threads: int = Field(default=2,ge=1,le=4)
     scan_seconds: float = Field(default=1,ge=.1,le=30,allow_inf_nan=False)
+    # 0 disables scene-change sampling and keeps only the fixed interval.
+    scene_threshold: float = Field(default=.003,ge=0,le=1,allow_inf_nan=False)
+    # 0 means no cap. A cap keeps the fixed interval evenly readable for long
+    # recordings instead of letting motion-heavy footage explode the package.
+    max_visuals: int = Field(default=0,ge=0,le=10000)
     batch_files: int = Field(default=10,ge=1,le=1000)
 
 
@@ -92,18 +97,25 @@ def build(a,jid,source,info,rows,transcript_info,evidence,work,settings,left,rig
     plans=[w.get('plan',{}) for w in evidence.get('windows',[])]+[evidence.get('plan',{})]
     if any(any(str(t).startswith('frames-merged:') for t in p.get('trace',[])) for p in plans):warnings.append('分镜帧数/拼图限额合并了镜头；已另加画面变化扫描，仍建议取消限额核查')
     interval=float(settings.get('scan_seconds',1))
+    threshold=float(settings.get('scene_threshold',.003))
+    max_visuals=int(settings.get('max_visuals',0) or 0)
     a.change(jid,message='扫描画面与屏幕文字变化 · 不保存视频',progress=61,progress_indeterminate=True)
     # Full-resolution PNG candidates, bounded by one frame in memory. ffmpeg
     # performs scene comparison across decoded frames and fills static gaps.
-    scan_key=hashlib.sha256(json.dumps({'source':job.get('source'),'left':left,'right':right,'interval':interval},sort_keys=True).encode()).hexdigest()
+    scan_key=hashlib.sha256(json.dumps({'source':job.get('source'),'left':left,'right':right,'interval':interval,'threshold':threshold,'max_visuals':max_visuals},sort_keys=True).encode()).hexdigest()
     marker=work/'ai-scan-stage.json'
     try:scanned=json.loads(marker.read_text('utf-8'))
     except (OSError,ValueError):scanned={}
     complete=scanned.get('key')==scan_key and scanned.get('files') and all((shots/p).is_file() and (shots/p).stat().st_size==size for p,size in scanned['files'].items())
     if not complete:
         for old in shots.glob('*.png'):old.unlink()
+        # Scene cuts are optional. The fixed interval is always active, which
+        # keeps live-commerce footage with constant motion from exploding into
+        # thousands of near-duplicate frames.
+        select=f"eq(n\\,0)+gte(t-prev_selected_t\\,{interval})"
+        if threshold>0:select=f"eq(n\\,0)+gt(scene\\,{threshold})+gte(t-prev_selected_t\\,{interval})"
         a.run_ffmpeg(jid,['-loglevel','info','-ss',str(left),'-i',source,'-t',str(right-left),'-an',
-            '-vf',f"select=eq(n\\,0)+gt(scene\\,0.003)+gte(t-prev_selected_t\\,{interval})",'-fps_mode','vfr',
+            '-vf',f"select={select}",'-fps_mode','vfr',
             '-enc_time_base','1:1000000','-frame_pts','1',str(shots/'%016d.png')],private=True)
         atomic_json(marker,{'key':scan_key,'files':{p.name:p.stat().st_size for p in shots.glob('*.png')}})
     files=sorted(p for p in shots.glob('*.png') if p.stem.isdigit())
@@ -118,6 +130,11 @@ def build(a,jid,source,info,rows,transcript_info,evidence,work,settings,left,rig
         a.run_ffmpeg(jid,['-ss',str(at),'-i',source,'-frames:v','1',str(path)],private=True)
         files.append(path);times.append(at)
     candidates=sorted(zip(times,files),key=lambda p:p[0])
+    if max_visuals and len(candidates)>max_visuals:
+        if max_visuals==1:indexes=[0]
+        else:indexes=sorted({round(i*(len(candidates)-1)/(max_visuals-1)) for i in range(max_visuals)})
+        candidates=[candidates[i] for i in indexes]
+        warnings.append(f'画面数量超过 {max_visuals} 张，已按时间轴均匀保留关键画面；完整口述仍在文本中')
     ocr=settings.get('screen_text',True)
     if not ocr:warnings.append('已关闭画面文字 OCR，细字请直接核对图像')
     # Share exact-pixel results across retries, which can receive a new job ID.
