@@ -118,23 +118,29 @@ def build(a,jid,source,info,rows,transcript_info,evidence,work,settings,left,rig
             '-vf',f"select={select}",'-fps_mode','vfr',
             '-enc_time_base','1:1000000','-frame_pts','1',str(shots/'%016d.png')],private=True)
         atomic_json(marker,{'key':scan_key,'files':{p.name:p.stat().st_size for p in shots.glob('*.png')}})
-    files=sorted(p for p in shots.glob('*.png') if p.stem.isdigit())
-    times=[int(p.stem)/1000000+left for p in files]
-    if len(times)!=len(files) or not files:raise ValueError('画面采样时间与文件不匹配，请重试')
-    # Also retain every selected upstream scene sample, even when scene scoring
-    # differs from this OCR pass. No original video is copied.
-    for i,cell in enumerate(evidence.get('cells',[])):
+    scan_files=sorted(p for p in shots.glob('*.png') if p.stem.isdigit())
+    scan_times=[int(p.stem)/1000000+left for p in scan_files]
+    if len(scan_times)!=len(scan_files) or not scan_files:raise ValueError('画面采样时间与文件不匹配，请重试')
+    candidates=list(zip(scan_times,scan_files))
+    # Add upstream scene timestamps first, but extract only after the cap. The
+    # old order decoded every storyboard cell even when the package would keep
+    # only a small fraction, which made half-hour recordings unnecessarily slow.
+    for cell in evidence.get('cells',[]):
         at=float(cell.get('frame_at') if cell.get('frame_at') is not None else cell['from'])
-        if any(abs(t-at)<.02 for t in times):continue
-        path=shots/f'scene-{i:08d}.png'
-        a.run_ffmpeg(jid,['-ss',str(at),'-i',source,'-frames:v','1',str(path)],private=True)
-        files.append(path);times.append(at)
-    candidates=sorted(zip(times,files),key=lambda p:p[0])
+        if any(abs(t-at)<.02 for t,_ in candidates):continue
+        candidates.append((at,None))
+    candidates.sort(key=lambda p:p[0])
     if max_visuals and len(candidates)>max_visuals:
         if max_visuals==1:indexes=[0]
         else:indexes=sorted({round(i*(len(candidates)-1)/(max_visuals-1)) for i in range(max_visuals)})
         candidates=[candidates[i] for i in indexes]
         warnings.append(f'画面数量超过 {max_visuals} 张，已按时间轴均匀保留关键画面；完整口述仍在文本中')
+    for i,(at,path) in enumerate(candidates):
+        if path is not None:continue
+        path=shots/f'scene-{i:08d}.png'
+        a.run_ffmpeg(jid,['-ss',str(at),'-i',source,'-frames:v','1',str(path)],private=True)
+        candidates[i]=(at,path)
+    files=[p for _,p in candidates];times=[t for t,_ in candidates]
     ocr=settings.get('screen_text',True)
     if not ocr:warnings.append('已关闭画面文字 OCR，细字请直接核对图像')
     # Share exact-pixel results across retries, which can receive a new job ID.

@@ -449,8 +449,8 @@ class Engine:
                 work=self.data/'ai-package-work'/jid;work.mkdir(parents=True,exist_ok=True)
                 ai_package.build(a,jid,source,info,segments,transcript,all_evidence,work,
                     {**req['ai_package'],'cells_per_sheet':req.get('max_cells_per_sheet',0)},req['start'],end,
-                    title=info.get('title') or title_name(Path(source).name))
-            title=info.get('title') or (title_name(Path(req['input']).name) if not req['input'].startswith('http') else a.job_by_id(jid)['title'])
+                    title=(req.get('title') or '').strip() or info.get('title') or title_name(Path(source).name))
+            title=(req.get('title') or '').strip() or info.get('title') or (title_name(Path(req['input']).name) if not req['input'].startswith('http') else a.job_by_id(jid)['title'])
             target=base.parent/title_name(title)
             if target!=base:
                 if target.exists():target=base.parent/(title_name(title)+'_'+jid[:8])
