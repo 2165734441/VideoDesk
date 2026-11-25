@@ -16,6 +16,7 @@ import subprocess
 import sys
 import threading
 import time
+import traceback
 from urllib.parse import urlparse, parse_qs
 import uuid
 
@@ -470,6 +471,13 @@ def guarded(jid, action):
             change(jid, status='cancelled', message='已取消，已保存的文件仍保留')
             return
         message = str(exc)
+        if job_by_id(jid)['kind'] == 'analysis':
+            try:
+                with (DATA / 'analysis-errors.log').open('a', encoding='utf-8') as log:
+                    log.write(f"\n### {time.strftime('%Y-%m-%d %H:%M:%S')} {jid}\n")
+                    log.write(''.join(traceback.format_exception(type(exc), exc, exc.__traceback__)))
+            except OSError:
+                pass
         # Never display CDN signed URLs, cookie values, or raw downloader diagnostics.
         if job_by_id(jid)['kind'] == 'download':
             message = '下载未完成。若页面要求登录或验证，请打开登录浏览器手动完成后重试；也可使用网页录制。'

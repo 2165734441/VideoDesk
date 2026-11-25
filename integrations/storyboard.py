@@ -166,11 +166,12 @@ class Engine:
     def resume(self,jid):
         with self.a.LOCK:
             job=self.a.job_by_id(jid)
-            if job['kind']!='analysis' or job['status']!='waiting':raise HTTPException(409,'当前任务没有等待人工验证')
+            if job['kind']!='analysis' or job['status'] not in ('waiting','interrupted','error','cancelled'):
+                raise HTTPException(409,'当前任务没有等待人工验证')
             req={k:v for k,v in job['options'].items() if k in AnalysisRequest.model_fields}
-            self.a.change(jid,status='queued',message='已完成接管，等待重新解析来源')
+            self.a.change(jid,status='queued',progress=0,message='重新排队处理，已保存文件仍保留')
             self.a.WORKERS.submit(self.a.guarded,jid,lambda:self.process(jid,req))
-        return {'message':'已通知分析引擎继续'}
+        return {'message':'已重新排队分析任务'}
 
     def wait_login(self,jid,req):
         self.a.change(jid,status='waiting',progress_indeterminate=False,

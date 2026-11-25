@@ -345,7 +345,7 @@ def compile_launcher(archive=BUILD/'payload.zip'):
          '/reference:System.IO.Compression.dll', '/reference:System.IO.Compression.FileSystem.dll',
          '/reference:System.Web.Extensions.dll', '/win32manifest:' + str(ROOT / 'launcher' / 'app.manifest'),
          '/resource:' + str(archive) + ',VideoDesk.Payload', '/out:' + str(output),
-         ROOT / 'launcher' / 'Program.cs', ROOT / 'launcher' / 'Compatibility.cs', info])
+         ROOT / 'launcher' / 'Program.cs', ROOT / 'launcher' / 'Compatibility.cs', ROOT / 'launcher' / 'DownloadButton.cs', info])
     checksum = sha256(output)
     output.with_suffix('.exe.sha256').write_text(checksum + '  ' + output.name + '\n', encoding='ascii')
     report = {'file':str(output), 'bytes':output.stat().st_size, 'sha256':checksum,

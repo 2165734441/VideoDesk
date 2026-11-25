@@ -218,6 +218,7 @@ internal sealed class LauncherForm : Form {
     private bool crashReported;
     private readonly NotifyIcon tray = new NotifyIcon();
     private readonly System.Windows.Forms.Timer monitor = new System.Windows.Forms.Timer();
+    private readonly DownloadButtonForm downloadButton;
 
     public LauncherForm(Options options) {
         this.options = options;
@@ -265,6 +266,7 @@ internal sealed class LauncherForm : Form {
         menu.Items.Add("导出启动诊断", null, delegate { ShowStatus(); ExportDiagnostic(); });
         menu.Items.Add("退出映格", null, delegate { RequestExit(); });
         this.Icon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ExecutablePath);
+        downloadButton = new DownloadButtonForm(options.Home);
         tray.Icon = this.Icon; tray.Text = "映格 · 本地视频工作台"; tray.ContextMenuStrip = menu;
         tray.DoubleClick += delegate { if (core != null && core.ServerAlive) core.OpenBrowser(); else ShowStatus(); };
         monitor.Interval = 2000;
@@ -281,9 +283,9 @@ internal sealed class LauncherForm : Form {
                 tray.ShowBalloonTip(5000, "映格服务已退出", "双击托盘图标查看状态并重新启动。", ToolTipIcon.Warning);
             }
         };
-        Shown += async delegate { if (options.Background) HideToTray(); await Start(); };
+        Shown += async delegate { if (options.Background) HideToTray(); await Start(); downloadButton.StartWatch(); };
         FormClosing += OnClosing;
-        FormClosed += delegate { monitor.Dispose(); tray.Visible = false; tray.Dispose(); };
+        FormClosed += delegate { monitor.Dispose(); downloadButton.Dispose(); tray.Visible = false; tray.Dispose(); };
     }
 
     private void ShowStatus() { ShowInTaskbar = true; Show(); WindowState = FormWindowState.Normal; Activate(); }
