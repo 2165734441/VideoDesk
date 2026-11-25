@@ -447,10 +447,16 @@ class Engine:
             if transcript.get('warning'):prompt+=transcript['warning']+'\n'
             (base/'AI分析提示词.txt').write_text(prompt,encoding='utf-8')
             if req.get('ai_package',{}).get('enabled'):
-                work=self.data/'ai-package-work'/jid;work.mkdir(parents=True,exist_ok=True)
+                # Intermediate scan frames are large. Keep them on the same disk
+                # as the output package instead of filling the system drive.
+                work=base/'.ai-package-work';work.mkdir(parents=True,exist_ok=True)
                 ai_package.build(a,jid,source,info,segments,transcript,all_evidence,work,
                     {**req['ai_package'],'cells_per_sheet':req.get('max_cells_per_sheet',0)},req['start'],end,
                     title=(req.get('title') or '').strip() or info.get('title') or title_name(Path(source).name))
+                try:
+                    shutil.rmtree(work, ignore_errors=True)
+                except OSError:
+                    pass
             title=(req.get('title') or '').strip() or info.get('title') or (title_name(Path(req['input']).name) if not req['input'].startswith('http') else a.job_by_id(jid)['title'])
             target=base.parent/title_name(title)
             if target!=base:

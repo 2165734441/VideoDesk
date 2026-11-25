@@ -45,12 +45,12 @@ class History:
 
     def protected(self,path):
         # Any registered source is protected, including an input inside an old output.
-        for item in self.a.JOBS.values():
+        for item in list(self.a.JOBS.values()):
             source=item.get('source','')
             if source and not source.startswith(('http:','https:')) and Path(source).is_absolute() and Path(source).resolve()==path.resolve():return True
         sources=getattr(self.a,'LOCAL_SOURCES',None)
         if sources:
-            for item in sources.items.values():
+            for item in list(sources.items.values()):
                 if item.get('path') and Path(item['path']).resolve()==path.resolve():return True
         return path.suffix.lower() in VIDEO_EXTENSIONS and 'clips' not in path.parts
 
@@ -127,7 +127,7 @@ class History:
 
     def shared(self,path,selected):
         target=os.path.normcase(os.path.abspath(path))
-        for jid,job in self.a.JOBS.items():
+        for jid,job in list(self.a.JOBS.items()):
             if jid in selected or job.get('materials_deleted') or job.get('superseded_by'):continue
             # Structural batch parents don't own an additional copy/reference.
             if job.get('kind')=='batch' and selected.intersection(job.get('children',[])):continue
@@ -142,7 +142,7 @@ class History:
         if packages:
             for value in packages.roots.values():
                 root=Path(value).resolve()
-                owned=any(Path(j['directory']).resolve()==root for j in self.a.JOBS.values())
+                owned=any(Path(j['directory']).resolve()==root for j in list(self.a.JOBS.values()))
                 if not owned and path.resolve().is_relative_to(root):return True
         return False
 
