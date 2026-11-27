@@ -83,7 +83,7 @@ class BatchRequest(BaseModel):
             self.outputs=self.outputs.model_copy(update={'puzzles':False,'transcript':False,'ai':False})
             self.ai_package=self.ai_package.model_copy(update={'enabled':False,'combined':False})
         elif self.workflow=='board':
-            self.outputs=self.outputs.model_copy(update={'puzzles':True,'transcript':True,'ai':True})
+            self.outputs=self.outputs.model_copy(update={'puzzles':True,'transcript':True,'ai':True,'video':self.outputs.video})
             self.ai_package=self.ai_package.model_copy(update={'enabled':True})
         else:
             self.outputs=Outputs(puzzles=True,zip=self.outputs.zip)
@@ -203,21 +203,34 @@ class Pipeline:
         try:
             children=list(parent.get('children',[]))
             known={self.a.job_by_id(i)['options']['source_id'] for i in children}
+            episode_counts={}
+            for source in records:
+                if source.get('episode'):
+                    episode_counts[source['episode']]=episode_counts.get(source['episode'],0)+1
             for source in records:
                 if self.a.EVENTS[parent['id']].is_set():break
                 if source['id'] in known:continue
                 opts={**req.model_dump(exclude={'sources'}),'sources':[source['id']],'source_id':source['id'],'parent_id':parent['id'],'video_saved':False,'available_video':source['kind']=='path'}
                 if source.get('request'):opts['source_request']=source['request']
                 if source.get('episode'):
-                    opts.update(episode=source['episode'],episode_title=source['episode_title'])
+                    opts.update(episode=source['episode'],episode_title=source['episode_title'],
+                                episode_single=episode_counts.get(source['episode'],1)==1)
                 child=self.a.new_job('batch-video',source['name'],parent['directory'],source.get('path',source['name']),opts)
                 current_child=child
                 empty=Path(child['directory']);safe=title_name(source['name'])
                 parent_folder=empty.parent
                 if source.get('episode'):
-                    parent_folder=parent_folder/episode_name(source['episode'],source['episode_title']);parent_folder.mkdir(exist_ok=True)
-                destination=parent_folder/safe
-                if destination.exists():destination=parent_folder/(safe+'_'+child['id'][:8])
+                    folder_name=episode_name(source['episode'],source['episode_title'])
+                    # A one-video episode is the episode folder; adding another
+                    # title directory inside it made "第001集_x/x/一起上传给AI".
+                    if episode_counts.get(source['episode'],1)==1:
+                        destination=parent_folder/folder_name
+                    else:
+                        parent_folder=parent_folder/folder_name;parent_folder.mkdir(exist_ok=True)
+                        destination=parent_folder/safe
+                else:
+                    destination=parent_folder/safe
+                if destination.exists():destination=destination.parent/(destination.name+'_'+child['id'][:8])
                 empty.rename(destination)
                 self.a.change(child['id'],directory=str(destination))
                 children.append(child['id'])
@@ -282,7 +295,7 @@ class Pipeline:
                         'package':package_path,
                         'videos':[{'title':c['title'],'status':c['status'],'directory':Path(c['directory']).name,'source':c['source']} for c in children]})
                 self.a.atomic_json(base/'分集目录.json',index)
-                (base/'先看这里_分集目录.txt').write_text('每集文件夹按集号和标题命名；单视频资料位于视频标题文件夹，多视频合成的本集资料包见下表。上传对应“一起上传给AI”内全部文件。\n'+('联合AI分析包包含所有集的内容及分界，可代替逐集上传。\n' if settings.get('combined') else '本次按集导出，未生成全部集数联合包。\n')+'\n'+'\n'.join(f'{x["directory"]}：'+('；'.join(v['title']+'（'+v['status']+'）' for v in x['videos']))+(f'；本集上传包：{x["package"]}' if x['package'] else '') for x in index),encoding='utf-8')
+                (base/'先看这里_分集目录.txt').write_text('每集文件夹按集号和标题命名；单视频直接位于本集文件夹，多视频在本集文件夹下按视频标题分目录。上传对应“一起上传给AI”内全部文件。\n'+('联合AI分析包包含所有集的内容及分界，可代替逐集上传。\n' if settings.get('combined') else '本次按集导出，未生成全部集数联合包。\n')+'\n'+'\n'.join(f'{x["directory"]}：'+('；'.join(v['title']+'（'+v['status']+'）' for v in x['videos']))+(f'；本集上传包：{x["package"]}' if x['package'] else '') for x in index),encoding='utf-8')
                 register_created(self.a,jid,[base/'分集目录.json',base/'先看这里_分集目录.txt'])
             if opts['outputs'].get('ai') and settings.get('enabled') and settings.get('combined'):
                 self.a.change(jid,message='汇总所有视频 · 保留完整台词与画面',progress=97)
@@ -561,7 +574,7 @@ class Pipeline:
                             if p.is_file() and not any(x.startswith('.') for x in p.relative_to(base).parts) and p!=dest:archive.write(p,p.relative_to(base).as_posix())
                 relocate_file(temp,dest)
                 register_created(a,jid,[dest])
-            if opts.get('episode'):
+            if opts.get('episode') and not opts.get('episode_single'):
                 title=info.get('title') or job['title'];target=base.parent/title_name(title)
                 if target!=base:
                     if target.exists():target=base.parent/(title_name(title)+'_'+jid[:8])

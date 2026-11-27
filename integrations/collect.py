@@ -13,10 +13,18 @@ folder card exactly like a person would. Bilibili reaches a folder through
 """
 from __future__ import annotations
 
+import asyncio
+import html
+import http.cookiejar
+import json
 import re
+import shutil
 import time
 import uuid
+from pathlib import Path
 from urllib.parse import quote, urlparse
+import urllib.parse
+import urllib.request
 
 from fastapi import HTTPException
 from pydantic import BaseModel, Field
@@ -58,7 +66,7 @@ DOUYIN_PUBLISH = {'all': '0', 'day': '1', 'week': '7', 'half_year': '180', 'year
 # title-like candidate instead of the first line of the card.
 EXTRACT = """() => {
   const clean = s => (s || '').replace(/\\s+/g, ' ').trim();
-  const junk = /违法和不良信息|举报|算法推荐|营业执照|京ICP|网文|友情链接|用户协议|隐私政策|Copyright|©|下载客户端|登录后可/;
+  const junk = /违法和不良信息|举报|算法推荐|营业执照|京ICP|网文|友情链接|用户协议|隐私政策|Copyright|©|下载客户端|登录后可|协议汇总|活动专题|帮助中心|社区中心|壁纸站|名人堂|MCN|品牌号|广告合作/;
   // Douyin puts the title and the whole description in one text node, separated
   // only by a space, so a card can look like "5.6万 标题…了！ 本视频由…". The
   // visible card is clipped; take the first sentence (or first 40 chars).
@@ -80,10 +88,10 @@ EXTRACT = """() => {
   // /video/ links (recommendations), and reading those would hand the user
   // somebody else's videos.
   const select = 'a[href*="/video/"],a[href*="/note/"]';
-  const preferred = document.querySelector('[data-e2e="user-post-list"],[data-e2e="scroll-list"]');
+  const preferred = document.querySelector('[data-e2e="user-post-list"],[data-e2e="scroll-list"],[class*="search-page-video"],[class*="video-list"]');
   let anchors = preferred ? [...preferred.querySelectorAll(select)] : [];
   if (!anchors.length) anchors = [...document.querySelectorAll(select)];
-  anchors = anchors.filter(a => !a.closest('footer,[data-e2e="page-footer"],[data-e2e="douyin-navigation"]'));
+  anchors = anchors.filter(a => !a.closest('footer,[data-e2e="page-footer"],[data-e2e="douyin-navigation"],header,[class*="footer"],[class*="Footer"],[class*="bili-header"],[class*="nav-bar"],[class*="navigation"]'));
   for (const a of anchors) {
     const m = (a.href || '').match(/\\/(video|note)\\/([A-Za-z0-9_-]{6,})/);
     if (!m) continue;
@@ -102,6 +110,7 @@ EXTRACT = """() => {
       card = null;
       let p = a.parentElement;
       for (let i = 0; i < 5 && p; i++, p = p.parentElement) {
+        if (p === document.body || p === document.documentElement) break;
         const size = (p.innerText || '').length;
         if (size > 0 && size < 600) { card = p; break; }
       }
@@ -427,7 +436,7 @@ def _click_douyin_folder(page, folder_name: str, index) -> None:
 
 
 def scan(browser, url: str, limit: int = 30, folder: str = '', folder_name: str = '',
-         folder_index=None, platform: str = '') -> dict:
+         folder_index=None, platform: str = '', debug: str = '') -> dict:
     """Scroll the listing page and collect the video links it reveals."""
     def action():
         page = browser.page_for(url, navigate=True)
@@ -472,6 +481,17 @@ def scan(browser, url: str, limit: int = 30, folder: str = '', folder_name: str 
                     continue
                 page.wait_for_timeout(700)
             if not rows:
+                if debug:
+                    try:
+                        state = page.evaluate(STATE)
+                        Path(debug).write_text(json.dumps({
+                            'url': state.get('url'), 'title': state.get('title'),
+                            'text': (state.get('text') or '')[:5000],
+                            'anchors': page.evaluate("() => document.querySelectorAll('a[href*=\"/video/\"]').length"),
+                        }, ensure_ascii=False, indent=2), encoding='utf-8')
+                        page.screenshot(path=str(Path(debug).with_suffix('.png')))
+                    except Exception:
+                        pass
                 if folder:
                     raise ValueError('这个收藏夹里没有视频，请换一个收藏夹')
                 raise ValueError('页面没有加载出视频列表：请确认主页有公开视频、已登录该平台，或换一条链接后重试')
@@ -500,6 +520,77 @@ def scan(browser, url: str, limit: int = 30, folder: str = '', folder_name: str 
             # read, and no platform page (or its video buffers) stays alive.
             browser.release(page, keep=True)
     return browser.pool.submit(action).result(timeout=SCAN_SECONDS + 45)
+
+
+def bili_api_search(a, keyword: str, limit: int, pages: int, sort: str = '',
+                    jid: str = '') -> list[dict]:
+    """Read Bilibili's public search API with the account cookies already in the app.
+
+    Search results are a normal public listing; using the API avoids spending
+    ninety seconds driving a blank logged-out page.  The cookie files are the
+    same ones the downloader uses, and are only read locally.
+    """
+    candidates = []
+    for path in sorted(Path(a.DATA).glob('.cookies-*.txt')):
+        try:
+            jar = http.cookiejar.MozillaCookieJar(str(path))
+            jar.load(ignore_discard=True, ignore_expires=True)
+            if any('bilibili.com' in (cookie.domain or '') for cookie in jar):
+                candidates.append((path, jar))
+        except (OSError, http.cookiejar.CookieError):
+            continue
+    if not candidates:
+        raise ValueError('B 站搜索需要登录：没有找到 B 站登录 Cookie，请先在映格浏览器登录 B 站')
+    order = BILIBILI_SORTS.get(sort or 'comprehensive', 'totalrank')
+    rows: dict[str, dict] = {}
+    last_error = ''
+    for path, jar in candidates:
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
+        got = 0
+        try:
+            for page in range(1, pages + 1):
+                if jid:
+                    a.check_cancel(jid)
+                query = urllib.parse.urlencode({
+                    'search_type': 'video', 'keyword': keyword, 'page': page,
+                    'page_size': 50, 'order': order,
+                })
+                request = urllib.request.Request(
+                    'https://api.bilibili.com/x/web-interface/search/type?' + query,
+                    headers={'User-Agent': 'Mozilla/5.0', 'Referer': 'https://search.bilibili.com/'})
+                with opener.open(request, timeout=20) as response:
+                    payload = json.loads(response.read().decode('utf-8', 'replace'))
+                if payload.get('code') != 0:
+                    last_error = str(payload.get('message') or payload.get('code'))
+                    break
+                for item in ((payload.get('data') or {}).get('result') or []):
+                    if item.get('type') != 'video':
+                        continue
+                    bvid = item.get('bvid') or ''
+                    url = ('https://www.bilibili.com/video/' + bvid + '/') if bvid else (item.get('arcurl') or '')
+                    if not url:
+                        continue
+                    title = html.unescape(re.sub(r'<[^>]+>', '', item.get('title') or ''))
+                    if not title:
+                        continue
+                    rows.setdefault(bvid or url, {
+                        'id': bvid or url, 'kind': 'video', 'url': url,
+                        'title': title[:150],
+                        'date': time.strftime('%Y-%m-%d', time.localtime(item.get('pubdate') or 0)),
+                    })
+                    got += 1
+                    if len(rows) >= limit:
+                        return list(rows.values())
+                if len(rows) >= limit or not ((payload.get('data') or {}).get('result') or []):
+                    break
+        except Exception as exc:
+            last_error = str(exc)[:200]
+            continue
+        if got:
+            return list(rows.values())[:limit]
+    if rows:
+        return list(rows.values())[:limit]
+    raise ValueError('B 站搜索没有返回结果' + (f'（{last_error}）' if last_error else ''))
 
 
 def _read_douyin_folders(browser) -> dict:
@@ -630,6 +721,89 @@ def read_folders(browser, platform: str, source: str, target: str) -> dict:
     return _read_bilibili_folders(browser, url)
 
 
+MENTION_EXTRACT = r"""() => {
+  const clean = s => (s || '').replace(/\s+/g, ' ').trim();
+  const rows = [];
+  const add = (name, url, text) => {
+    name = clean(name).replace(/^@+/, '').trim();
+    if (!name || name.length > 40) return;
+    if (/^(douyin|bytedance|douyin\.com|bytedance\.com)$/i.test(name)) return;
+    const old = rows.find(x => x.name === name);
+    if (old) {
+      if (!old.url && url) old.url = url;
+      return;
+    }
+    rows.push({name, url: url || '', text: clean(text).slice(0, 120)});
+  };
+  const detail = document.querySelector('[data-e2e="user-info"]')
+    || document.querySelector('[data-e2e="user-detail"]')
+    || document.querySelector('header');
+  let bio = '';
+  if (detail) {
+    // Profile header only: the recommendation cards and comments below are
+    // not part of the author's public bio and must not be mistaken for it.
+    for (const a of detail.querySelectorAll('a[href*="/user/"]')) {
+      const text = clean(a.innerText || a.textContent || '');
+      if (text.startsWith('@')) add(text, a.href, text);
+    }
+    for (const el of detail.querySelectorAll('span, div')) {
+      const text = clean(el.innerText || '');
+      if (!text || !text.includes('@') || text.length > 80) continue;
+      for (const match of text.matchAll(/@[\w\u4e00-\u9fa5.-]{2,30}/g)) add(match[0], '', match[0]);
+    }
+    const candidates = [...detail.querySelectorAll('span, div')]
+      .map(el => clean(el.innerText || ''))
+      .filter(text => text.startsWith('@') && text.length < 300);
+    if (candidates.length) bio = candidates.sort((a, b) => b.length - a.length)[0];
+  }
+  // A page that failed to expose the profile header should return no guessed
+  // names at all; the caller then reports that the bio was unreadable.
+  return {rows: rows.slice(0, 60), bio};
+}"""
+
+
+def profile_mentions(browser, url: str, platform: str = 'dy') -> dict:
+    """Read the public @ names shown in a creator's profile copy.
+
+    This only reads the page the user can open themselves.  It never follows,
+    messages or resolves private accounts; links are returned for the user to
+    review and choose from.
+    """
+    if platform != 'dy':
+        raise ValueError('简介 @ 账号读取目前只支持抖音公开主页')
+    if not re.match(r'https?://(www\.)?douyin\.com/user/', url or ''):
+        raise ValueError('请粘贴抖音作者主页链接，例如 https://www.douyin.com/user/...')
+
+    def action():
+        page = browser.page_for(url, navigate=True)
+        try:
+            _safe_goto(page, url)
+            deadline = time.monotonic() + 25
+            data = {'rows': [], 'bio': ''}
+            while time.monotonic() < deadline:
+                state = page.evaluate(STATE)
+                blocked = _blocked(state)
+                if blocked:
+                    raise ValueError(blocked)
+                data = page.evaluate(MENTION_EXTRACT)
+                if data.get('rows') or data.get('bio') or (state.get('text') or '').strip():
+                    break
+                page.wait_for_timeout(700)
+            page.wait_for_timeout(1500)
+            data = page.evaluate(MENTION_EXTRACT)
+            return {'items': data.get('rows', []), 'bio': data.get('bio', ''),
+                    'page': url, 'elapsed': round(25 - max(0, deadline - time.monotonic()), 1)}
+        finally:
+            browser.release(page, keep=True)
+
+    return browser.pool.submit(action).result(timeout=60)
+
+
+class MentionRequest(BaseModel):
+    platform: str = 'dy'
+    target: str = Field(min_length=1, max_length=800)
+
+
 class ListRequest(BaseModel):
     platform: str = 'dy'
     source: str = 'creator'
@@ -680,6 +854,49 @@ class DownloadRequest(BaseModel):
     output: str = ''
 
 
+class AutoSearchRequest(BaseModel):
+    platform: str = 'dy'
+    keyword: str = Field(min_length=1, max_length=160)
+    limit: int = Field(default=30, ge=1, le=100)
+    pages: int = Field(default=1, ge=1, le=10)
+    sort: str = ''
+    publish: str = ''
+    mode: str = 'package'
+    incremental: bool = False
+    keep_video: bool = True
+    output: str = ''
+
+
+class OpenSearchRequest(BaseModel):
+    platform: str = 'dy'
+    keyword: str = Field(min_length=1, max_length=160)
+    sort: str = ''
+    publish: str = ''
+    page: int = Field(default=1, ge=1, le=50)
+
+
+# These are the daily defaults used by the analysis queue.  Search batches
+# otherwise inherit the high-precision sample defaults (one frame per second,
+# no cap), which is too heavy for a hundred short videos.
+DAILY_ANALYSIS = {
+    'strategy': 'compact', 'pick': 'mid', 'max_frames': 120, 'max_sheets': 12,
+    'max_cells_per_sheet': 0, 'batch_seconds': 300, 'max_height': 720,
+    'transcript': 'auto', 'language': 'auto', 'detail': 'med', 'ocr': False,
+    'keep_frames': False, 'audio': False, 'scan_gap': 0, 'integral': True,
+    'integral_seconds': 6, 'kind': 'board', 'performance': 'auto',
+    'strip_step': 3, 'strip_count': 24,
+}
+
+
+def daily_package() -> dict:
+    return {
+        'enabled': True, 'combined': False, 'screen_text': True,
+        'ocr_threads': 4, 'scan_seconds': 10, 'scene_threshold': .12,
+        'max_visuals': 120, 'batch_files': 10,
+    }
+
+
+
 def queue_direct_videos(a, picked, output: str) -> list[str]:
     """Queue plain download jobs without the batch/AI package pipeline."""
     jobs = []
@@ -695,7 +912,227 @@ def queue_direct_videos(a, picked, output: str) -> list[str]:
     return jobs
 
 
+def _auto_label(platform: str) -> str:
+    return '抖音' if platform == 'dy' else 'B 站'
+
+
+def _auto_canonical(item: dict) -> str:
+    return (item.get('url') or '').split('?')[0].rstrip('/')
+
+
+def _bili_cookie_count(a):
+    count = 0
+    for path in sorted(Path(a.DATA).glob('.cookies-*.txt')):
+        try:
+            jar = http.cookiejar.MozillaCookieJar(str(path))
+            jar.load(ignore_discard=True, ignore_expires=True)
+            if any('bilibili.com' in (cookie.domain or '') for cookie in jar):
+                count += 1
+        except (OSError, http.cookiejar.CookieError):
+            continue
+    return count
+
+
+def _search_scope(platform, keyword, sort='', publish=''):
+    """Stable identity for a watchlist entry; limit/pages are intentionally ignored."""
+    return '|'.join((platform, str(keyword or '').strip().casefold(), sort or '', publish or ''))
+
+
+def auto_search(a, pipeline, jid: str, req: AutoSearchRequest) -> str:
+    """Read search results and create one package per video, without a picker.
+
+    Douyin has one infinite result page; Bilibili can be paged.  The loop is
+    deliberately bounded by the user's limit and a small page count so a typo
+    in a keyword cannot start an unbounded crawl.  The actual download and
+    package work is delegated to the existing batch pipeline.
+    """
+    from . import batch_pipeline
+    platform = req.platform
+    if platform not in ('dy', 'bili'):
+        raise ValueError('请选择抖音或 B 站')
+    if req.mode not in ('package', 'video'):
+        raise ValueError('未知处理方式')
+    pages = 1 if platform == 'dy' else min(req.pages, 10)
+    base = Path(a.job_by_id(jid)['directory'])
+    collected: dict[str, dict] = {}
+    if platform == 'bili':
+        a.change(jid, message=f'读取 B 站搜索结果（最多 {pages} 页）', progress=20)
+        items = bili_api_search(a, req.keyword, req.limit, pages, req.sort, jid)
+    else:
+        for page in range(1, pages + 1):
+            a.check_cancel(jid)
+            remaining = req.limit - len(collected)
+            if remaining <= 0:
+                break
+            url = listing_url(platform, 'search', req.keyword, sort=req.sort,
+                              page=page, publish=req.publish)
+            a.change(jid, message=f'读取第 {page} / {pages} 页搜索结果', progress=min(45, 8 + page * 8))
+            try:
+                result = scan(a.BROWSER, url, remaining, platform=platform,
+                              debug=str(base / f'扫描诊断-第{page}页.txt'))
+            except ValueError:
+                if page == 1:
+                    raise
+                break
+            added = 0
+            for item in result['items']:
+                if item.get('kind') == 'note' or not item.get('url'):
+                    continue
+                key = _auto_canonical(item) or item.get('id')
+                if key in collected:
+                    continue
+                collected[key] = item
+                added += 1
+                if len(collected) >= req.limit:
+                    break
+            a.atomic_json(base / '搜索结果.json', {
+                'keyword': req.keyword, 'platform': platform, 'pages': pages,
+                'items': list(collected.values()), 'updated': time.time(),
+            })
+            # An empty page means the platform has no further results.  A page
+            # that only repeats prior cards is also the end of the useful range.
+            if not added:
+                break
+        items = list(collected.values())
+    all_items = list(items)
+    # A keyword is only useful as a monitor if the second run can tell what
+    # changed.  Keep the last snapshot outside the job folder, then compare
+    # canonical URLs (query strings and tracking parameters are ignored).
+    scope = _search_scope(platform, req.keyword, req.sort, req.publish)
+    snapshots = a.load_json(a.DATA / 'keyword-snapshots.json', {})
+    previous = snapshots.get(scope) or {}
+    previous_urls = set(previous.get('urls') or [])
+    def canonical(item):
+        return _auto_canonical(item) or str(item.get('id') or '')
+    new_items = [item for item in all_items if canonical(item) not in previous_urls]
+    snapshots[scope] = {
+        'keyword': req.keyword.strip(), 'platform': platform, 'sort': req.sort,
+        'publish': req.publish, 'urls': [canonical(item) for item in all_items],
+        'items': [{'url': item.get('url'), 'title': item.get('title') or '', 'id': item.get('id')}
+                  for item in all_items],
+        'updated': time.time(),
+    }
+    a.atomic_json(a.DATA / 'keyword-snapshots.json', snapshots)
+    a.atomic_json(base / '搜索结果.json', {
+        'keyword': req.keyword, 'platform': platform, 'pages': pages,
+        'items': all_items, 'new_items': new_items,
+        'previous_count': len(previous_urls), 'new_count': len(new_items),
+        'first_snapshot': not previous, 'incremental': req.incremental, 'updated': time.time(),
+    })
+    if previous:
+        (base / '新增视频.txt').write_text(
+            '\n'.join(f"{item.get('title') or '(无标题)'}\t{item.get('url') or ''}"
+                      for item in new_items) or '本次没有新增视频。',
+            encoding='utf-8')
+    if req.incremental and not new_items:
+        return f'本次没有新增视频；上次快照已记录 {len(previous_urls)} 条，未重复建包'
+    if req.incremental:
+        items = new_items
+    if not items:
+        raise ValueError('没有读到搜索结果；请确认关键词、平台登录状态或人工验证后重试')
+    a.change(jid, message=f'已读取 {len(all_items)} 条搜索结果，本次新增 {len(new_items)} 条，准备批量处理', progress=55)
+    picked = [Picked(url=item['url'], title=item.get('title') or '', kind=item.get('kind') or 'video')
+              for item in items]
+    if req.mode == 'video':
+        ids = queue_direct_videos(a, picked, req.output)
+        return f'已读取 {len(items)} 条搜索结果，已建立 {len(ids)} 个视频下载任务'
+    sources = [
+        batch_pipeline.OnlineSource(
+            input=item.url, episode=index + 1,
+            episode_title=(item.title.strip() or f'{req.keyword} · 第{index + 1:03d}条')[:120])
+        for index, item in enumerate(picked)
+    ]
+    body = batch_pipeline.BatchRequest(
+        sources=['online'],
+        online_sources=sources,
+        kind='board',
+        workflow='board',
+        performance='auto',
+        output=req.output,
+        outputs=batch_pipeline.Outputs(puzzles=True, transcript=True, ai=True, video=req.keep_video),
+        analysis=DAILY_ANALYSIS,
+        ai_package=batch_pipeline.AIPackage(**daily_package()),
+        request_id='collect-auto-' + uuid.uuid4().hex,
+    )
+    parent = pipeline.create(body)
+    a.change(jid, batch_job=parent['id'])
+    return (f'已读取 {len(items)} 条搜索结果，已建立 {len(sources)} 期 AI 资料包任务；'
+            f'批量任务 {parent["id"]} 会在素材库继续处理')
+
+
+
 def install(app, a, pipeline):
+    @app.post('/api/collect/open')
+    async def collect_open(req: OpenSearchRequest):
+        if req.platform not in ('dy', 'bili'):
+            raise HTTPException(400, '请选择抖音或 B 站')
+        if not req.keyword.strip():
+            raise HTTPException(400, '请输入搜索关键词')
+        try:
+            url = listing_url(req.platform, 'search', req.keyword.strip(), sort=req.sort,
+                              page=req.page, publish=req.publish)
+            result = await asyncio.wrap_future(a.BROWSER.open(url))
+            return {**result, 'url': url}
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+
+    @app.get('/api/collect/preflight')
+    def collect_preflight(platform: str = 'dy', keyword: str = '', sort: str = '',
+                          publish: str = '', incremental: bool = False):
+        """Cheap checks before a keyword run: login material and disk headroom."""
+        if platform not in ('dy', 'bili'):
+            raise HTTPException(400, '请选择抖音或 B 站')
+        checks, warnings, ok = [], [], True
+        if platform == 'bili':
+            cookies = _bili_cookie_count(a)
+            ok = cookies > 0
+            checks.append({'name': 'B 站登录材料', 'ok': ok, 'detail': f'找到 {cookies} 份 B 站 Cookie'})
+            if not ok:
+                warnings.append('没有找到 B 站登录 Cookie；请先在映格浏览器登录 B 站，否则搜索会失败。')
+        else:
+            checks.append({'name': '抖音可见浏览器', 'ok': True, 'detail': '将由可见浏览器读取搜索结果'})
+            warnings.append('抖音搜索需要登录态；遇到滑块或验证码时请在可见浏览器人工完成，程序不会绕过验证。')
+        try:
+            free = shutil.disk_usage(str(a.DATA)).free
+            disk_ok = free >= 500 * 1024 * 1024
+            checks.append({'name': '磁盘余量', 'ok': disk_ok, 'detail': f'可用 {free / 1024 / 1024:.0f} MB'})
+            if not disk_ok:
+                ok = False
+                warnings.append('磁盘剩余空间不足 500 MB，批量下载可能中途失败。')
+        except OSError as exc:
+            checks.append({'name': '磁盘余量', 'ok': False, 'detail': str(exc)})
+            ok = False
+            warnings.append('无法读取磁盘余量，请检查输出盘是否在线。')
+        if keyword.strip():
+            snapshots = a.load_json(a.DATA / 'keyword-snapshots.json', {})
+            previous = snapshots.get(_search_scope(platform, keyword, sort, publish)) or {}
+            recorded = len(previous.get('urls') or [])
+            checks.append({'name': '增量快照', 'ok': True,
+                           'detail': f'上次记录 {recorded} 条' if recorded else '尚无快照，首次运行会建立基线'})
+            if incremental and not recorded:
+                warnings.append('这是该关键词的第一次运行：会先建立全部结果作为基线，下一次才只处理新增。')
+        return {'ok': ok, 'platform': platform, 'keyword': keyword.strip(),
+                'checks': checks, 'warnings': warnings,
+                'message': '预检未通过' if not ok else ('有提醒，但不影响开始' if warnings else '预检通过')}
+
+    @app.post('/api/collect/auto')
+    def collect_auto(req: AutoSearchRequest):
+        if req.platform not in ('dy', 'bili'):
+            raise HTTPException(400, '请选择抖音或 B 站')
+        if not req.keyword.strip():
+            raise HTTPException(400, '请输入搜索关键词')
+        if req.mode not in ('package', 'video'):
+            raise HTTPException(400, '未知处理方式')
+        label = _auto_label(req.platform)
+        job = a.new_job('collect', f'{label}关键词批量 · {req.keyword.strip()[:40]}',
+                        req.output, options=req.model_dump())
+        # Browser reads are serialized separately from media/transcription work,
+        # so a keyword scan cannot hold the single media worker for a minute.
+        executor = getattr(a, 'CRAWLERS', None) or a.WORKERS
+        executor.submit(a.guarded, job['id'], lambda: auto_search(a, pipeline, job['id'], req))
+        return {'id': job['id'], 'kind': 'collect', 'title': job['title'],
+                'count': 0, 'message': '正在后台读取搜索结果'}
+
     @app.post('/api/collect/folders')
     def collect_folders(req: FoldersRequest):
         if req.platform not in ('dy', 'bili'):
@@ -718,6 +1155,15 @@ def install(app, a, pipeline):
                     '也可以直接把带 fid= 的收藏夹链接粘到“目标”里读取，默认收藏夹也一样。')
         return {'folders': folders, 'count': len(folders), 'page': result['page'],
                 'elapsed': result['elapsed'], 'hint': hint}
+
+    @app.post('/api/collect/mentions')
+    def collect_mentions(req: MentionRequest):
+        if req.platform not in ('dy',):
+            raise HTTPException(400, '简介 @ 账号读取目前只支持抖音')
+        try:
+            return profile_mentions(a.BROWSER, req.target.strip(), req.platform)
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
 
     @app.post('/api/collect/list')
     def collect_list(req: ListRequest):
@@ -806,3 +1252,7 @@ def install(app, a, pipeline):
             raise HTTPException(400, str(exc)[:200])
         return {'id': job['id'], 'title': job.get('title'), 'count': len(sources),
                 'mode': mode, 'combined': combined}
+
+
+
+

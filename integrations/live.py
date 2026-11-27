@@ -50,7 +50,7 @@ class Anchor(BaseModel):
 
 
 class LiveSettings(BaseModel):
-    concurrency: int = Field(default=4, ge=1, le=8)
+    concurrency: int = Field(default=8, ge=1, le=32)
     output: str = ''
     segment_minutes: int = Field(default=30, ge=1, le=120)
     follow_global: bool | None = None
@@ -80,7 +80,7 @@ class Manager:
         self.path = a.DATA/'live-settings.json'
         self.lock = threading.RLock()
         self.stopping = threading.Event()
-        self.pool = ThreadPoolExecutor(max_workers=8, thread_name_prefix='live')
+        self.pool = ThreadPoolExecutor(max_workers=32, thread_name_prefix='live')
         raw = a.load_json(self.path, {})
         if not isinstance(raw, dict): raw = {}
         raw_settings=raw.get('settings',{})

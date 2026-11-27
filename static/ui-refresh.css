@@ -1,0 +1,201 @@
+/* 映格 2.9.5 · UI refresh
+   Layered on top of the existing styles so every page keeps its behavior.
+   Goals: calmer contrast, clearer hierarchy, compact live-anchor cards,
+   faster perceived start, and fewer oversized action blocks. */
+:root{
+  --bg:#f2f6f4;
+  --panel:#ffffff;
+  --ink:#14231f;
+  --muted:#6f807a;
+  --line:#dfe8e3;
+  --line-strong:#cbd9d2;
+  --accent:#0b7a63;
+  --accent-2:#35a88b;
+  --accent-light:#e6f4ee;
+  --accent-soft:#f0f8f4;
+  --red:#b3453d;
+  --shadow:0 16px 44px rgba(21,49,42,.07);
+  --radius:14px;
+}
+html{background:var(--bg)}
+body{
+  background:
+    radial-gradient(1100px 480px at 16% -8%, #dff1e9 0%, transparent 58%),
+    radial-gradient(900px 500px at 94% 8%, #e8f0ff 0%, transparent 50%),
+    var(--bg);
+  color:var(--ink);
+  font-family:"Microsoft YaHei UI","Microsoft YaHei","Segoe UI",system-ui,sans-serif;
+  letter-spacing:.01em;
+}
+button, input, select, textarea{font-family:inherit}
+button{border-radius:9px;transition:background .16s,border-color .16s,transform .16s,box-shadow .16s}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #2da889;outline-offset:2px}
+input,select,textarea{border-color:var(--line);border-radius:9px;background:#fbfdfc}
+input:focus,select:focus,textarea:focus{border-color:#48a98d;outline:3px solid #48a98d1c;background:#fff}
+a{color:var(--accent)}
+
+/* App shell */
+.sidebar{
+  width:236px;padding:28px 18px 20px;background:#0f1f1b;border-right:1px solid #1d342d;
+  color:#e6f3ed;box-shadow:14px 0 40px rgba(11,28,24,.08);
+}
+.brand{color:#f2fbf6;padding:0 10px}
+.brand small{color:#83a89a;letter-spacing:2.6px}
+.brand-icon{background:linear-gradient(145deg,#16a081,#0c6655);box-shadow:0 10px 24px #00000035;border-radius:12px}
+.nav-label{color:#6e9487;margin:44px 14px 12px;letter-spacing:1.4px}
+.nav{color:#a9c1b8;border-radius:9px;padding:12px 12px;margin-bottom:4px;position:relative}
+.nav>span:first-child{color:#79a99a;font-size:19px}
+.nav:hover{background:#18332b;color:#e8f7f1}
+.nav.active{background:linear-gradient(90deg,#1a4438,#15352d);color:#d9fff2;box-shadow:inset 3px 0 0 #53d3ae}
+.nav.active>span:first-child{color:#7af0cc}
+.count{background:#254d40;color:#bdf6e1}
+.side-note{border-top-color:#244139;color:#a9bdb5}
+.side-note p{color:#7f9c91}
+.side-bottom{color:#6f8b81}
+.side-bottom small{color:#54766a}
+main{margin-left:236px}
+.topbar{
+  position:sticky;top:0;z-index:20;height:62px;background:rgba(250,253,251,.82);
+  backdrop-filter:blur(16px);border-bottom:1px solid #dfeae5;padding:0 34px;
+  color:#71817b;
+}
+.topbar #breadcrumb{font-weight:600;color:#40534c;letter-spacing:.02em}
+.local-badge{background:#edf8f2;border-color:#cde9dc;color:#276b55;font-weight:600}
+.content{max-width:1480px;padding:26px 34px 38px}
+.savebar{
+  position:relative;z-index:1;border-radius:12px;border-color:#dbe8e2;
+  background:rgba(255,255,255,.82);box-shadow:0 8px 24px rgba(19,54,44,.04);
+  padding:9px 12px;margin-bottom:24px;
+}
+.savebar input{background:#f0f7f3;border-radius:7px}
+.page-heading{margin:14px 0 26px;align-items:flex-end}
+.eyebrow{color:#3c927b;font-weight:700;letter-spacing:2.4px}
+h1{font-size:clamp(26px,2.4vw,34px);line-height:1.25;letter-spacing:-.03em;font-weight:700}
+h2{font-size:15px;letter-spacing:-.01em}
+.page-heading p{font-size:12.5px;color:#6f807a;max-width:760px;margin-top:8px;line-height:1.7}
+.step-tag{color:#8ba39a;letter-spacing:1.2px}
+.badge{background:#f8fbf9;border-color:#d8e5df;color:#6d8078}
+.panel{border-radius:var(--radius);border-color:var(--line);box-shadow:var(--shadow);background:rgba(255,255,255,.96)}
+.panel-head{background:linear-gradient(180deg,#fbfdfc,#fff);border-bottom-color:#edf3ef;padding:18px 22px}
+.padded{padding:26px}
+.padded h2{margin-bottom:18px}
+.primary{
+  background:linear-gradient(180deg,#11846b,#0a6c58);border-color:#0a6c58;color:#fff;
+  box-shadow:0 8px 18px rgba(11,122,99,.18);font-weight:650;
+}
+.primary:hover:not(:disabled){filter:none;transform:translateY(-1px);box-shadow:0 11px 23px rgba(11,122,99,.24)}
+.subtle{background:#f5f9f7;border-color:#dfeae4;color:#3d5b51;font-weight:600}
+.subtle:hover:not(:disabled){background:#ecf5f0;border-color:#cfe3da}
+.text-btn{color:#58736a}
+.danger{background:#fff8f7;border-color:#eed7d4;color:#a84139}
+.notice{background:#f8fbf5;border-color:#dfe9d3;color:#6e7855}
+.field{gap:7px;margin:15px 0;color:#43584f;font-weight:600}
+.field small,.mini-note{color:#84948d;font-weight:400}
+.checkbox-line{color:#63766e}
+.button-row{gap:8px}
+.two-columns{gap:22px}
+.library-summary{gap:14px}
+.library-summary>div{
+  background:linear-gradient(135deg,#fff,#f4faf6);border-color:#dce9e2;border-radius:13px;
+  box-shadow:0 8px 26px rgba(22,61,50,.04);padding:18px 20px;
+}
+.library-summary strong{color:#0b7a63;font-size:27px}
+
+/* Task list */
+.job{padding:17px 22px;gap:14px;grid-template-columns:40px 1fr minmax(240px,auto)}
+.job:hover{background:#fbfdfc}
+.job-icon{height:38px;border-radius:10px;background:#e8f4ee;color:#17765e;font-size:21px}
+.job-title{font-weight:650;color:#223831}
+.job-message{color:#82928c}
+.job-meta{color:#9aa9a3}
+.job-actions{gap:5px;max-width:300px}
+.job-actions .text-btn{padding:6px 5px;font-size:11px}
+.status{background:#f1f5f3;color:#647871}
+.status.done{background:#e8f7ef;color:#2d7f5c}
+.status.recording,.status.processing{background:#fff3ed;color:#b45b3e}
+.jobs-more{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 22px;background:#f8fbf9;border-top:1px solid var(--line);font-size:11px;color:#82928c}
+.jobs-more button{padding:7px 14px}
+.jobs-count-line{padding:12px 22px 18px;font-size:10px;color:#9aa9a3;text-align:right}
+
+/* Live page: compact cards, filter, help */
+.live-tools{display:flex;gap:10px;align-items:center;padding:12px 22px 0}
+.live-tools input{flex:1;max-width:360px;padding:8px 11px;font-size:12px;background:#f6faf8}
+.live-tools span{font-size:10px;color:#8b9c95;white-space:nowrap}
+.anchor26{
+  display:grid;grid-template-columns:minmax(220px,1fr) minmax(300px,38%);gap:14px;align-items:center;
+  padding:14px 15px;margin:9px 0;border:1px solid #e2ece6;border-radius:12px;background:#fbfdfc;
+  transition:border-color .15s,box-shadow .15s,background .15s;
+}
+.anchor26:hover{border-color:#c7ddd3;background:#fff;box-shadow:0 7px 20px rgba(19,65,51,.045)}
+.anchor26 strong{font-size:13.5px;color:#1f3830;letter-spacing:.01em}
+.anchor26 p{margin:5px 0 4px;font-size:11px;line-height:1.6}
+.anchor26 small{font-size:10px;color:#8b9c95;line-height:1.6}
+.anchor26 .button-row{max-width:none;width:100%;gap:4px;margin:0;justify-content:flex-end}
+.anchor26 .button-row button{padding:7px 9px;font-size:10.5px;white-space:nowrap;flex:0 1 auto}
+.anchor26 .button-row .primary{padding:7px 12px}
+.anchor26 .button-row .text-btn{padding:7px 4px}
+.help26{border:1px solid #dce9e2;background:linear-gradient(135deg,#f7fcf9,#fff);box-shadow:none;margin:0 0 20px}
+.help26 summary{cursor:pointer;padding:14px 20px;font-size:12px;font-weight:650;color:#335b4e;list-style:none}
+.help26 summary::-webkit-details-marker{display:none}
+.help26 summary:before{content:"?";display:inline-grid;place-items:center;width:19px;height:19px;margin-right:8px;border-radius:50%;background:#e3f3ec;color:#0b7a63;font-weight:800;font-size:11px}
+.help26 div{padding:0 20px 18px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 24px}
+.help26 div p{font-size:11px;line-height:1.7;margin:0;color:#667a72}
+.help26 b{color:#2d4e42}
+#page-live .two-columns>.panel{padding-bottom:20px}
+#page-live .inline-fields{flex-wrap:wrap}
+#page-live .inline-fields>.field{flex:1 1 220px}
+#page-live .inline-fields>p.mini-note{flex:1 1 100%;min-width:0;margin:0;align-self:center}
+#page-live h1{max-width:700px}
+#page-live .page-heading .badge{background:#e9f7f0;border-color:#cce8dc;color:#28705a;font-weight:600}
+#page-live .panel>.padded>h2{font-size:16px}
+#page-live .button-row .primary{flex:0 1 auto;min-width:112px}
+#liveAnchors{padding:6px 18px 16px}
+#liveAnchors>p.muted{padding:20px 4px}
+.help26{display:block}
+@media(max-width:900px){.help26 div{grid-template-columns:1fr}.anchor26{grid-template-columns:1fr}.anchor26 .button-row{max-width:none;justify-content:flex-start}}
+
+/* Splash: shows immediately while the local service and 2 MB state load. */
+#appSplash{
+  position:fixed;inset:0;z-index:9999;display:grid;place-items:center;
+  background:
+    radial-gradient(800px 420px at 24% 10%, #dff3ea 0%, transparent 60%),
+    radial-gradient(700px 340px at 82% 86%, #e5edff 0%, transparent 58%),
+    #f2f7f4;
+  transition:opacity .35s ease,visibility .35s ease;
+}
+#appSplash .splash-card{text-align:center;padding:30px 38px;border:1px solid #dce9e2;border-radius:22px;background:rgba(255,255,255,.82);box-shadow:0 30px 80px rgba(19,59,46,.12);backdrop-filter:blur(12px);min-width:270px}
+#appSplash .splash-mark{width:58px;height:58px;margin:0 auto 16px;display:grid;place-items:center;border-radius:17px;background:linear-gradient(145deg,#16a081,#0b6a57);color:#eafff7;font-size:32px;box-shadow:0 14px 28px rgba(11,122,99,.22)}
+#appSplash h2{font-size:23px;letter-spacing:.12em;color:#173b30;margin:0 0 6px}
+#appSplash p{font-size:11px;color:#7c9188;margin:0 0 18px;letter-spacing:.06em}
+#appSplash .splash-bar{height:3px;overflow:hidden;border-radius:3px;background:#e1eee8}
+#appSplash .splash-bar span{display:block;height:100%;width:38%;border-radius:3px;background:linear-gradient(90deg,#46c8a5,#0b7a63);animation:splashRun 1.25s ease-in-out infinite}
+@keyframes splashRun{0%{transform:translateX(-110%)}55%{transform:translateX(120%)}100%{transform:translateX(300%)}}
+body.ui-ready #appSplash{opacity:0;visibility:hidden;pointer-events:none}
+@media(prefers-reduced-motion:reduce){#appSplash .splash-bar span{animation:none;width:60%}.page:not([hidden]){animation:none}}
+
+/*Page transition */
+.page:not([hidden]){animation:pageIn .22s ease both}
+@keyframes pageIn{from{opacity:.55;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* Scrollbars and selection */
+::selection{background:#b9efd9;color:#0b3b2e}
+*{scrollbar-width:thin;scrollbar-color:#b9cdc4 transparent}
+@media(max-width:1130px){
+  .sidebar{width:198px}
+  main{margin-left:198px}
+  .content{padding:22px}
+}
+@media(max-width:940px){
+  .sidebar{width:76px;padding:24px 8px}
+  main{margin-left:76px}
+  .topbar{padding:0 20px}
+  .content{padding:18px}
+  .anchor26 .button-row{max-width:none;justify-content:flex-start}
+}
+@media(max-width:600px){
+  .content{padding:14px}
+  .job{grid-template-columns:34px 1fr}
+  .job-actions{grid-column:2;max-width:none;justify-content:flex-start}
+  .live-tools{padding:12px 14px 0}
+  .live-tools input{max-width:none}
+}

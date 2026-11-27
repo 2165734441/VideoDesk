@@ -87,7 +87,7 @@ class ReportRegressions(unittest.TestCase):
         exe=self.root/'EnvironmentHarness.exe'
         command=[str(compiler),'/nologo','/target:exe','/platform:x64','/codepage:65001','/main:EnvironmentHarness','/out:'+str(exe)]
         command+=['/reference:'+r for r in ('System.Windows.Forms.dll','System.Drawing.dll','System.IO.Compression.dll','System.IO.Compression.FileSystem.dll','System.Web.Extensions.dll')]
-        command+=[str(root/p) for p in ('tests/EnvironmentHarness.cs','launcher/Program.cs','launcher/Compatibility.cs')]+[str(info)]
+        command+=[str(root/p) for p in ('tests/EnvironmentHarness.cs','launcher/Program.cs','launcher/Compatibility.cs','launcher/DownloadButton.cs')]+[str(info)]
         compiled=subprocess.run(command,capture_output=True,text=True,errors='replace',timeout=30)
         self.assertEqual(compiled.returncode,0,compiled.stdout+compiled.stderr)
         env={k:v for k,v in os.environ.items() if k.upper() not in ('HTTP_PROXY','HTTPS_PROXY','PYTHONPATH')}

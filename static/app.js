@@ -17,6 +17,14 @@ function jobProgress(j){
 }
 const $ = id => document.getElementById(id);
 let token = '', jobs = [], currentPage = 'import';
+let knownCategories = ['未分类'], workbenchLoaded = false;
+let jobRenderLimit = 60;
+function markReady() {
+  document.body.classList.add('ui-ready');
+  const splash = $('appSplash');
+  if (splash) setTimeout(() => splash.remove(), 450);
+}
+setTimeout(markReady, 8000);
 let sourceStream = null, region = null, localRegion = null, localObjectUrl = null, savedSource = null;
 let session = null, finishing = false, rendering = false;
 const video = $('sourceVideo'), preview = $('preview');
@@ -35,7 +43,7 @@ async function api(url, {method = 'GET', body, raw = false, timeoutMs} = {}) {
   if (method !== 'GET') headers['X-App-Token'] = token;
   if (body !== undefined && !raw) {headers['Content-Type'] = 'application/json'; body = JSON.stringify(body);}
   const controller = new AbortController();
-  const timer = setTimeout(()=>controller.abort(), timeoutMs??(method==='GET'?5000:15000));
+  const timer = setTimeout(()=>controller.abort(), timeoutMs??(method==='GET'?15000:15000));
   try {
     const response = await fetch(url, {method, headers, body, signal:controller.signal});
     const data = await response.json().catch(e=>{if(e.name==='AbortError')throw e;return {};});
@@ -60,7 +68,7 @@ function goto(page) {
   const parent=({capture:'import',download:'import',crawler:'import',dedup:'library'}[page])||page;
   document.querySelectorAll('.nav').forEach(el => el.classList.toggle('active', el.dataset.page === parent));
   $('breadcrumb').textContent = '工作空间 / ' + ({live:'直播录播与回放',translate:'英文视频转中文',import:'导入与采集',analysis:'AI 看懂视频',subtitles:'字幕区域截图长图',settings:'账号与模型',capture:'网页录制与截图',download:'链接下载',crawler:'平台采集',extract:'视频抽帧',dedup:'照片与截图去重',library:'素材库'}[page]);
-  if (page === 'library') renderJobs();
+  if (page === 'library') {renderJobs();loadLibraryStats();}
   if (page === 'dedup' && typeof refreshDedup === 'function') refreshDedup().catch(e=>toast(e.message,true));
   if (typeof onWorkflowPage==='function') onWorkflowPage(page);
   window.scrollTo(0,0);
@@ -68,18 +76,19 @@ function goto(page) {
 document.querySelectorAll('[data-page]').forEach(el => el.addEventListener('click', () => goto(el.dataset.page)));
 document.querySelectorAll('[data-goto]').forEach(el => el.addEventListener('click', () => goto(el.dataset.goto)));
 async function refresh() {
-  const state = await api('/api/state');if(state.application!=='video-desk')throw new Error('此地址已失效，请从系统托盘重新打开映格工作台。'); token = state.token; jobs = state.jobs;
+  const state = await api('/api/state');if(state.application!=='video-desk')throw new Error('此地址已失效，请从系统托盘重新打开映格工作台。'); token = state.token; jobs = state.jobs.filter(j=>!String(j.title||'').startsWith('测试-'));
   if(typeof window!=='undefined'&&typeof CustomEvent!=='undefined')window.dispatchEvent(new CustomEvent('video-desk-state',{detail:state}));
   $('connectionText').textContent='本地服务已连接';$('connectionBadge').classList.remove('disconnected');
   if (!$('output').value) $('output').value = state.settings.output;
   $('jobCount').textContent = jobs.length;
-  if (currentPage === 'library') renderJobs();
+  if (currentPage === 'library') {renderJobs();loadLibraryStats();fillEnhanceJobs();if(!workbenchLoaded)loadWorkbench().catch(e=>toast(e.message,true));}
   if ($('youtubeStatus') && state.youtube) $('youtubeStatus').textContent=state.youtube.ready?'YouTube 组件已就绪':'YouTube 需 Node.js 22+ 与 yt-dlp[default]';
   if ($('engineStatus') && state.engines) $('engineStatus').textContent = state.engines.mediacrawler ? '双引擎已安装' : 'MediaCrawler 环境待安装';
-  if (typeof refreshDedup === 'function') {
+  if (currentPage === 'dedup' && typeof refreshDedup === 'function') {
     try {await refreshDedup();}
     catch (error) {$('dedupStatus').textContent = '去重结果读取失败：' + error.message;}
   }
+  markReady();
   return state;
 }
 bind('pickDir', () => busy($('pickDir'), async () => {const result = await api('/api/pick-directory', {method:'POST'}); if (result.path) {$('output').value = result.path; await saveDirectory();}}));
@@ -362,13 +371,89 @@ function useSavedVideo(jid,name) {
   $('videoFile').value='';$('fileLabel').textContent=name;$('extractSource').textContent='将直接处理已保存的视频，无需重复导入。';
   $('filesDialog').close();goto('extract');
 }
-function renderJobs() {
-  $('totalJobs').textContent=jobs.length;$('doneJobs').textContent=jobs.filter(j=>j.status==='done').length;
+function libraryClock(seconds){
+  seconds=Math.max(0,Math.round(Number(seconds)||0));const h=Math.floor(seconds/3600),m=Math.floor(seconds%3600/60),s=seconds%60;
+  return h?`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${m}:${String(s).padStart(2,'0')}`;
+}
+async function loadLibraryStats(){
+  if(!$('libraryStats'))return;
+  try{
+    const data=await api('/api/library/stats',{timeoutMs:15000});
+    if(!data.packages){$('libraryStats').textContent='索引尚未建立。点击“重建索引”扫描已完成的 AI 包。';return;}
+    const when=data.updated?new Date(data.updated*1000).toLocaleString('zh-CN',{timeZone:'Asia/Shanghai'}):'—';
+    $('libraryStats').innerHTML=`<span class="library-stats-line"><span><b>${data.packages}</b> 个 AI 包</span><span><b>${data.segments}</b> 条片段</span><span>台词 <b>${data.transcript}</b> · 画面文字 <b>${data.ocr}</b></span><span>索引 ${when}</span><span>${(data.size/1024/1024).toFixed(1)} MB</span></span>`;
+  }catch(err){$('libraryStats').textContent='索引统计暂时不可用：'+err.message;}
+}
+function renderLibraryResults(data){
+  const box=$('libraryResults');if(!box)return;
+  if(!data.items||!data.items.length){box.innerHTML=`<p class="library-empty">没有找到“${html(data.query)}”。可以换一个更短的词，或先重建索引。</p>`;return;}
+  box.innerHTML=data.items.map(item=>`<article class="library-hit"><div class="library-hit-head"><strong>${html(item.title)}</strong><span class="badge">${item.kind==='ocr'?'画面文字':'口述'} · ${libraryClock(item.start)}</span></div><p>${html(item.text)}</p><div class="library-hit-meta"><span>${html(item.visual_id||'')} ${html(item.directory||'')}</span><button class="text-btn" data-library-job="${html(item.job_id||'')}">打开所在目录 ↗</button></div></article>`).join('')+`<p class="mini-note">由 ${data.engine==='fts'?'全文索引':'兼容检索'} 返回 ${data.count} 条；时间均为原片时间。</p>`;
+}
+async function searchLibrary(){
+  const query=$('libraryQuery').value.trim();if(!query){toast('请输入要查找的词',true);return;}
+  const kind=$('libraryKind').value;
+  const data=await api(`/api/library/search?q=${encodeURIComponent(query)}&limit=30&kind=${encodeURIComponent(kind)}`,{timeoutMs:20000});
+  renderLibraryResults(data);await loadLibraryStats();
+}
+
+async function loadWorkbench(){
+  const [settings,cats]=await Promise.all([api('/api/workbench/settings'),api('/api/workbench/categories')]);
+  knownCategories=(cats.categories&&cats.categories.length)?cats.categories:['未分类'];
+  if(!knownCategories.includes('未分类'))knownCategories.unshift('未分类');
+  $('categoryRules').value=knownCategories.filter(c=>c!=='未分类').join('\n');
+  $('backupRoot').value=settings.backup_root||'';
+  if($('backupAfterDone')) $('backupAfterDone').checked=!!settings.backup_after_done;
+  renderCategoryFilter();
+  workbenchLoaded=true;
+}
+function renderCategoryFilter(){
+  const select=$('categoryFilter');if(!select)return;
+  const keep=select.value;
+  select.innerHTML='<option value="">全部分类</option>'+knownCategories.map(c=>`<option value="${html(c)}">${html(c)}</option>`).join('');
+  select.value=keep;
+}
+function fillEnhanceJobs(){
+  const select=$('enhanceJob');if(!select)return;
+  const keep=select.value;
+  const usable=jobs.filter(j=>j.kind!=='backup');
+  select.innerHTML='<option value="">请选择素材任务</option>'+usable.map(j=>`<option value="${j.id}">${html(j.title||j.id)} · ${html(j.category||'未分类')}</option>`).join('');
+  select.value=keep;
+}
+async function saveCategoryRules(){
+  const names=$('categoryRules').value.split(/\n|,/).map(x=>x.trim()).filter(Boolean);
+  await api('/api/workbench/settings',{method:'POST',body:{categories:names}});
+  await loadWorkbench();renderJobs();toast('分类已保存；可在每个任务右侧给素材选分类');
+}
+async function saveBackupRoot(){
+  const root=$('backupRoot').value.trim();if(!root){toast('请填写备份目录，例如 K:\\VideoDesk备份',true);return;}
+  await api('/api/workbench/settings',{method:'POST',body:{backup_root:root,backup_after_done:$('backupAfterDone')?.checked||false}});
+  toast('备份目录已保存');await loadWorkbench();
+}
+async function backupDone(){
+  const root=$('backupRoot').value.trim();
+  const data=await api('/api/workbench/backup',{method:'POST',timeoutMs:60000,body:{all_done:true,target:root}});
+  toast(`已建立备份任务：${data.count} 个已完成任务 → ${data.target}`);await refresh();
+}
+async function buildEnhance(){
+  const jid=$('enhanceJob').value;
+  if(!jid){toast('请先选择一个素材任务',true);return;}
+  const body={job_id:jid,file:$('enhanceFile').value.trim(),
+    width:Number($('enhanceWidth').value)||0,height:Number($('enhanceHeight').value)||0,
+    fps:Number($('enhanceFps').value)||0,bitrate:$('enhanceBitrate').value.trim(),
+    schedule_at:$('enhanceSchedule').value||''};
+  if(!body.width&&!body.height&&!body.fps&&!body.bitrate){toast('请至少填写宽、高、帧率或码率中的一项',true);return;}
+  const data=await api('/api/enhance',{method:'POST',timeoutMs:60000,body});
+  toast(data.message||'已建立增强任务');await refresh();
+}
+function shortJobTitle(title){const value=String(title||'');const match=value.match(/\bp\d{1,4}\b\s+(.+)$/i);return (match&&match[1])?match[1].trim():value;}
+function renderJobs() {  $('totalJobs').textContent=jobs.length;$('doneJobs').textContent=jobs.filter(j=>j.status==='done').length;
   $('totalFrames').textContent=jobs.reduce((n,j)=>n+(j.frames||0),0);
   const filter=$('jobFilter').value;
-  const visible=jobs.filter(j=>($('showCleaned')?.checked||(!j.materials_deleted&&!j.superseded_by))&&(filter==='all'||(filter==='active'?activeStatus(j.status):filter==='error'?['error','interrupted','cancelled'].includes(j.status):j.status===filter)));
+  const category=$('categoryFilter')?.value||'';
+  const visible=jobs.filter(j=>($('showCleaned')?.checked||(!j.materials_deleted&&!j.superseded_by))&&(!category||(j.category||'未分类')===category)&&(filter==='all'||(filter==='active'?activeStatus(j.status):filter==='error'?['error','interrupted','cancelled'].includes(j.status):j.status===filter)));
   if(!visible.length) {$('jobs').innerHTML='<div class="jobs-empty"><strong>这里，准备装下你的灵感。</strong>从网页采集、链接下载或导入视频开始，素材会出现在这里。</div>';return;}
-  $('jobs').innerHTML=visible.map(j=>`<article class="job"><div class="job-icon">${{download:'↓',capture:'◉',extract:'▦',crawler:'◈',dedup:'▧',stream:'⇣'}[j.kind]||'▤'}</div><div><div class="job-title">${html(j.title)}</div><p class="job-message">${html(j.message)}</p>${jobProgress(j)}<div class="job-meta">${new Date(j.created*1000).toLocaleString('zh-CN',{timeZone:'Asia/Shanghai'})} · ${j.frames||0} 张图片<br>${html(j.directory)}</div></div><div class="job-actions"><span class="status ${html(j.status)}">${j.status==='waiting'&&j.kind==='translation'?'待检查字幕':j.status==='waiting'&&j.kind==='live-recording'?'重连中':statusLabels[j.status]||html(j.status)}</span><button class="text-btn" data-action="folder" data-id="${j.id}">打开目录</button><button class="text-btn" data-action="files" data-id="${j.id}">查看素材</button>${j.kind==='dedup'?`<button class="text-btn" data-action="dedup" data-id="${j.id}">查看去重结果</button>`:!activeStatus(j.status)&&j.frames?`<button class="text-btn" data-action="dedup-source" data-id="${j.id}">图片去重</button>`:''}${['waiting','waiting_source'].includes(j.status)&&j.kind!=='live-recording'?`<button class="subtle" data-action="resume" data-id="${j.id}">${j.kind==='translation'?'检查双语字幕':'重新接管 / 继续'}</button>`:''}${activeStatus(j.status)&&!['recording','transferring'].includes(j.status)?`<button class="text-btn" data-action="cancel" data-id="${j.id}">取消</button>`:''}</div></article>`).join('');
+  const page=visible.slice(0,jobRenderLimit);
+  $('jobs').innerHTML=page.map(j=>`<article class="job"><div class="job-icon">${{download:'↓',capture:'◉',extract:'▦',crawler:'◈',collect:'⌕',dedup:'▧',stream:'⇣'}[j.kind]||'▤'}</div><div><div class="job-title">${html(shortJobTitle(j.title))}</div><p class="job-message">${html(j.message)}</p>${jobProgress(j)}<div class="job-meta">${new Date(j.created*1000).toLocaleString('zh-CN',{timeZone:'Asia/Shanghai'})} · ${j.frames||0} 张图片<br>${html(j.directory)}</div></div><div class="job-actions"><span class="status ${html(j.status)}">${j.status==='waiting'&&j.kind==='translation'?'待检查字幕':j.status==='waiting'&&j.kind==='live-recording'?'重连中':statusLabels[j.status]||html(j.status)}</span><button class="text-btn" data-action="folder" data-id="${j.id}">打开目录</button><button class="text-btn" data-action="files" data-id="${j.id}">查看素材</button><select class="text-btn" data-action="category" data-id="${j.id}" aria-label="素材分类">${knownCategories.map(c=>`<option value="${html(c)}" ${((j.category||'未分类')===c)?'selected':''}>${html(c)}</option>`).join('')}</select>${j.status==='done'&&j.kind!=='backup'?`<button class="text-btn" data-action="backup" data-id="${j.id}">备份到目标盘</button>`:''}${j.kind==='dedup'?`<button class="text-btn" data-action="dedup" data-id="${j.id}">查看去重结果</button>`:!activeStatus(j.status)&&j.frames?`<button class="text-btn" data-action="dedup-source" data-id="${j.id}">图片去重</button>`:''}${j.kind==='batch'&&j.counts&&j.counts.error?`<button class="text-btn" data-action="retry-failed" data-id="${j.id}">重试失败项</button>`:''}${['waiting','waiting_source'].includes(j.status)&&j.kind!=='live-recording'?`<button class="subtle" data-action="resume" data-id="${j.id}">${j.kind==='translation'?'检查双语字幕':'重新接管 / 继续'}</button>`:''}${activeStatus(j.status)&&!['recording','transferring'].includes(j.status)?`<button class="text-btn" data-action="cancel" data-id="${j.id}">取消</button>`:''}</div></article>`).join('')+(visible.length>page.length?`<div class="jobs-more"><span>已显示 ${page.length} / ${visible.length} 条</span><button class="subtle" data-jobs-more>继续显示</button></div>`:`<div class="jobs-count-line">共 ${visible.length} 条任务</div>`);
 }
 const isVideo=name=>/\.(mp4|webm|mkv|mov|avi|flv|m4v|ts)$/i.test(name);
 async function showFiles(jid) {
@@ -382,12 +467,38 @@ async function showFiles(jid) {
   if(!$('filesDialog').open) $('filesDialog').showModal();
 }
 $('jobs').addEventListener('click',event=>{
+  const more=event.target.closest('[data-jobs-more]');if(more){jobRenderLimit+=80;renderJobs();return;}
   const b=event.target.closest('button[data-action]');if(!b) return;
-  const handlers={dedup:()=>openDedup(b.dataset.id),'dedup-source':async()=>{await refresh();$('dedupSourceJob').value=b.dataset.id;$('dedupSource').disabled=true;goto('dedup');},folder:()=>api(`/api/jobs/${b.dataset.id}/open-folder`,{method:'POST'}),files:()=>showFiles(b.dataset.id),resume:async()=>{const job=jobs.find(j=>j.id===b.dataset.id);if(job?.kind==='translation'&&job.status==='waiting'){await refresh();goto('translate');$('translateJobSelect').value=job.id;$('translateJobSelect').dispatchEvent(new Event('change'));$('translateLoadRows').click();return;}await api(`/api/jobs/${b.dataset.id}/resume`,{method:'POST'});toast('已通知引擎继续，请等待结果');},cancel:async()=>{await api(`/api/jobs/${b.dataset.id}/cancel`,{method:'POST'});toast('已请求取消');await refresh();}};
+  const handlers={dedup:()=>openDedup(b.dataset.id),'dedup-source':async()=>{await refresh();$('dedupSourceJob').value=b.dataset.id;$('dedupSource').disabled=true;goto('dedup');},folder:()=>api(`/api/jobs/${b.dataset.id}/open-folder`,{method:'POST'}),files:()=>showFiles(b.dataset.id),resume:async()=>{const job=jobs.find(j=>j.id===b.dataset.id);if(job?.kind==='translation'&&job.status==='waiting'){await refresh();goto('translate');$('translateJobSelect').value=job.id;$('translateJobSelect').dispatchEvent(new Event('change'));$('translateLoadRows').click();return;}await api(`/api/jobs/${b.dataset.id}/resume`,{method:'POST'});toast('已通知引擎继续，请等待结果');},'retry-failed':async()=>{await api(`/api/batches/${b.dataset.id}/retry`,{method:'POST'});toast('已把失败的视频重新排入队列，已完成的不重跑');await refresh();},backup:async()=>{const data=await api('/api/workbench/backup',{method:'POST',timeoutMs:60000,body:{job_ids:[b.dataset.id]}});toast(`已建立备份任务：${data.count} 个素材 → ${data.target}`);await refresh();},cancel:async()=>{await api(`/api/jobs/${b.dataset.id}/cancel`,{method:'POST'});toast('已请求取消');await refresh();}};
   handlers[b.dataset.action]().catch(e=>toast(e.message,true));
 });
+$('jobs').addEventListener('change',async event=>{
+  const select=event.target.closest('[data-action="category"]');if(!select)return;
+  try{
+    await api(`/api/jobs/${select.dataset.id}/category`,{method:'POST',body:{category:select.value}});
+    toast('已更新素材分类');await refresh();
+  }catch(error){toast(error.message,true);}
+});
+
 $('filesList').addEventListener('click',event=>{const b=event.target.closest('[data-extract-id]');if(b) useSavedVideo(b.dataset.extractId,b.dataset.file);});
-bind('closeFiles',()=>$('filesDialog').close());bind('refreshJobs',refresh);$('jobFilter').addEventListener('change',()=>renderJobs());
+bind('closeFiles',()=>$('filesDialog').close());bind('refreshJobs',refresh);$('jobFilter').addEventListener('change',()=>{jobRenderLimit=60;renderJobs();});
+bind('saveCategoryRules',()=>busy($('saveCategoryRules'),saveCategoryRules));
+bind('saveBackupRoot',()=>busy($('saveBackupRoot'),saveBackupRoot));
+bind('backupDone',()=>busy($('backupDone'),backupDone));
+bind('enhanceRun',()=>busy($('enhanceRun'),buildEnhance));
+if($('categoryFilter')) $('categoryFilter').addEventListener('change',()=>renderJobs());
+bind('libraryStatsReload',loadLibraryStats);
+bind('librarySearchBtn',searchLibrary);
+bind('libraryRebuild',async()=>{
+  const data=await api('/api/library/rebuild',{method:'POST',timeoutMs:180000});
+  toast(`索引已重建：${data.packages||0} 个 AI 包，${data.segments||0} 条片段`+(data.skipped?`，跳过 ${data.skipped} 个`:''));
+  await loadLibraryStats();
+});
+if($('libraryResults')) $('libraryResults').addEventListener('click',event=>{
+  const b=event.target.closest('button[data-library-job]');if(!b||!b.dataset.libraryJob)return;
+  api(`/api/jobs/${b.dataset.libraryJob}/open-folder`,{method:'POST'}).catch(err=>toast(err.message,true));
+});
+if($('libraryQuery')) $('libraryQuery').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();searchLibrary().catch(err=>toast(err.message,true));}});
 
 if($('crawlerBtn')) bind('crawlerBtn',()=>busy($('crawlerBtn'),async()=>{
   const result=await api('/api/crawler',{method:'POST',body:{platform:$('crawlerPlatform').value,mode:$('crawlerMode').value,
@@ -422,6 +533,13 @@ const COLLECT_SORTS={
   dy:[['comprehensive','综合排序'],['latest','最新发布'],['likes','最多点赞']],
   bili:[['comprehensive','综合排序'],['latest','最新发布'],['plays','最多播放'],['favorites','最多收藏'],['danmaku','最多弹幕']],
 };
+function autoRefreshControls(){
+  const platform=$('collectPlatform').value||'dy';
+  const sort=$('autoSort');
+  if(sort)sort.innerHTML=COLLECT_SORTS[platform].map(([v,t])=>`<option value="${v}">${t}</option>`).join('');
+  if($('autoPagesField'))$('autoPagesField').hidden=platform!=='bili';
+  if($('autoPublishField'))$('autoPublishField').hidden=platform!=='dy';
+}
 function collectRefreshControls(){
   const platform=$('collectPlatform').value||'dy';
   const sourceSelect=$('collectSource'),keep=sourceSelect.value;
@@ -439,7 +557,28 @@ function collectRefreshControls(){
   if(search)placeholder='输入搜索关键词';
   else if(source==='liked'||source==='fav')placeholder=platform==='dy'?'抖音的喜欢和收藏可以留空；粘贴主页链接则读这位博主的':'粘贴 B 站空间链接或 UID；收藏夹需要先在映格浏览器登录 B 站';
   $('collectTarget').placeholder=placeholder;
-  $('collectListBtn').textContent=source==='fav'?'读取收藏夹列表（约 10–30 秒）':'读取清单（约 20–60 秒）';
+  if($('collectMentionsBtn')) $('collectMentionsBtn').addEventListener('click',async()=>{
+  const button=$('collectMentionsBtn'),old=button.textContent;button.disabled=true;button.textContent='正在读取简介…';
+  $('collectMentions').innerHTML='<p class="mini-note">正在打开主页读取公开简介，请不要操作弹出的浏览器窗口…</p>';
+  try{
+    const data=await api('/api/collect/mentions',{method:'POST',timeoutMs:60000,body:{platform:$('collectPlatform').value,target:$('collectTarget').value.trim()}});
+    const items=data.items||[];
+    $('collectMentions').innerHTML=`<p class="mini-note">${html(data.bio?('简介：'+data.bio):'简介里没有读到文字。')}</p>`+
+      (items.length?`<div class="button-row"><button class="text-btn" data-mentions="fill">把勾选的 @ 主页填入采集目标</button><button class="text-btn" data-mentions="all">全选</button></div>
+      <div data-mentions-list>${items.map((it,i)=>`<label class="checkbox-line"><input type="checkbox" data-mention-index="${i}" data-url="${html(it.url||'')}" checked><span>@${html(it.name)} ${it.url?`· ${html(it.url)}`:'（简介提及，未读到主页入口）'}</span></label>`).join('')}</div>`:'<p class="mini-note">简介里没有读到公开 @ 账号；如果作者用图片写简介，需要人工查看。</p>');
+  }catch(error){$('collectMentions').innerHTML=`<p class="mini-note">${html(error.message)}</p>`;throw error;}
+  finally{button.disabled=false;button.textContent=old;}
+});
+if($('collectMentions')) $('collectMentions').addEventListener('click',e=>{
+  const b=e.target.closest('[data-mentions]');if(!b)return;
+  const boxes=[...document.querySelectorAll('#collectMentions [data-mention-index]')];
+  if(b.dataset.mentions==='all'){boxes.forEach(x=>x.checked=true);return;}
+  if(b.dataset.mentions==='fill'){
+    const urls=boxes.filter(x=>x.checked&&x.dataset.url).map(x=>x.dataset.url);
+    if(!urls.length){toast('选中的账号没有读到主页入口，请手动打开抖音查看',true);return;}
+    $('collectTarget').value=urls.join('\n');toast(`已填入 ${urls.length} 个公开主页链接`);
+  }
+});$('collectListBtn').textContent=source==='fav'?'读取收藏夹列表（约 10–30 秒）':'读取清单（约 20–60 秒）';
 }
 
 async function collectReadList(folder='',folderName='',folderIndex=null){
@@ -474,6 +613,7 @@ if($('collectPlatform')) $('collectPlatform').addEventListener('change',()=>{
   // 平台换了以后，来源和排序都按新平台的叫法重建；页码统一回到第 1 页。
   const page=$('collectPage');if(page)page.value=Math.min(Number(page.value)||1,50);
   collectRefreshControls();
+  autoRefreshControls();
 });
 if($('collectSource')) $('collectSource').addEventListener('change',collectRefreshControls);
 if($('collectMode')) $('collectMode').addEventListener('change',()=>{
@@ -483,7 +623,51 @@ if($('collectMode')) $('collectMode').addEventListener('change',()=>{
   const note=$('collectDownloadHint');if(note)note.textContent=hint;
 });
 collectRefreshControls();
+autoRefreshControls();
 
+if($('autoOpenBtn')) $('autoOpenBtn').addEventListener('click',async()=>{
+  const button=$('autoOpenBtn');
+  if(button.dataset.pending==='1')return;
+  const keyword=$('autoKeyword').value.trim();
+  if(!keyword){toast('请先输入搜索关键词',true);$('autoKeyword').focus();return;}
+  const platform=$('collectPlatform').value||'dy';
+  button.dataset.pending='1';button.disabled=true;const old=button.textContent;button.textContent='正在打开搜索页…';
+  try{
+    await api('/api/collect/open',{method:'POST',timeoutMs:45000,body:{
+      platform,keyword,
+      sort:$('autoSort').value||'',
+      publish:platform==='dy'?($('autoPublish').value||''):'',
+      page:platform==='bili'?(Number($('autoPages').value)||1):1
+    }});
+    toast('搜索页已打开。请在映格浏览器里登录或完成滑块验证，然后回来点一键抓取。');
+  }catch(err){toast(err.message,true);}
+  finally{delete button.dataset.pending;button.disabled=false;button.textContent=old;}
+});
+
+if($('autoSearchBtn')) $('autoSearchBtn').addEventListener('click',async()=>{
+  const button=$('autoSearchBtn');
+  if(button.dataset.pending==='1')return;
+  const keyword=$('autoKeyword').value.trim();
+  if(!keyword){toast('请输入搜索关键词',true);$('autoKeyword').focus();return;}
+  const platform=$('collectPlatform').value||'dy';
+  button.dataset.pending='1';button.disabled=true;const old=button.textContent;button.textContent='正在建立批量任务…';
+  const incremental=$('autoIncremental')?.checked||false;
+  const keepVideo=$('autoKeepVideo')?.checked!==false;
+  const sort=$('autoSort').value||'',publish=platform==='dy'?($('autoPublish').value||''):'';
+  try{
+    const pre=await api(`/api/collect/preflight?platform=${encodeURIComponent(platform)}&keyword=${encodeURIComponent(keyword)}&sort=${encodeURIComponent(sort)}&publish=${encodeURIComponent(publish)}&incremental=${incremental}`,{timeoutMs:15000});
+    if(!pre.ok){toast((pre.warnings&&pre.warnings[0])||pre.message||'预检未通过',true);return;}
+    if(pre.warnings&&pre.warnings.length)toast(pre.warnings[0]);
+    await api('/api/collect/auto',{method:'POST',timeoutMs:30000,body:{
+      platform,keyword,limit:Number($('autoLimit').value)||30,
+      pages:platform==='bili'?(Number($('autoPages').value)||1):1,
+      sort,publish,mode:$('autoMode').value||'package',incremental,keep_video:keepVideo,output:$('output').value
+    }});
+    toast(`已加入关键词批量任务：${keyword}。到素材库查看读取与生成进度。`);
+    await refresh();goto('library');
+  }catch(err){toast(err.message,true);}
+  finally{delete button.dataset.pending;button.disabled=false;button.textContent=old;}
+});
 if($('collectListBtn')) $('collectListBtn').addEventListener('click',async()=>{
   const button=$('collectListBtn');if(button.dataset.pending==='1')return;
   button.dataset.pending='1';button.setAttribute('aria-busy','true');
@@ -551,6 +735,11 @@ if($('collectResult')) $('collectResult').addEventListener('click',async e=>{
     await refresh();goto('library');
   }catch(err){toast(err.message,true);}finally{delete b.dataset.pending;}
 });
-refresh().catch(e=>toast(e.message,true));
+refresh().catch(e=>{markReady();toast(e.message,true);});
 let statePollPending=false,stateNextCheck=0,stateBackoff=2500;
-setInterval(async()=>{if(statePollPending||Date.now()<stateNextCheck)return;statePollPending=true;try{await refresh();stateBackoff=2500;}catch(e){$('connectionText').textContent=e.connection?'本机服务已断开':'本机服务响应异常';$('connectionBadge').classList.add('disconnected');stateBackoff=Math.min(30000,stateBackoff*2);}finally{statePollPending=false;stateNextCheck=Date.now()+stateBackoff;}},2500);
+setInterval(async()=>{if(document.hidden||statePollPending||Date.now()<stateNextCheck)return;statePollPending=true;try{await refresh();stateBackoff=jobs.some(j=>activeStatus(j.status))?2500:7000;}catch(e){$('connectionText').textContent=e.connection?'本机服务已断开':'本机服务响应异常';$('connectionBadge').classList.add('disconnected');stateBackoff=Math.min(30000,stateBackoff*2);}finally{statePollPending=false;stateNextCheck=Date.now()+stateBackoff;}},2500);
+
+
+
+
+

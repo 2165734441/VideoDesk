@@ -1,5 +1,6 @@
 .venv/
 .local/
+.workbuddy/
 output/
 __pycache__/
 *.pyc

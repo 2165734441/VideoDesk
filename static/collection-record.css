@@ -1,0 +1,29 @@
+/* 合集 / 多 P 录制：目录先展开，再由普通下载队列逐个保存。 */
+.collection-record{
+  margin-top:16px;padding:16px 16px 14px;border:1px solid var(--line-strong);
+  border-radius:var(--radius);background:linear-gradient(180deg,#f7fcf9,#ffffff);
+}
+.collection-record-head{display:flex;gap:14px;align-items:flex-start;justify-content:space-between}
+.collection-record-head strong{font-size:15px;color:var(--ink)}
+.collection-record-head p{margin:6px 0 0;max-width:520px;color:var(--muted);line-height:1.55;font-size:12px}
+.collection-record-head .checkbox-line{white-space:nowrap;margin:0}
+.collection-record-list{
+  margin:12px 0;max-height:300px;overflow:auto;border:1px solid var(--line);
+  border-radius:10px;background:#fff;
+}
+.collection-record-group{margin:0;padding:9px 12px;background:var(--accent-soft);color:var(--accent);
+  font-size:12px;font-weight:600;border-bottom:1px solid var(--line)}
+.collection-record-row{display:grid;grid-template-columns:20px 32px minmax(0,1fr) auto;gap:8px;
+  align-items:center;padding:9px 12px;border-bottom:1px solid #edf3f0;font-size:12px;color:var(--ink)}
+.collection-record-row:last-child{border-bottom:0}
+.collection-record-row:hover{background:#f7fcfa}
+.collection-record-index{color:var(--muted);font-variant-numeric:tabular-nums;font-size:11px}
+.collection-record-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.collection-record-time{color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+.collection-record-row input{accent-color:var(--accent)}
+@media (max-width:760px){
+  .collection-record-head{display:block}
+  .collection-record-head .checkbox-line{margin-top:10px}
+  .collection-record-row{grid-template-columns:20px 28px minmax(0,1fr)}
+  .collection-record-time{display:none}
+}

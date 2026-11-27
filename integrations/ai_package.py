@@ -50,9 +50,9 @@ def save_text(folder,lines,limit=80000):
     return names
 
 
-def write_reading(folder,title,lines,images,warnings,batch_files=10):
+def write_reading(folder,title,lines,images,warnings,batch_files=10,extra_names=()):
     folder.mkdir(parents=True,exist_ok=True)
-    texts=save_text(folder,lines);names=['00_阅读说明.txt',*texts,*images]
+    texts=save_text(folder,lines);names=['00_阅读说明.txt',*texts,*images,*list(extra_names)]
     missing=[name for name in names if name!='00_阅读说明.txt' and not (folder/name).is_file()]
     if missing:raise ValueError('AI 资料不完整：'+'、'.join(missing))
     instructions=[f'标题：{title}','本文件夹内所有文件必须一起提供给 AI，列表如下：',*names,
@@ -67,6 +67,56 @@ def write_reading(folder,title,lines,images,warnings,batch_files=10):
         '', '处理提示：',*(warnings or ['未检测到处理错误，仍请核对识别与采样误差。'])]
     (folder/names[0]).write_text('\n'.join(instructions),encoding='utf-8')
     return names
+
+
+def write_ai_manifest(upload,title,job,rows,unique,images,timeline,warnings,metrics,texts,left,right):
+    """Write a compact machine-readable index beside the human reading guide.
+
+    The full transcript and OCR stay in the numbered text/images, so the
+    manifest stays small enough for an agent to read first.  It also records a
+    self-check of the files an AI is expected to open.
+    """
+    visual_index=[]
+    for item in unique:
+        visual_index.append({
+            'id':item['id'],'at':round(item['at'],3),
+            'sheet':item.get('sheet'),'detail':item.get('detail'),
+            'ocr_lines':len(item.get('text') or []),
+            'ocr_chars':sum(len(s) for s in (item.get('text') or [])),
+            'ocr_confidence_min':min(item.get('confidence') or [1]),
+        })
+    manifest={
+        'schema':'videodesk.ai-package.v1',
+        'title':title,'job_id':job.get('id'),
+        'source':job.get('source'),'created':round(time.time(),3),
+        'range':{'from':round(left,3),'to':round(right,3)},
+        'counts':{
+            'transcript_rows':len(rows),'unique_visuals':len(unique),
+            'images':len(images),'text_files':len(texts)
+        },
+        'files':{
+            'readme':'00_阅读说明.txt','guide':'00_给AI的读法.md',
+            'transcript':texts,'images':sorted(images),
+        },
+        'timeline':[[round(t,3),fid] for t,fid in timeline],
+        'visuals':visual_index,
+        'warnings':warnings,'metrics':metrics,
+        'read_order':['00_阅读说明.txt','00_给AI的读法.md',*texts,'02_编号拼图_*.png','03_必要细节_*.png'],
+    }
+    guide='''# 给 AI 的读法
+
+这个文件夹是一期视频的“可核对证据包”，不是全文摘要。
+
+1. 先读 `00_阅读说明.txt` 和 `manifest.json`，确认标题、时间范围、文件数量和处理警告。
+2. 再按顺序读 `01_完整内容_*.txt`；台词以原片时间戳为准。
+3. 然后看 `02_编号拼图_*.png`，按图上的 V/F 编号回到对应时间；细字或低置信内容看 `03_必要细节_*.png`。
+4. 口述与画面文字冲突时并列保留，不要自行改写数字、价格、品牌或承诺。
+5. `manifest.json` 里的 `timeline` 是同像素画面的复用关系；相似但变化的画面没有被静默丢弃。
+6. 如果 `warnings` 提到 OCR 置信度低、采样遗漏或帧数合并，请在结论里明确标注不确定性。
+'''
+    (upload/'00_给AI的读法.md').write_text(guide,encoding='utf-8')
+    atomic_json(upload/'manifest.json',manifest)
+    return manifest
 
 
 def report(base,title,names,warnings,metrics):
@@ -216,7 +266,19 @@ def build(a,jid,source,info,rows,transcript_info,evidence,work,settings,left,rig
     lines += ['\n采样时间轴（同号表示像素完全相同；相似但变化的画面未自动丢弃）：']
     lines += [f'V01 原片 {t:.3f}；联合 {t-left:.3f} → {fid}' for t,fid in timeline]
     warnings=list(dict.fromkeys(warnings))
-    names=write_reading(upload,title,lines,sorted(images),warnings,int(settings.get('batch_files',10)))
+    texts=save_text(upload,lines)
+    manifest=write_ai_manifest(upload,title,job,rows,unique,sorted(images),timeline,warnings,
+        {'scanned_frames':len(files),'unique_frames':len(unique),'images':len(images),
+         'image_pixels':pixels,'text_characters':sum(len(s) for s in lines),
+         'from':left,'to':right,'sampling_gap_seconds':interval,
+         'has_audio':has_audio,'ocr_seconds':ocr_seconds,'ocr_threads':session.threads if ocr else 0},
+        texts,left,right)
+    names=write_reading(upload,title,lines,sorted(images),warnings,int(settings.get('batch_files',10)),
+        ['00_给AI的读法.md','manifest.json'])
+    expected=[name for name in names if name!='00_阅读说明.txt']
+    missing=[name for name in expected if not (upload/name).is_file()]
+    manifest['self_check']={'ok':not missing,'missing':missing,'expected_files':len(names)}
+    atomic_json(upload/'manifest.json',manifest)
     metrics={'scanned_frames':len(files),'unique_frames':len(unique),'images':len(images),'image_pixels':pixels,'text_characters':sum(len(s) for s in lines),'from':left,'to':right,'sampling_gap_seconds':interval,'has_audio':has_audio,'ocr_seconds':ocr_seconds,'ocr_threads':session.threads if ocr else 0}
     data=report(base,title,names,warnings,metrics)
     # Keep a structured, complete representation for joint export, outside upload.
@@ -224,6 +286,13 @@ def build(a,jid,source,info,rows,transcript_info,evidence,work,settings,left,rig
     from .material_history import register_created
     register_created(a,jid,output_paths(base,data)+[private/'联合内容源.json'])
     a.change(jid,ai_package=data)
+    # Keep the cross-video index in sync without making a package failure depend
+    # on the index.  A full rebuild is available from the library page.
+    try:
+        from .library_index import upsert_package
+        upsert_package(a,jid,base,title)
+    except Exception:
+        pass
     return data
 
 

@@ -9,10 +9,12 @@ class ImportTests(unittest.TestCase):
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory();root=Path(self.tmp.name);self.jobs={}
         def load(p,d):return json.loads(p.read_text('utf-8')) if p.exists() else d
-        def new(kind,title,options):
-            jid=str(len(self.jobs));dest=root/jid;dest.mkdir();job=dict(id=jid,kind=kind,title=title,options=options,directory=str(dest),source='',created=0,frames=0)
+        def new(kind,title,directory=None,options=None):
+            jid=str(len(self.jobs));dest=Path(directory) if directory else root/jid;dest.mkdir(parents=True,exist_ok=True);job=dict(id=jid,kind=kind,title=title,options=options or {},directory=str(dest),source='',created=0,frames=0)
             self.jobs[jid]=job;return job
-        self.a=SimpleNamespace(DATA=root,ROOT=root,load_json=load,new_job=new,job_by_id=lambda jid:self.jobs[jid],change=lambda jid,**kw:self.jobs[jid].update(kw),refresh_files=Mock(),material_history=SimpleNamespace(register_created=Mock()))
+        def output_dir(value=''):
+            path=Path(value);path.mkdir(parents=True,exist_ok=True);return path
+        self.a=SimpleNamespace(DATA=root,ROOT=root,SETTINGS={'output':str(root/'output')},LIVE=SimpleNamespace(anchors={},settings={}),load_json=load,new_job=new,job_by_id=lambda jid:self.jobs[jid],change=lambda jid,**kw:self.jobs[jid].update(kw),refresh_files=Mock(),material_history=SimpleNamespace(register_created=Mock()),output_dir=output_dir)
         self.m=Imports(self.a);self.raw=b'video'*1000;self.value={'id':'a'*32,'sha256':hashlib.sha256(self.raw).hexdigest(),'size':len(self.raw),'name':'手机主播'}
     def tearDown(self):self.tmp.cleanup()
     def test_resume_survives_restart_and_does_not_create_duplicate_job(self):

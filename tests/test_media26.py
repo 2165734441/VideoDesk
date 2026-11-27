@@ -30,7 +30,7 @@ class Media26Tests(unittest.TestCase):
             with self.subTest(value=value), self.assertRaises(ValueError): live.Window(**value)
 
     def test_accepts_share_text_and_profiles(self):
-        self.assertEqual(live_browser.normalize('复制 https://v.douyin.com/abcdef/ 去看'), 'https://v.douyin.com/abcdef/')
+        self.assertEqual(live_browser.normalize('复制 https://v.douyin.com/abcdef/ 去看'), 'https://v.douyin.com/abcdef')
         self.assertEqual(live_browser.normalize('https://live.douyin.com/123456'), 'https://live.douyin.com/123456')
 
     def test_rejects_non_douyin_and_published_videos(self):

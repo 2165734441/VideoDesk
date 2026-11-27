@@ -13,6 +13,40 @@ from . import live,phone_import
 from .storage import atomic_json
 
 
+def normalize_video_url(text):
+    """Accept only a concrete Douyin/Bilibili video link from the phone.
+
+    Share sheets often send a short host (v.douyin.com / b23.tv); those are
+    valid too, but profile links, live rooms and search pages are not videos.
+    """
+    import re
+    from urllib.parse import urlparse
+    match = re.search(r'https?://[^\s<>"\']+', text or '')
+    if not match:
+        raise ValueError('请粘贴抖音或 B 站视频链接')
+    url = match.group().rstrip('.,;!）)]')
+    parsed = urlparse(url)
+    host = (parsed.hostname or '').lower()
+    path = parsed.path or '/'
+    if host in ('v.douyin.com', 'www.iesdouyin.com'):
+        if not re.fullmatch(r'/[A-Za-z0-9_-]{4,80}/?', path):
+            raise ValueError('抖音分享短链不完整')
+        return url
+    if host in ('www.douyin.com', 'douyin.com', 'm.douyin.com'):
+        if not re.fullmatch(r'/video/\d{5,30}/?', path):
+            raise ValueError('请使用抖音视频详情链接（/video/数字）')
+        return url
+    if host == 'b23.tv':
+        if not re.fullmatch(r'/[A-Za-z0-9]{4,30}/?', path):
+            raise ValueError('B 站分享短链不完整')
+        return url
+    if host in ('www.bilibili.com', 'bilibili.com', 'm.bilibili.com'):
+        if not re.fullmatch(r'/video/(BV[0-9A-Za-z]{10}|av\d{1,15})/?', path):
+            raise ValueError('请使用 B 站视频详情链接（/video/BV… 或 av…）')
+        return url
+    raise ValueError('目前只支持抖音或 B 站视频链接')
+
+
 class Decision(BaseModel):
     event_id:str
     target:str
@@ -44,6 +78,14 @@ class Companion:
     def save_pair(self):
         atomic_json(self.a.DATA/'credentials/mobile-pair.json',
                     {'key':self.key,'serial':self.paired_serial,'wireless':self.wireless})
+
+    def concurrency(self):
+        """Phone capacity follows the live settings when available."""
+        try:
+            value=int(getattr(getattr(self.a,'LIVE',None),'settings',{}).get('concurrency',8))
+        except (TypeError,ValueError):
+            value=8
+        return max(1,min(value,8))
 
     def tool(self):
         configured=self.a.load_json(self.a.DATA/'phone-settings.json',{}).get('adb','')
@@ -213,9 +255,18 @@ class Companion:
                             with owner.lock:
                                 owner.commands=[c for c in owner.commands if time.time()-c['time']<180]
                                 commands=list(owner.commands)
-                            self.send(200,{'anchors':owner.a.LIVE.state()['anchors'],'commands':commands});return
+                            self.send(200,{'anchors':owner.a.LIVE.state()['anchors'],'commands':commands,'concurrency':owner.concurrency()});return
                         if self.command=='POST' and self.path=='/v1/recordings/begin':self.send(200,owner.imports.begin(value));return
                         if self.command=='POST' and self.path=='/v1/recordings/complete':self.send(200,owner.imports.complete(str(value.get('id',''))));return
+                        # A video link pasted/shared on the phone becomes a normal
+                        # desktop download job.  The phone only sends the link;
+                        # cookies, output paths and media workers stay on the PC.
+                        if self.command=='POST' and self.path=='/v1/video':
+                            url=normalize_video_url(str(value.get('url','')))
+                            title=str(value.get('title','') or '手机分享视频').strip()[:120]
+                            from . import collect
+                            jobs=collect.queue_direct_videos(owner.a,[collect.Picked(url=url,title=title)],'')
+                            self.send(200,{'ok':True,'jobs':jobs,'url':url});return
                         if self.command=='POST' and self.path=='/v1/events':self.send(200,owner.event(value));return
                         if self.command=='POST' and self.path=='/v1/status':
                             with owner.lock:
@@ -459,7 +510,7 @@ class Companion:
                     command['agent']=str(info.get('user_agent') or '')
                     command['cookie']='; '.join(c['name']+'='+c['value'] for c in info.get('cookies') or [])
                 self.commands.append(command)
-        return {'message':'已发送到手机，手机可同时录制最多 4 位主播'}
+        return {'message':'已发送到手机，手机可同时录制最多 %d 位主播' % self.concurrency()}
 
     def state(self):
         try:devices=self.devices();error=''

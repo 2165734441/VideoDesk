@@ -3,18 +3,22 @@
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>映格 · 视频采集工作台</title>
-  <link rel="icon" type="image/svg+xml" href="/static/icon.svg?v=2.7.0">
-  <link rel="stylesheet" href="/static/style.css?v=2.7.0">
-  <link rel="stylesheet" href="/static/workflow.css?v=2.7.0">
-<link rel="stylesheet" href="/static/local_sources.css?v=2.7.0">
-<link rel="stylesheet" href="/static/enhancements.css?v=2.7.0">
-<link rel="stylesheet" href="/static/materials.css?v=2.7.0">
-<link rel="stylesheet" href="/static/workflows25.css?v=2.7.0">
-<link rel="stylesheet" href="/static/media26.css?v=2.7.0">
+  <link rel="icon" type="image/svg+xml" href="/static/icon.svg?v=2.9.8">
+  <link rel="stylesheet" href="/static/style.css?v=2.9.8">
+  <link rel="stylesheet" href="/static/workflow.css?v=2.9.8">
+<link rel="stylesheet" href="/static/local_sources.css?v=2.9.8">
+<link rel="stylesheet" href="/static/enhancements.css?v=2.9.8">
+<link rel="stylesheet" href="/static/materials.css?v=2.9.8">
+<link rel="stylesheet" href="/static/workflows25.css?v=2.9.8">
+<link rel="stylesheet" href="/static/media26.css?v=2.9.8">
+<link rel="stylesheet" href="/static/ui-refresh.css?v=2.9.8">
+<link rel="stylesheet" href="/static/collection-record.css?v=2.9.8">
 </head>
 <body>
+<div id="appSplash" role="status" aria-live="polite"><div class="splash-card"><div class="splash-mark">◈</div><h2>映格</h2><p>正在连接本机工作台…</p><div class="splash-bar"><span></span></div></div></div>
+<script>setTimeout(function(){document.body.classList.add('ui-ready')},8000)</script>
 <aside class="sidebar">
-  <a class="brand" href="/"><span class="brand-icon"><img src="/static/icon.svg?v=2.7.0" alt=""></span><span>映格<small>VIDEO DESK</small></span></a>
+  <a class="brand" href="/"><span class="brand-icon"><img src="/static/icon.svg?v=2.9.8" alt=""></span><span>映格<small>VIDEO DESK</small></span></a>
   <div class="nav-label">工作空间</div>
   <nav aria-label="主导航">
     <button class="nav active" data-page="import"><span>＋</span>导入与采集</button>
@@ -80,7 +84,7 @@
 
     <section id="page-download" class="page" hidden>
       <div class="page-heading"><div><div class="eyebrow">COLLECT FROM LINKS</div><h1>一次收集，多段视频。</h1><p>粘贴抖音、B 站或 YouTube 链接，选择保存视频，或直接抽帧只留图片。</p></div><span class="step-tag">02 / 下载</span></div>
-      <div class="two-columns"><section class="panel padded"><h2>添加视频链接</h2><label class="field">每行一个链接，也支持分享文本<textarea id="downloadUrls" rows="9" placeholder="https://www.bilibili.com/video/BV…&#10;https://www.douyin.com/video/…&#10;https://v.douyin.com/…&#10;https://www.youtube.com/watch?v=…&#10;https://youtu.be/…"></textarea></label><label class="checkbox-line"><input id="useLogin" type="checkbox" checked> 使用本工具登录浏览器的登录态</label><label class="checkbox-line"><input id="downloadFramesOnly" type="checkbox"> 直接抽帧，只保存图片，不保存视频</label><label id="downloadAudioRow" class="checkbox-line" hidden><input id="downloadFrameAudio" type="checkbox"> 另外保存声音，便于 AI 分析口述内容</label><label class="checkbox-line"><input id="downloadExtract" type="checkbox"> 下载后自动抽帧（使用下方频率）</label><div class="inline-inputs"><select id="downloadFrameMode"><option value="seconds">每隔几秒一张</option><option value="fps">每秒几张</option><option value="frames">每隔 N 帧一张</option><option value="all">每一帧</option></select><input id="downloadFrameValue" type="number" value="3" min="0.1" step="0.1"></div><p class="mini-note">自动抽帧默认上限 2000 张；高级区域 / 时间设置请下载后到素材列表二次抽帧。仅处理单个视频，YouTube 播放列表链接只取第一条。直接抽帧仍需网络读取视频数据；不支持的流不会自动改为保存视频。</p><button id="downloadBtn" class="primary wide">↓ 添加到下载队列</button></section>
+      <div class="two-columns"><section class="panel padded"><h2>添加视频链接</h2><label class="field">每行一个链接，也支持分享文本<textarea id="downloadUrls" rows="9" placeholder="https://www.bilibili.com/video/BV…&#10;https://www.douyin.com/video/…&#10;https://v.douyin.com/…&#10;https://www.youtube.com/watch?v=…&#10;https://youtu.be/…"></textarea></label><label class="checkbox-line"><input id="useLogin" type="checkbox" checked> 使用本工具登录浏览器的登录态</label><label class="checkbox-line"><input id="downloadFramesOnly" type="checkbox"> 直接抽帧，只保存图片，不保存视频</label><label id="downloadAudioRow" class="checkbox-line" hidden><input id="downloadFrameAudio" type="checkbox"> 另外保存声音，便于 AI 分析口述内容</label><label class="checkbox-line"><input id="downloadExtract" type="checkbox"> 下载后自动抽帧（使用下方频率）</label><div class="inline-inputs"><select id="downloadFrameMode"><option value="seconds">每隔几秒一张</option><option value="fps">每秒几张</option><option value="frames">每隔 N 帧一张</option><option value="all">每一帧</option></select><input id="downloadFrameValue" type="number" value="3" min="0.1" step="0.1"></div><p class="mini-note">自动抽帧默认上限 2000 张；高级区域 / 时间设置请下载后到素材列表二次抽帧。单个下载默认只取第一条视频；要整段合集或多 P，请勾选下方“开启合集模式”。直接抽帧仍需网络读取视频数据；不支持的流不会自动改为保存视频。</p><button id="downloadBtn" class="primary wide">↓ 添加到下载队列</button></section>
       <section class="panel padded"><div class="panel-head"><h2>登录与人工验证</h2><span class="badge">Edge / Chrome</span></div><div class="login-art">◈</div><p>需要登录或遇到人机验证时，打开平台登录窗口，由你手动操作。登录资料保存在本机专用浏览器中，之后可继续使用。</p><div class="button-row"><button class="subtle login-btn" data-url="https://www.douyin.com/">打开抖音登录</button><button class="subtle login-btn" data-url="https://www.bilibili.com/">打开 B 站登录</button></div><div class="button-row"><button class="subtle login-btn" data-url="https://www.youtube.com/">打开 YouTube 登录</button></div><button id="openFirstUrl" class="text-btn wide">在登录浏览器中打开第一个链接 ↗</button><div class="notice">平台改版、Cookie 或账号权限可能导致链接下载失败。完成验证后重新添加链接，或切换到网页录制。</div><h3>复用开源下载引擎</h3><span id="youtubeStatus" class="badge">正在检测 YouTube 组件</span><p class="mini-note">基于 yt-dlp + 官方 yt-dlp-ejs，已启用 Node.js 以支持 YouTube；FFmpeg 负责音视频合并与直连抽帧。可下载的字幕也会随视频保存。不会自动识别或破解验证码。</p></section></div>
     </section>
 
@@ -93,7 +97,7 @@
           <label class="field">视频平台<select id="collectPlatform"><option value="dy">抖音</option><option value="bili">哔哩哔哩</option></select></label>
           <label class="field">来源<select id="collectSource"><option value="creator">博主主页</option><option value="liked">我的喜欢（点赞）</option><option value="fav">我的收藏夹</option><option value="search">关键词搜索</option></select></label>
         </div>
-        <label class="field">主页链接 / 空间链接 / UID / 关键词<input id="collectTarget" placeholder="粘贴博主主页、个人空间链接，或输入关键词；抖音的喜欢和收藏可留空"></label>
+        <label class="field">主页链接 / 空间链接 / UID / 关键词<input id="collectTarget" placeholder="粘贴博主主页、个人空间链接，或输入关键词；抖音的喜欢和收藏可留空"></label>`r`n        <div class="inline-fields"><button id="collectMentionsBtn" class="text-btn" type="button">读取简介 @ 账号</button><span class="mini-note">只读公开主页里的 @ 名称和入口，供你手动查看</span></div>`r`n        <div id="collectMentions"></div>
         <div class="inline-fields">
           <label class="field">最多读取<input id="collectLimit" type="number" value="30" min="1" max="100"></label>
           <label class="field">下载方式<select id="collectMode"><option value="video">直接下载视频（不生成包）</option><option value="package">生成 AI 包（每期各一份）</option><option value="package-combined">生成 AI 包（合并成一份）</option></select><small>直接下载只保存视频和字幕</small></label>
@@ -109,6 +113,25 @@
         </div>
         <button id="collectListBtn" class="subtle wide">读取清单（约 20–60 秒）</button>
         <div id="collectResult"></div>
+        <div class="batch-auto" style="margin-top:22px;padding-top:18px;border-top:1px solid rgba(127,127,127,.22)">
+          <h3>搜索词一键批量</h3>
+          <p class="mini-note">不用先勾选：输入一个关键词，读取搜索结果后自动全量建立每期 AI 资料包；同时保留原视频。抖音单页最多 100 条，B 站可继续翻页。</p>
+          <div class="inline-fields">
+            <label class="field">搜索关键词<input id="autoKeyword" placeholder="例如：露营咖啡壶"></label>
+            <label class="field">最多抓取<input id="autoLimit" type="number" value="30" min="1" max="100"><small>超过上限会停止</small></label>
+            <label class="field" id="autoPagesField">B 站页数<input id="autoPages" type="number" value="1" min="1" max="10"></label>
+            <label class="field">处理方式<select id="autoMode"><option value="package">下载并生成每期 AI 包</option><option value="video">只批量下载视频</option></select></label>
+          </div>
+          <div class="inline-fields">
+            <label class="field">排序<select id="autoSort"></select></label>
+            <label class="field" id="autoPublishField">发布时间<select id="autoPublish"><option value="">不限</option><option value="day">一天内</option><option value="week">一周内</option><option value="half_year">半年内</option><option value="year">一年内</option></select></label>
+          </div>
+          <button id="autoSearchBtn" class="primary wide">⚡ 一键抓取并生成 AI 包</button>
+          <label class="checkbox-line"><input id="autoIncremental" type="checkbox"> 只处理上次快照之后新增的视频（适合每周追更）</label>
+          <label class="checkbox-line"><input id="autoKeepVideo" type="checkbox" checked> 保留原视频到每期“附加素材”（关闭可省空间）</label>
+          <button id="autoOpenBtn" class="subtle wide" style="margin-top:8px">先打开搜索页（登录 / 完成验证）</button>
+          <p class="mini-note">任务会先进入“素材库”显示读取进度；读取完成后自动建立批量下载与 AI 包队列。抖音搜索遇到滑块或登录时，先点上面的“打开搜索页”处理，再回来一键抓取。</p>
+        </div>
       </section>
       <div class="two-columns"><section class="panel padded"><h2>平台采集任务</h2><div class="inline-fields"><label class="field">视频平台<select id="crawlerPlatform"><option value="dy">抖音</option><option value="bili">哔哩哔哩</option></select></label><label class="field">采集方式<select id="crawlerMode"><option value="detail">指定视频</option><option value="search">关键词搜索</option><option value="creator">作者主页</option></select></label></div><label class="field">采集目标<textarea id="crawlerQuery" rows="6" placeholder="每行一个视频网址或视频 ID"></textarea></label><div class="inline-fields"><label class="field">视频数量上限<input id="crawlerLimit" type="number" value="5" min="1" max="50"><small>按上限尝试下载，达到后停止</small></label><label class="field">处理节奏<input value="单任务 · 串行请求" readonly><small>避免同时启动多个采集浏览器</small></label></div><label class="checkbox-line"><input id="crawlerComments" type="checkbox"> 同时收集评论（每视频最多 20 条）</label><label class="checkbox-line"><input id="crawlerExtract" type="checkbox" checked> 视频保存后自动创建抽帧任务</label><div class="inline-inputs"><select id="crawlerFrameMode"><option value="seconds">每隔几秒一张</option><option value="fps">每秒几张</option><option value="frames">每隔 N 帧一张</option><option value="all">每一帧</option></select><input id="crawlerFrameValue" type="number" value="3" min="0.1" step="0.1"></div><p class="mini-note">自动抽帧每视频最多 2000 张；需要框选区域或调整时间段，可在素材列表中再次抽帧。</p><button id="crawlerBtn" class="primary wide">◈ 开始平台采集</button></section>
       <section class="panel padded"><h2>两个引擎，一个工作空间</h2><div class="notice">MediaCrawler 会打开可见浏览器。请手动登录、扫码或完成平台验证；任务等待期间可以继续使用其他功能。</div><h3>MediaCrawler · 发现与采集</h3><p>关键词搜索、视频详情、作者主页与可选评论；下载视频、封面，保存 JSONL 数据。</p><h3>yt-dlp · 链接下载</h3><p>直接下载已知链接、合并音视频与保存可用字幕。两个入口共享素材目录和后续抽帧能力。</p><div class="button-row"><button class="subtle login-btn" data-url="https://www.douyin.com/">先登录抖音</button><button class="subtle login-btn" data-url="https://www.bilibili.com/">先登录 B 站</button></div><p class="mini-note">优先传递本工具登录浏览器中对应平台的 Cookie；也可直接在采集浏览器登录，两者均保存于本机。平台下载失败时，仍可在网页采集页选择其播放画面录制。</p><p class="license-note">MediaCrawler © relakkes@gmail.com<br><a href="/api/third-party/mediacrawler-license" target="_blank" rel="noopener">NON-COMMERCIAL LEARNING LICENSE 1.1 · 非商业学习许可证</a><br>此集成供个人非商业学习与研究使用，保留上游源码和版权声明。</p></section></div>
@@ -134,6 +157,31 @@
     <section id="page-library" class="page" hidden>
       <div class="page-heading"><div><div class="eyebrow">YOUR RESEARCH LIBRARY</div><h1>素材已就位，开始理解。</h1><p>查看采集与下载进度，打开本机目录，把需要的素材交给 AI。</p></div><button id="refreshJobs" class="subtle">↻ 刷新任务</button></div>
       <div class="library-summary"><div><span>全部任务</span><strong id="totalJobs">0</strong></div><div><span>已完成</span><strong id="doneJobs">0</strong></div><div><span>截图 / 抽帧</span><strong id="totalFrames">0</strong></div></div>
+      <section class="panel padded library-search-panel">
+        <div class="panel-head"><h2>跨视频检索</h2><div class="button-row" style="margin:0"><button id="libraryRebuild" class="text-btn">重建索引</button><button id="libraryStatsReload" class="text-btn">刷新统计</button></div></div>
+        <p class="mini-note">在已完成 AI 包的台词与画面文字里查找卖点、产品名或一句话，直接回到原片时间。索引只保存在本机，不上传。</p>
+        <div class="library-search-row"><input id="libraryQuery" placeholder="例如：咖啡的减脂卖点 / 某产品名 / 一句台词" aria-label="跨视频检索关键词"><select id="libraryKind" aria-label="检索范围"><option value="">台词 + 画面文字</option><option value="transcript">只查台词</option><option value="ocr">只查画面文字</option></select><select id="categoryFilter" aria-label="素材分类"><option value="">全部分类</option></select><button id="librarySearchBtn" class="primary">检索</button></div>
+        <div id="libraryStats" class="mini-note">索引尚未建立。点击“重建索引”扫描已完成的 AI 包。</div>
+        <div id="libraryResults"></div>
+      </section>
+      <section class="panel padded" id="workbenchPanel">
+        <div class="panel-head"><h2>分类、视频增强与备份</h2><span class="mini-note">只处理本机素材；长任务单独排队，不会打断直播录制</span></div>
+        <div class="inline-fields"><label class="field">自定义分类（一行一个）<textarea id="categoryRules" rows="3" placeholder="例如：口播素材 / 产品特写 / 直播复盘"></textarea></label><button id="saveCategoryRules" class="subtle">保存分类</button></div>
+        <div class="inline-fields"><label class="field">备份目标盘<input id="backupRoot" placeholder="例如 K:\VideoDesk备份"></label><button id="saveBackupRoot" class="subtle">保存目录</button><button id="backupDone" class="subtle">备份全部已完成任务</button></div>
+        <label class="checkbox-line"><input id="backupAfterDone" type="checkbox"> 任务完成后自动复制一份到备份盘（复制，不移动原文件）</label>
+        <p class="mini-note">备份是复制，不移动原文件；输入盘和输出盘可以是不同磁盘。</p>
+        <div class="inline-fields">
+          <label class="field">增强素材<select id="enhanceJob"></select></label>
+          <label class="field">任务内相对文件（可留空）<input id="enhanceFile" placeholder="留空则自动选择最大的视频"></label>
+          <label class="field">目标宽<input id="enhanceWidth" type="number" min="0" max="7680" placeholder="1920"></label>
+          <label class="field">目标高<input id="enhanceHeight" type="number" min="0" max="4320" placeholder="1080"></label>
+          <label class="field">目标帧率<input id="enhanceFps" type="number" min="0" max="120" step="0.01" placeholder="60"></label>
+          <label class="field">码率<input id="enhanceBitrate" placeholder="例如 2M"></label>
+          <label class="field">开始时间<input id="enhanceSchedule" type="datetime-local"></label>
+          <button id="enhanceRun" class="primary">建立增强任务</button>
+        </div>
+        <p class="mini-note">缩放/插帧是本地 FFmpeg 处理，不冒充 AI 模型；开始时间留空表示立即处理，任务可取消但不会中断正在录制的直播。</p>
+      </section>
       <section class="panel"><div class="panel-head"><h2>采集记录</h2><select id="jobFilter"><option value="all">全部任务</option><option value="active">进行中</option><option value="done">已完成</option><option value="error">失败 / 中断</option></select></div><div id="jobs"></div></section>
     </section>
     <footer>映格 · 让视频研究更有条理 <span>yt-dlp + MediaCrawler © relakkes · 非商业学习研究</span></footer>
@@ -142,14 +190,20 @@
 <div id="toast" role="status" hidden></div>
 <dialog id="filesDialog"><div class="panel-head"><h2 id="filesTitle">素材文件</h2><button id="closeFiles" class="text-btn">关闭 ×</button></div><div id="filesList"></div></dialog>
 <video id="sourceVideo" autoplay muted playsinline hidden></video>
-<script src="/static/app.js?v=2.7.0"></script>
-<script src="/static/dedup.js?v=2.7.0"></script>
-<script src="/static/workflow.js?v=2.7.0"></script>
-<script src="/static/local_sources.js?v=2.7.0"></script>
-<script src="/static/enhancements.js?v=2.7.0"></script>
-<script src="/static/episodes.js?v=2.7.0"></script>
-<script src="/static/materials.js?v=2.7.0"></script>
-<script src="/static/workflows25.js?v=2.7.0"></script>
-<script src="/static/runtime.js?v=2.7.0"></script>
-<script src="/static/media26.js?v=2.7.0"></script>
+<script src="/static/app.js?v=2.9.8"></script>
+<script src="/static/collection-record.js?v=2.9.8"></script>
+<script src="/static/dedup.js?v=2.9.8"></script>
+<script src="/static/workflow.js?v=2.9.8"></script>
+<script src="/static/local_sources.js?v=2.9.8"></script>
+<script src="/static/enhancements.js?v=2.9.8"></script>
+<script src="/static/episodes.js?v=2.9.8"></script>
+<script src="/static/materials.js?v=2.9.8"></script>
+<script src="/static/workflows25.js?v=2.9.8"></script>
+<script src="/static/runtime.js?v=2.9.8"></script>
+<script src="/static/media26.js?v=2.9.8"></script>
 </body></html>
+
+
+
+
+

@@ -4,33 +4,83 @@ import re
 import time
 from urllib.parse import urlparse, unquote, parse_qs
 from . import following
+from .video_sources import douyin_video_id
+
+
+SUPPORTED_SOURCES = ('user', 'live', 'reflow', 'video', 'shop', 'short')
 
 
 def normalize(url):
+    """Canonicalise a Douyin profile, live, video or store share link.
+
+    A video/store link is a *source* for finding an anchor, not a live room
+    itself. Keeping it canonical here lets the caller save the anchor quickly
+    and resolve the author in the background instead of blocking the phone's
+    short HTTP read timeout.
+    """
     match = re.search(r'https?://[^\s<>"，。]+', str(url))
-    if not match: raise ValueError('请粘贴抖音直播间、主播主页或分享链接')
+    if not match: raise ValueError('请粘贴抖音主播主页、直播间、视频或店铺分享链接')
     url = match.group(0).rstrip('.,;!）)')
     p = urlparse(url)
     if p.scheme not in ('http', 'https') or p.username or p.password or p.port not in (None, 80, 443):
-        raise ValueError('直播链接格式无效')
-    if p.hostname not in ('live.douyin.com', 'www.douyin.com', 'douyin.com', 'v.douyin.com','webcast.amemv.com'):
-        raise ValueError('当前直播录播仅支持抖音链接')
-    if p.hostname in ('douyin.com', 'www.douyin.com') and not re.fullmatch(r'/user/[A-Za-z0-9_-]{8,200}/?|/live/\d{4,30}/?',p.path):
-        raise ValueError('请使用主播主页或直播间链接，不是已发布的视频链接')
-    # Tracking parameters and fragments never identify a different room/user.
-    if p.hostname == 'live.douyin.com':
+        raise ValueError('链接格式无效')
+    host = (p.hostname or '').lower()
+    allowed = ('live.douyin.com', 'www.douyin.com', 'douyin.com', 'm.douyin.com',
+               'v.douyin.com', 'www.iesdouyin.com', 'webcast.amemv.com',
+               'haohuo.jinritemai.com', 'jinritemai.com', 'z.douyin.com')
+    if host not in allowed:
+        raise ValueError('当前主播录播仅支持抖音主页、直播、视频或店铺链接')
+    # A direct profile/live address is safe to keep after removing tracking
+    # parameters; those query values never identify a different room.
+    if host == 'live.douyin.com':
         if not re.fullmatch(r'/\d{4,30}/?', p.path): raise ValueError('请使用包含完整房间号的抖音直播间链接')
         return 'https://live.douyin.com/'+p.path.strip('/')
-    if p.hostname in ('www.douyin.com', 'douyin.com') and p.path.startswith('/user/'):
+    if host in ('www.douyin.com', 'douyin.com', 'm.douyin.com') and p.path.startswith('/user/'):
+        if not re.fullmatch(r'/user/[A-Za-z0-9_-]{8,200}/?', p.path):
+            raise ValueError('主播主页链接不完整')
         return 'https://www.douyin.com'+p.path.rstrip('/')
-    if p.hostname in ('www.douyin.com','douyin.com') and re.fullmatch(r'/live/\d{4,30}/?',p.path):
+    if host in ('www.douyin.com','douyin.com','m.douyin.com') and re.fullmatch(r'/live/\d{4,30}/?',p.path):
         return 'https://live.douyin.com/'+p.path.strip('/').split('/')[-1]
-    if p.hostname=='webcast.amemv.com':
+    if host == 'webcast.amemv.com':
         if not re.fullmatch(r'/douyin/webcast/reflow/\d{4,30}/?',p.path):
             raise ValueError('请使用抖音直播分享链接或主播主页链接')
         # A reflow room_id is NOT a public web_rid. Preserve its namespace.
         return 'https://webcast.amemv.com'+p.path.rstrip('/')+'/'
-    return url.split('#', 1)[0]
+    if host in ('www.douyin.com','douyin.com','m.douyin.com'):
+        if re.fullmatch(r'/video/\d{5,30}/?', p.path):
+            return 'https://www.douyin.com'+p.path.rstrip('/')
+        if p.path.startswith('/shop/') and len(p.path) > 6:
+            return 'https://www.douyin.com'+p.path.rstrip('/')
+        raise ValueError('请使用主播主页、直播间、视频或店铺分享链接')
+    if host == 'www.iesdouyin.com':
+        found = re.fullmatch(r'/share/video/(\d{5,30})/?', p.path)
+        if not found: raise ValueError('抖音视频分享链接不完整')
+        return 'https://www.douyin.com/video/'+found.group(1)
+    if host == 'v.douyin.com':
+        if not re.fullmatch(r'/[A-Za-z0-9_-]{4,80}/?', p.path):
+            raise ValueError('抖音分享短链不完整')
+        return 'https://v.douyin.com'+p.path.rstrip('/')
+    if host == 'z.douyin.com':
+        if not re.fullmatch(r'/[A-Za-z0-9_-]{4,80}/?', p.path):
+            raise ValueError('抖音分享短链不完整')
+        return 'https://z.douyin.com'+p.path.rstrip('/')
+    if host in ('haohuo.jinritemai.com', 'jinritemai.com'):
+        if not (p.path.startswith('/views/shop/index') or p.path.startswith('/ecommerce/trade/detail')):
+            raise ValueError('请使用抖音店铺首页链接')
+        return p._replace(fragment='').geturl()
+    raise ValueError('请使用主播主页、直播间、视频或店铺分享链接')
+
+
+def source_kind(url):
+    p = urlparse(normalize(url))
+    host = (p.hostname or '').lower()
+    if host in ('live.douyin.com','webcast.amemv.com'): return 'reflow' if host=='webcast.amemv.com' else 'live'
+    if host in ('www.douyin.com','douyin.com','m.douyin.com'):
+        if p.path.startswith('/user/'): return 'user'
+        if p.path.startswith('/live/') or p.path.startswith('/video/'): return 'video' if p.path.startswith('/video/') else 'live'
+        if p.path.startswith('/shop/'): return 'shop'
+    if host in ('haohuo.jinritemai.com','jinritemai.com','z.douyin.com'): return 'shop'
+    return 'short'
 
 
 def walk(payload):
@@ -146,6 +196,119 @@ def room_data(payload, quality='origin', expected=None, trusted=False):
     return None
 
 
+def _payload_identity(payload, video_id='', strict=False):
+    """Find the *author* of a video, not a recommended user beside it."""
+    if not isinstance(payload, dict):
+        return None
+    detail = payload.get('aweme_detail') or {}
+    if isinstance(detail, dict) and str(detail.get('aweme_id') or '') == str(video_id or ''):
+        author = detail.get('author') or {}
+        if isinstance(author, dict) and re.fullmatch(r'[A-Za-z0-9_-]{8,200}', str(author.get('sec_uid') or '')):
+            return {'kind':'user','url':'https://www.douyin.com/user/'+str(author['sec_uid']),
+                    'sec_uid':str(author['sec_uid']),'name':str(author.get('nickname') or '')[:100]}
+    # Most page-data blobs put the author under a key literally named author.
+    for obj in walk(payload):
+        if not isinstance(obj, dict):
+            continue
+        if video_id and str(obj.get('aweme_id') or obj.get('id') or '') != str(video_id):
+            continue
+        author = obj.get('author')
+        if not isinstance(author, dict):
+            continue
+        sec = str(author.get('sec_uid') or author.get('secUid') or '')
+        if re.fullmatch(r'[A-Za-z0-9_-]{8,200}', sec):
+            return {'kind':'user','url':'https://www.douyin.com/user/'+sec,'sec_uid':sec,
+                    'name':str(author.get('nickname') or '')[:100]}
+    if video_id or strict:
+        return None
+    # A profile page can expose the user itself; require a few profile-ish
+    # fields so a recommendation card is not mistaken for the page owner.
+    for obj in walk(payload):
+        if not isinstance(obj, dict):
+            continue
+        sec = str(obj.get('sec_uid') or obj.get('secUid') or '')
+        nick = obj.get('nickname')
+        if not (isinstance(nick, str) and re.fullmatch(r'[A-Za-z0-9_-]{8,200}', sec)):
+            continue
+        if any(key in obj for key in ('unique_id','short_id','follower_count','following_count','aweme_count','total_favorited')):
+            return {'kind':'user','url':'https://www.douyin.com/user/'+sec,'sec_uid':sec,'name':nick[:100]}
+    return None
+
+
+def resolve_identity(browser, url, cancelled=lambda: False):
+    """Turn a video/store/short share link into the author's profile.
+
+    This is intentionally a separate, slower step. The phone can save an
+    anchor immediately; the desktop resolves its author when it starts checking
+    the anchor, so the phone's 12-second HTTP read timeout is never at risk.
+    """
+    url = normalize(url)
+    kind = source_kind(url)
+    if kind == 'user':
+        m = re.search(r'/user/([A-Za-z0-9_-]{8,200})', url)
+        return {'kind':'user','url':url,'sec_uid':m.group(1) if m else ''}
+    if kind in ('live','reflow'):
+        return {'kind':'live','url':url}
+    # A store share link sometimes carries the creator in its query parameters.
+    parsed = urlparse(url)
+    query = parse_qs(parsed.query)
+    for key in ('sec_uid','secUid','author_id','authorId'):
+        value = next((v for v in query.get(key, []) if re.fullmatch(r'[A-Za-z0-9_-]{8,200}', v)), '')
+        if value:
+            if value.startswith('MS4wLj'): return {'kind':'user','url':'https://www.douyin.com/user/'+value,'sec_uid':value}
+    if cancelled():
+        raise ValueError('已停止读取分享链接')
+
+    def action():
+        page = browser.page_for(url, navigate=True)
+        deadline = time.monotonic() + 35
+        parsed_once = False
+        try:
+            while time.monotonic() < deadline:
+                if cancelled():
+                    raise ValueError('已停止读取分享链接')
+                if page.is_closed():
+                    raise ValueError('登录浏览器已关闭，请重新打开')
+                final = page.url or ''
+                fp = urlparse(final)
+                fhost = (fp.hostname or '').lower()
+                shop_page = fhost in ('haohuo.jinritemai.com','jinritemai.com','z.douyin.com') or fp.path.startswith('/shop/')
+                if fhost in ('www.douyin.com','douyin.com','m.douyin.com') and '/user/' in fp.path:
+                    sec = fp.path.split('/user/', 1)[-1].split('/', 1)[0].strip('/')
+                    if re.fullmatch(r'[A-Za-z0-9_-]{8,200}', sec):
+                        return {'kind':'user','url':'https://www.douyin.com/user/'+sec,
+                                'sec_uid':sec,'name':str(page.title() or '').replace('的抖音 - 抖音','').strip()[:100]}
+                if fhost == 'live.douyin.com' or fhost == 'webcast.amemv.com':
+                    if fhost == 'live.douyin.com' and re.fullmatch(r'/\d{4,30}/?', fp.path):
+                        return {'kind':'live','url':'https://live.douyin.com/'+fp.path.strip('/')}
+                # LoginBrowser already captures the exact aweme detail response,
+                # including its author; use it before parsing megabytes of page
+                # scripts.
+                for (owner_page, vid), detail in list(getattr(browser, 'details', {}).items()):
+                    if owner_page is page and isinstance(detail, dict) and detail.get('sec_uid'):
+                        sec = str(detail['sec_uid'])
+                        return {'kind':'user','url':'https://www.douyin.com/user/'+sec,'sec_uid':sec,
+                                'name':str(detail.get('nickname') or '')[:100]}
+                if not parsed_once and time.monotonic() + 30 < deadline:
+                    parsed_once = True
+                    try:
+                        scripts = page.locator('script').all_text_contents()
+                        for payload in page_payloads(scripts):
+                            ident = _payload_identity(payload, douyin_video_id(final), shop_page)
+                            if ident:
+                                return ident
+                    except Exception:
+                        pass
+                page.wait_for_timeout(500)
+            message = '没有从分享链接读取到主播身份。请在抖音打开该视频，分享主播主页链接；店铺链接请同时带上主播主页链接。'
+            raise ValueError(message)
+        finally:
+            if not page.is_closed():
+                try: browser.release(page, keep=True)
+                except Exception: pass
+    return browser.pool.submit(action).result(timeout=85)
+
+
 def following_data(payload):
     """Only user objects from an observed following-list response are supplied here."""
     found = {}
@@ -175,6 +338,13 @@ def profile_room(payload, sec_uid):
 
 def resolve(browser, url, quality='origin', cancelled=lambda:False):
     url = normalize(url)
+    identity = None
+    if source_kind(url) in ('video', 'shop', 'short'):
+        identity = resolve_identity(browser, url, cancelled)
+        resolved = normalize(identity.get('url') or '')
+        if resolved != url:
+            url = resolved
+    identity_name = str((identity or {}).get('name') or '')[:100]
     # Read the queue before joining it: everybody already waiting is ahead of us.
     ahead = browser.depth() if hasattr(browser,'depth') else 0
     def action():
@@ -198,7 +368,7 @@ def resolve(browser, url, quality='origin', cancelled=lambda:False):
                     expected['web_rid']=urlparse(room).path.strip('/')
                     if room not in destination: destination.append(room)
                 elif any(str(v.get('sec_uid') or v.get('secUid') or '')==expected_user and str(v.get('live_status'))=='0' for v in walk(payload)):
-                    found.append({'online':False,'state':'offline','message':'主播未开播'})
+                    found.append({'online':False,'state':'offline','message':'主播未开播','name':identity_name})
             result=room_data(payload,quality,expected, trusted=trusted)
             if result:found.append(result)
         def response(value):

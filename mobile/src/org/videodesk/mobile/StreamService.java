@@ -11,7 +11,7 @@ import java.util.concurrent.*;
 /** Independent network recordings; switching apps or anchors never changes a stream. */
 public class StreamService extends Service {
  static final ConcurrentHashMap<String,Capture> captures=new ConcurrentHashMap<>();
- static final Set<String> rawIds=ConcurrentHashMap.newKeySet();static volatile String lastCaptureMessage="",resolverMessage="";
+ static final Set<String> rawIds=ConcurrentHashMap.newKeySet();static volatile int limit=8;static volatile String lastCaptureMessage="",resolverMessage="";
  static volatile String transferMessage="接线并连接手机伴侣后自动传到电脑";
  static StreamService instance;final ScheduledExecutorService bridge=Executors.newSingleThreadScheduledExecutor();
  // 检测专用线程，和 bridge 分开：bridge 要等电脑回话，被拖住时不能连带检测一起停。
@@ -81,7 +81,7 @@ public class StreamService extends Service {
   }catch(Exception ignored){}
  }
  static JSONArray active(){JSONArray a=new JSONArray();for(Capture c:captures.values())try{a.put(new JSONObject().put("anchor_id",c.anchor.optString("id")).put("name",c.anchor.optString("name")).put("bytes",c.bytes).put("seconds",(System.currentTimeMillis()-c.started)/1000).put("message",c.message));}catch(Exception ignored){}return a;}
- static String summary(){StringBuilder b=new StringBuilder("手机正在录制 "+captures.size()+" / 4 位主播");if(captures.isEmpty()&&!lastCaptureMessage.isEmpty())b.append("\n").append(lastCaptureMessage);if(!resolverMessage.isEmpty())b.append("\n").append(resolverMessage);for(Capture c:captures.values())b.append("\n").append(c.anchor.optString("name","主播")).append(" · ").append(c.bytes/1024/1024).append(" MB · ").append(c.message);return b.toString();}
+ static String summary(){StringBuilder b=new StringBuilder("手机正在录制 "+captures.size()+" / "+limit+" 位主播");if(captures.isEmpty()&&!lastCaptureMessage.isEmpty())b.append("\n").append(lastCaptureMessage);if(!resolverMessage.isEmpty())b.append("\n").append(resolverMessage);for(Capture c:captures.values())b.append("\n").append(c.anchor.optString("name","主播")).append(" · ").append(c.bytes/1024/1024).append(" MB · ").append(c.message);return b.toString();}
  static void stop(String id){Capture c=captures.get(id);if(c!=null)c.stop();}
  static void stopAll(){for(Capture c:captures.values())c.stop();}
  static void record(Context c,JSONObject anchor,String url,String cookie,String agent){c.startForegroundService(new Intent(c,StreamService.class).setAction("RECORD").putExtra("anchor",anchor.toString()).putExtra("url",url).putExtra("cookie",cookie).putExtra("agent",agent));}
@@ -90,6 +90,7 @@ public class StreamService extends Service {
  static void sync(Context c){c.startForegroundService(new Intent(c,StreamService.class).setAction("SYNC"));}
  static void consume(Context c,JSONObject conf){
   try{
+   limit=Math.max(1,Math.min(32,conf.optInt("concurrency",limit)));
    JSONArray commands=conf.optJSONArray("commands");MainActivity activity=MainActivity.current;
    if(activity!=null){MainActivity open=activity;open.runOnUiThread(()->open.acceptConfig(conf));}
    if(commands!=null)for(int i=0;i<commands.length();i++){JSONObject cmd=commands.getJSONObject(i);String id=cmd.optString("anchor_id");String type=cmd.optString("type");
@@ -128,7 +129,7 @@ public class StreamService extends Service {
  void update(){getSystemService(NotificationManager.class).notify(280,notification());}
  @Override public int onStartCommand(Intent i,int flags,int id){startForeground(280,notification());if(i==null)return START_STICKY;String action=i.getAction();
   if("DETECT".equals(action)){Detector.log("闹钟唤醒：补一轮检测");try{detectorStep();}catch(Throwable ignored){}DetectAlarm.arm(this);return START_STICKY;}
-  if("STOP_ALL".equals(action))stopAll();else if("RECORD".equals(action))try{JSONObject anchor=new JSONObject(i.getStringExtra("anchor"));String key=anchor.getString("id");if(captures.containsKey(key))return START_STICKY;if(captures.size()>=4)throw new IOException("手机最多同时录制 4 位主播，请先停止一路");Capture c=new Capture(anchor,i.getStringExtra("url"),i.getStringExtra("cookie"),i.getStringExtra("agent"));captures.put(key,c);new Thread(c,"record-"+key).start();Detector.log("开始录制 "+anchor.optString("name","主播")+" 当前 "+captures.size()+" 路");}catch(Exception e){transferMessage=e.getMessage();}update();return START_STICKY;}
+  if("STOP_ALL".equals(action))stopAll();else if("RECORD".equals(action))try{JSONObject anchor=new JSONObject(i.getStringExtra("anchor"));String key=anchor.getString("id");if(captures.containsKey(key))return START_STICKY;if(captures.size()>=limit)throw new IOException("手机最多同时录制 "+limit+" 位主播，请先停止一路或提高上限");Capture c=new Capture(anchor,i.getStringExtra("url"),i.getStringExtra("cookie"),i.getStringExtra("agent"));captures.put(key,c);new Thread(c,"record-"+key).start();Detector.log("开始录制 "+anchor.optString("name","主播")+" 当前 "+captures.size()+" 路");}catch(Exception e){transferMessage=e.getMessage();}update();return START_STICKY;}
  @Override public IBinder onBind(Intent i){return null;}
  // API 35+ calls this when the system dataSync window expires; older releases
  // never call it, so the annotation would break builds with an older platform.

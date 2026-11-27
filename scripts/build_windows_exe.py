@@ -65,6 +65,8 @@ APP_FILES = [
     'tests/test_ai_package.py','tests/test_sheet_limit.mjs','scripts/verify_ai22.py','scripts/verify_ai22_ui.py','docs/reports/AI22-TEST-REPORT.md',
     'integrations/login_browser.py','tests/test_login_browser.py','tests/test_progress_ui.mjs',
     'integrations/storage.py','integrations/local_sources.py','integrations/batch_pipeline.py','integrations/collect.py','static/local_sources.js','static/local_sources.css',
+    'integrations/library_index.py','integrations/workbench_extra.py','integrations/playlist_collections.py',
+    'static/ui-refresh.css','static/collection-record.js','static/collection-record.css',
     'tests/test_batch_pipeline.py','tests/test_collect1123.py','scripts/verify_batch.py','docs/reports/BATCH-TEST-REPORT.md',
     'app.py', 'README.md', 'EXE-README.txt', 'requirements.txt', 'requirements-lock.txt',
     'static/index.html', 'static/app.js', 'static/dedup.js', 'static/style.css', 'static/icon.svg',

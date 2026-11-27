@@ -33,7 +33,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 import imageio_ffmpeg
-from integrations import image_dedup, video_sources, storyboard, local_sources, batch_pipeline, material_history, material_packages, runtime_support, live, translation, hardware, media_probe,mobile,collect
+from integrations import image_dedup, video_sources, storyboard, local_sources, batch_pipeline, material_history, material_packages, runtime_support, live, translation, hardware, media_probe,mobile,collect,library_index,workbench_extra,playlist_collections
 
 ROOT = Path(os.environ.get('VIDEO_DESK_APP_ROOT') or Path(__file__).resolve().parent)
 VERSION = json.loads((ROOT/'version.json').read_text('utf-8'))['version']
@@ -1002,6 +1002,24 @@ class DownloadRequest(BaseModel):
     frames: FrameOptions = Field(default_factory=FrameOptions)
 
 
+class CollectionRequest(BaseModel):
+    url: str = Field(min_length=1, max_length=2000)
+    login: bool = True
+    cookie_id: str = ''
+    max_items: int = Field(default=200, ge=1, le=500)
+
+
+@app.post('/api/collections/resolve')
+def resolve_collection(req: CollectionRequest):
+    """Expand a multi-P video / playlist into a list before saving anything."""
+    cookie_id = str(req.cookie_id or '').strip()
+    cookie_file = ANALYSIS_ENGINE.cookie_path(cookie_id) if cookie_id else ''
+    try:
+        return playlist_collections.resolve(req.url, DATA, cookie_file=cookie_file, max_items=req.max_items)
+    except playlist_collections.CollectionError as exc:
+        raise HTTPException(400, str(exc)[:500]) from exc
+
+
 @app.post('/api/download')
 def download(req: DownloadRequest):
     frame_options(req.frames)
@@ -1320,9 +1338,11 @@ LOCAL_SOURCES = local_sources.install(app, sys.modules[__name__])
 MATERIAL_HISTORY = material_history.install(app, sys.modules[__name__])
 BATCH_PIPELINE = batch_pipeline.install(app, sys.modules[__name__], LOCAL_SOURCES)
 COLLECT = collect.install(app, sys.modules[__name__], BATCH_PIPELINE)
+LIBRARY = library_index.install(app, sys.modules[__name__])
 MATERIAL_PACKAGES = material_packages.install(app, sys.modules[__name__])
 LIVE = live.install(app, sys.modules[__name__])
 MOBILE = mobile.install(app, sys.modules[__name__])
+WORKBENCH = workbench_extra.install(app, sys.modules[__name__])
 TRANSLATION = translation.install(app, sys.modules[__name__])
 app.mount('/static', StaticFiles(directory=ROOT / 'static'), name='static')
 
@@ -1330,3 +1350,4 @@ app.mount('/static', StaticFiles(directory=ROOT / 'static'), name='static')
 if __name__ == '__main__':
     import uvicorn
     uvicorn.run(app, host='127.0.0.1', port=int(os.environ.get('VIDEO_DESK_PORT', '8765')), ws_max_size=1024*1024+32, ws_max_queue=2, ws_per_message_deflate=False)
+

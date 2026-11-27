@@ -19,9 +19,13 @@ def detail_media(payload, video_id):
     url = next((v for v in urls if isinstance(v,str) and urlparse(v).scheme in ('http','https')), None)
     if not url:
         return None
+    author = detail.get('author') or {}
+    if not isinstance(author, dict): author = {}
     return {'url':url,'title':detail.get('desc') or '抖音视频',
             'duration':video.get('duration',0)/1000 or None,
-            'width':video.get('width'),'height':video.get('height'),'video_id':video_id}
+            'width':video.get('width'),'height':video.get('height'),'video_id':video_id,
+            'sec_uid':str(author.get('sec_uid') or '')[:200],
+            'nickname':str(author.get('nickname') or '')[:100]}
 
 
 class LoginBrowser:
@@ -107,7 +111,8 @@ class LoginBrowser:
         for options in choices:
             try:
                 self.context=self.engine.chromium.launch_persistent_context(
-                    str(self.data/'browser-profile'),**options,headless=False,viewport=None,accept_downloads=False)
+                    str(self.data/'browser-profile'),**options,headless=False,viewport=None,accept_downloads=False,
+                    args=['--disable-session-crashed-bubble','--hide-crash-restore-bubble','--no-first-run'])
                 self.details.clear();self.observed.clear()
                 for page in self.context.pages:self.observe(page)
                 self.context.on('page',self.observe)

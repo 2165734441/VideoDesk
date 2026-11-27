@@ -2,6 +2,7 @@ package org.videodesk.mobile;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ClipboardManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -36,7 +37,7 @@ public class MainActivity extends Activity {
  final ExecutorService worker=Executors.newSingleThreadExecutor();
  JSONArray anchors=new JSONArray();
  LinearLayout list;
- TextView status,connection,listHint;
+ TextView status,connection,listHint,listenStatus;
  StreamResolver streams;
  boolean visible=true,polling=false,permissionPending=false,cancelPermission=false,linked=false;
  boolean independent=false;
@@ -66,6 +67,8 @@ public class MainActivity extends Activity {
   connection.setPadding(0,pad/3,0,0);connection.setText("正在连接电脑…");root.addView(connection);
   status=new TextView(this);status.setTextSize(12);status.setTextColor(Color.rgb(126,132,136));
   status.setMaxLines(2);status.setPadding(0,pad/4,0,pad/2);root.addView(status);
+  listenStatus=new TextView(this);listenStatus.setTextSize(12);listenStatus.setTextColor(Color.rgb(20,107,99));
+  listenStatus.setPadding(0,0,0,pad/3);listenStatus.setVisibility(View.GONE);root.addView(listenStatus);
   ScrollView scroll=new ScrollView(this);root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
   list=new LinearLayout(this);list.setOrientation(1);scroll.addView(list);
   // A phone screen only fits a few cards, and a list that fills the screen
@@ -74,9 +77,19 @@ public class MainActivity extends Activity {
   listHint.setPadding(pad/2,pad/2,pad/2,pad/3);root.addView(listHint);
   LinearLayout bar=new LinearLayout(this);bar.setGravity(Gravity.CENTER_VERTICAL);
   barButton(bar,"＋ 添加主播",this::addAnchorDialog);
+  barButton(bar,"下载视频",this::videoDialog);
   barButton(bar,"回放",this::replayDialog);
   barButton(bar,"设置",this::settingsDialog);
   root.addView(bar);
+  LinearLayout playBar=new LinearLayout(this);playBar.setGravity(Gravity.CENTER_VERTICAL);
+  barButton(playBar,"听直播",this::listenDialog);
+  barButton(playBar,"听视频",this::listenVideoDialog);
+  barButton(playBar,"停止听",()->AudioPlayer.stop());
+  barButton(playBar,"录制设置",this::recordOptionsDialog);
+  root.addView(playBar);
+  TextView shareTip=new TextView(this);shareTip.setTextSize(11);shareTip.setTextColor(Color.rgb(20,107,99));
+  shareTip.setText("下载不用复制链接：在抖音点“分享”，选择“映格手机伴侣”，会直接加入电脑下载。");
+  shareTip.setPadding(0,pad/3,0,pad/3);root.addView(shareTip);
   try{anchors=new JSONArray(getSharedPreferences("desk",0).getString("anchors","[]"));}catch(Exception ignored){}
   FrameLayout pages=new FrameLayout(this);root.addView(pages,new LinearLayout.LayoutParams(-1,0));
   WebView resolverView=new WebView(this);host.addView(resolverView,0,new FrameLayout.LayoutParams(-1,-1));resolverView.setAlpha(0f);
@@ -123,7 +136,7 @@ public class MainActivity extends Activity {
   String sig=signature();if(sig.equals(lastSignature))return;lastSignature=sig;
   list.removeAllViews();
   if(anchors.length()==0){
-   TextView empty=new TextView(this);empty.setText("还没有主播。点下方“添加主播”，粘贴抖音分享链接即可。");
+   TextView empty=new TextView(this);empty.setText("还没有主播。点下方“添加主播”，粘贴抖音主页、直播、店铺或视频分享链接即可。");
    empty.setTextColor(Color.rgb(120,126,130));empty.setPadding(8,24,8,24);list.addView(empty);return;
   }
   int pad=(int)(14*getResources().getDisplayMetrics().density);
@@ -195,16 +208,90 @@ public class MainActivity extends Activity {
 
  // ---------- add / edit ----------
 
- void addAnchorDialog(){
+ void addAnchorDialog(){addAnchorDialog("");}
+
+ void addAnchorDialog(String preset){
   LinearLayout box=new LinearLayout(this);box.setOrientation(LinearLayout.VERTICAL);
   int pad=(int)(18*getResources().getDisplayMetrics().density);box.setPadding(pad,pad/2,pad,0);
-  EditText url=new EditText(this);url.setSingleLine();url.setHint("粘贴抖音主播主页／直播分享链接");
-  EditText note=new EditText(this);note.setSingleLine();note.setHint("备注（可空，自动读取昵称）");
-  box.addView(url);box.addView(note);
+  EditText url=new EditText(this);url.setSingleLine();
+  url.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_URI);
+  url.setHint("主播主页 / 直播 / 店铺 / 视频分享链接");
+  if(preset!=null&&!preset.trim().isEmpty())url.setText(preset.trim());
+  EditText note=new EditText(this);note.setSingleLine();note.setHint("备注（可空，开播后自动读取昵称）");
+  CheckBox phone=new CheckBox(this);phone.setText("用这台手机录制（推荐）");phone.setChecked(true);
+  box.addView(url);box.addView(note);box.addView(phone);
   new AlertDialog.Builder(this).setTitle("添加主播")
-   .setMessage("粘贴一次分享链接即可。电脑检测开播后会自动录制。")
+   .setMessage("主页、直播间、店铺和已发布视频的分享链接都能加入。电脑负责检测开播，勾选后由这台手机录制并上传到该主播自己的文件夹。")
    .setView(box).setNegativeButton("取消",null)
-   .setPositiveButton("保存",(d,w)->saveAnchor(url.getText().toString(),note.getText().toString(),0)).show();
+   .setPositiveButton("保存",(d,w)->saveAnchor(url.getText().toString(),note.getText().toString(),phone.isChecked()?1:0)).show();
+ }
+
+ /** Paste/share a Douyin or Bilibili video link; the desktop owns the download. */
+ void videoDialog(){
+  LinearLayout box=new LinearLayout(this);box.setOrientation(LinearLayout.VERTICAL);
+  int pad=(int)(18*getResources().getDisplayMetrics().density);box.setPadding(pad,pad/2,pad,0);
+  EditText url=new EditText(this);url.setSingleLine();url.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_URI);
+  url.setHint("抖音或 B 站视频详情链接");
+  String clip=clipboardText();
+  if(!clip.isEmpty()){
+   try{url.setText(normalizeVideo(clip));}catch(Exception ignored){}
+  }
+  TextView tip=new TextView(this);tip.setTextSize(12);tip.setTextColor(Color.rgb(120,126,130));
+  tip.setText("最省事的方式：在抖音视频页点“分享”，选“映格手机伴侣”，不用打开本软件。\n也可以从剪贴板自动填入链接，或手动粘贴。");
+  box.addView(url);box.addView(tip);
+  new AlertDialog.Builder(this).setTitle("下载视频")
+   .setMessage("电脑在线时加入下载队列；手机负责发起，媒体保存到电脑素材库。")
+   .setView(box).setNegativeButton("取消",null)
+   .setPositiveButton("下载",(d,w)->saveVideo(url.getText().toString())).show();
+ }
+
+ String clipboardText(){
+  try{
+   ClipboardManager cm=(ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
+   if(cm!=null&&cm.hasPrimaryClip()&&cm.getPrimaryClip()!=null&&cm.getPrimaryClip().getItemCount()>0)
+    return cm.getPrimaryClip().getItemAt(0).coerceToText(this).toString().trim();
+  }catch(Exception ignored){}
+  return "";
+ }
+
+ void saveVideo(String text){
+  String url;
+  try{url=normalizeVideo(text);}catch(Exception e){status.setText(e.getMessage());return;}
+  JSONObject body=new JSONObject();try{body.put("url",url).put("title","手机分享视频");}catch(Exception ignored){}
+  worker.execute(()->{
+   String message="";
+   try{
+    JSONObject result=Bridge.call(this,"/v1/video",body);
+    JSONArray jobs=result.optJSONArray("jobs");String id=jobs==null||jobs.length()==0?"":jobs.optString(0);
+    message="已加入电脑下载"+(id.isEmpty()?"":"："+id)+"，可在电脑素材库查看";
+   }catch(Exception e){message="电脑未连接或链接未通过校验："+e.getMessage();}
+   final String shown=message;runOnUiThread(()->status.setText(shown));
+  });
+ }
+
+ String normalizeVideo(String text)throws Exception{
+  Matcher m=Pattern.compile("https?://[^\\s<>\"，。]+").matcher(text==null?"":text);
+  if(!m.find())throw new Exception("请粘贴抖音或 B 站视频链接");
+  String s=m.group().replaceAll("[.,;!）)]+$","");
+  Uri u=Uri.parse(s);String host=(u.getHost()==null?"":u.getHost().toLowerCase()),path=u.getPath()==null?"/":u.getPath();
+  if(u.getUserInfo()!=null||(u.getPort()!=-1&&u.getPort()!=443&&u.getPort()!=80))throw new Exception("链接格式不安全");
+  if(Arrays.asList("v.douyin.com","www.iesdouyin.com").contains(host)){
+   if(!path.matches("/[A-Za-z0-9_-]{4,80}/?"))throw new Exception("抖音分享短链不完整");
+   return s;
+  }
+  if(Arrays.asList("www.douyin.com","douyin.com","m.douyin.com").contains(host)){
+   if(!path.matches("/video/\\d{5,30}/?"))throw new Exception("请使用抖音视频详情链接");
+   return s;
+  }
+  if("b23.tv".equals(host)){
+   if(!path.matches("/[A-Za-z0-9]{4,30}/?"))throw new Exception("B 站分享短链不完整");
+   return s;
+  }
+  if(Arrays.asList("www.bilibili.com","bilibili.com","m.bilibili.com").contains(host)){
+   if(!path.matches("/video/(BV[0-9A-Za-z]{10}|av\\d{1,15})/?"))throw new Exception("请使用 B 站视频详情链接");
+   return s;
+  }
+  throw new Exception("目前只支持抖音或 B 站视频链接");
  }
 
  void saveAnchor(String text,String note,int mode){
@@ -233,31 +320,52 @@ public class MainActivity extends Activity {
      getSharedPreferences("desk",0).edit().putString("anchors",anchors.toString()).apply();
     }catch(Exception ignored){}
     lastSignature="";render();
-    status.setText("已添加，会自动录制这位主播");
+    status.setText("phone".equals(MODES[mode])?"已添加，电脑检测开播后会通知这台手机录制":"已添加，电脑检测开播后会自动录制");
    });
   });
  }
 
  String normalize(String text)throws Exception{
   Matcher m=Pattern.compile("https?://[^\\s<>\"，。]+").matcher(text==null?"":text);
-  if(!m.find())throw new Exception("请粘贴抖音主播主页或直播分享链接");
+  if(!m.find())throw new Exception("请粘贴抖音主播主页、直播、店铺或视频分享链接");
   String s=m.group().replaceAll("[.,;!）)]+$","");
-  Uri u=Uri.parse(s);String host=u.getHost(),path=u.getPath();
-  if(!Arrays.asList("live.douyin.com","www.douyin.com","douyin.com","v.douyin.com","webcast.amemv.com").contains(host)
-     ||u.getUserInfo()!=null||(u.getPort()!=-1&&u.getPort()!=443&&u.getPort()!=80))
-   throw new Exception("当前只支持抖音链接");
-  if("live.douyin.com".equals(host)){
-   if(!path.matches("/\\d{4,30}/?"))throw new Exception("请使用完整直播间房间号");
-   return "https://live.douyin.com/"+path.replace("/","");
-  }
-  if("www.douyin.com".equals(host)||"douyin.com".equals(host)){
+  Uri u=Uri.parse(s);String host=(u.getHost()==null?"":u.getHost().toLowerCase()),path=u.getPath()==null?"/":u.getPath();
+  if(u.getUserInfo()!=null||(u.getPort()!=-1&&u.getPort()!=443&&u.getPort()!=80))
+   throw new Exception("链接格式不安全");
+  List<String> douyin=Arrays.asList("live.douyin.com","www.douyin.com","douyin.com","m.douyin.com","v.douyin.com","www.iesdouyin.com","webcast.amemv.com");
+  if(douyin.contains(host)){
+   if("live.douyin.com".equals(host)){
+    if(!path.matches("/\\d{4,30}/?"))throw new Exception("请使用完整直播间房间号");
+    return "https://live.douyin.com/"+path.replace("/","");
+   }
+   if("webcast.amemv.com".equals(host)){
+    if(!path.matches("/douyin/webcast/reflow/\\d{4,30}/?"))throw new Exception("请改用直播分享链接");
+    return s;
+   }
+   if("v.douyin.com".equals(host)){
+    if(!path.matches("/[A-Za-z0-9_-]{4,80}/?"))throw new Exception("抖音分享短链不完整");
+    return s;
+   }
+   if("www.iesdouyin.com".equals(host)){
+    if(!path.matches("/share/video/\\d{5,30}/?"))throw new Exception("抖音视频分享链接不完整");
+    return s;
+   }
    if(path.matches("/live/\\d{4,30}/?"))return "https://live.douyin.com/"+path.split("/")[2];
-   if(!path.matches("/user/[A-Za-z0-9_-]{8,200}/?"))throw new Exception("请改用主播主页或直播分享链接");
-   return "https://www.douyin.com"+path.replaceAll("/$","");
+   if(path.matches("/user/[A-Za-z0-9_-]{8,200}/?"))return "https://www.douyin.com"+path.replaceAll("/$","");
+   if(path.matches("/video/\\d{5,30}/?"))return "https://www.douyin.com"+path.replaceAll("/$","");
+   if(path.startsWith("/shop/")&&path.length()>6)return "https://www.douyin.com"+path.replaceAll("/$","");
+   throw new Exception("请使用主播主页、直播间、视频或店铺分享链接");
   }
-  if("webcast.amemv.com".equals(host)&&!path.matches("/douyin/webcast/reflow/\\d{4,30}/?"))
-   throw new Exception("请改用直播分享链接");
-  return s;
+  if(Arrays.asList("haohuo.jinritemai.com","jinritemai.com").contains(host)){
+   if(!(path.startsWith("/views/shop/index")||path.startsWith("/ecommerce/trade/detail")))
+    throw new Exception("请使用抖音店铺首页链接");
+   return s;
+  }
+  if("z.douyin.com".equals(host)){
+   if(!path.matches("/[A-Za-z0-9_-]{4,80}/?"))throw new Exception("抖音店铺短链不完整");
+   return s;
+  }
+  throw new Exception("当前只支持抖音主播主页、直播、店铺或视频链接");
  }
 
  // ---------- recording ----------
@@ -266,6 +374,81 @@ public class MainActivity extends Activity {
   if(streams==null){status.setText("解析组件尚未就绪");return;}
   if(a==null){status.setText("请先添加主播");return;}
   streams.add(a);
+ }
+
+ /** Choose a room for audio-only listening; an already-recording room is allowed. */
+ void listenDialog(){
+  if(streams==null){status.setText("解析组件尚未就绪");return;}
+  if(anchors.length()==0){status.setText("请先添加主播或直播间");return;}
+  List<String> labels=new ArrayList<>();final List<JSONObject> picks=new ArrayList<>();
+  for(int i=0;i<anchors.length();i++){
+   JSONObject a=anchors.optJSONObject(i);if(a==null)continue;
+   String name=a.optString("name").trim();if(name.isEmpty())name="待读取主播";
+   String state=StreamService.captures.containsKey(a.optString("id"))?"录制中 · 边录边听":"听直播";
+   labels.add(name+" · "+state);picks.add(a);
+  }
+  new AlertDialog.Builder(this).setTitle("听直播 · 只出声，不额外录制")
+   .setItems(labels.toArray(new String[0]),(d,which)->{
+    JSONObject a=picks.get(which);currentId=a.optString("id");
+    AudioPlayer.stop();status.setText("正在读取 "+a.optString("name","主播")+" 的音频流…");
+    streams.listen(a);
+   }).setNegativeButton("取消",null).show();
+ }
+
+ /** Pick a local replay and play its audio only. */
+ void listenVideoDialog(){
+  JSONArray all=VideoLibrary.all(this);
+  if(all.length()==0){new AlertDialog.Builder(this).setTitle("听视频").setMessage("手机里还没有录好的回放。").setPositiveButton("关闭",null).show();return;}
+  List<String> labels=new ArrayList<>();final List<String> uris=new ArrayList<>();
+  for(int i=all.length()-1;i>=0&&labels.size()<20;i--){
+   JSONObject item=all.optJSONObject(i);if(item==null)continue;
+   String name=item.optString("name","主播");
+   long size=item.optLong("size")/1048576;
+   labels.add(name+" · "+size+" MB"+(item.optBoolean("uploaded")?" · 已传电脑":" · 待传"));
+   uris.add(item.optString("uri"));
+  }
+  new AlertDialog.Builder(this).setTitle("听视频 · 只播放声音")
+   .setItems(labels.toArray(new String[0]),(d,which)->{
+    try{AudioPlayer.playLocal(this,Uri.parse(uris.get(which)),labels.get(which));}
+    catch(Exception e){status.setText("这条回放暂时不能播放："+e.getMessage());}
+   }).setNegativeButton("关闭",null).show();
+ }
+
+ void listenChanged(){
+  if(listenStatus==null)return;
+  String text=AudioPlayer.status();
+  if(text.isEmpty()){listenStatus.setVisibility(View.GONE);return;}
+  listenStatus.setVisibility(View.VISIBLE);listenStatus.setText(text);
+ }
+
+ void startListening(JSONObject anchor,String url,String cookie,String agent,boolean hls,String fallback){AudioPlayer.play(this,url,cookie,agent,anchor.optString("name","主播"),hls,fallback);}
+
+ /** Quality is chosen from the platform's published variants; low FPS is a desktop-produced copy. */
+ void recordOptionsDialog(){
+  String quality=getSharedPreferences("desk",0).getString("record_quality","standard");
+  int fps=getSharedPreferences("desk",0).getInt("record_fps",0);
+  String[] qualityLabels={"原画（最清晰，流量大）","高清","标清（默认，省流）","省流"};
+  String[] qualityValues={"origin","high","standard","low"};
+  String[] fpsLabels={"原帧率（推荐）","30 帧","25 帧","20 帧","15 帧","10 帧"};
+  int[] fpsValues={0,30,25,20,15,10};
+  int qualityIndex=0,fpsIndex=0;
+  for(int i=0;i<qualityValues.length;i++)if(qualityValues[i].equals(quality))qualityIndex=i;
+  for(int i=0;i<fpsValues.length;i++)if(fpsValues[i]==fps)fpsIndex=i;
+  LinearLayout box=new LinearLayout(this);box.setOrientation(LinearLayout.VERTICAL);
+  int pad=(int)(18*getResources().getDisplayMetrics().density);box.setPadding(pad,pad/2,pad,0);
+  TextView qLabel=new TextView(this);qLabel.setText("录制画质");qLabel.setTextSize(13);box.addView(qLabel);
+  Spinner qSpin=new Spinner(this);ArrayAdapter<String> qAdapter=new ArrayAdapter<>(this,android.R.layout.simple_spinner_item,qualityLabels);qAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);qSpin.setAdapter(qAdapter);qSpin.setSelection(qualityIndex);box.addView(qSpin);
+  TextView fLabel=new TextView(this);fLabel.setText("视频帧率");fLabel.setTextSize(13);fLabel.setPadding(0,pad/3,0,0);box.addView(fLabel);
+  Spinner fSpin=new Spinner(this);ArrayAdapter<String> fAdapter=new ArrayAdapter<>(this,android.R.layout.simple_spinner_item,fpsLabels);fAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);fSpin.setAdapter(fAdapter);fSpin.setSelection(fpsIndex);box.addView(fSpin);
+  TextView tip=new TextView(this);tip.setTextSize(11);tip.setTextColor(Color.rgb(120,126,130));tip.setPadding(0,pad/3,0,0);
+  tip.setText("画质通过切换平台提供的不同清晰度流，录制文件的分辨率和码率会随之变化；降低帧率不会影响声音，低帧率副本由电脑在接收、校验后生成，原片保留。电脑自动录制的画质仍以电脑端设置为准。");
+  box.addView(tip);
+  new AlertDialog.Builder(this).setTitle("手机录制设置").setView(box).setNegativeButton("取消",null)
+   .setPositiveButton("保存",(d,w)->{
+    String q=qualityValues[qSpin.getSelectedItemPosition()];int f=fpsValues[fSpin.getSelectedItemPosition()];
+    getSharedPreferences("desk",0).edit().putString("record_quality",q).putInt("record_fps",f).apply();
+    status.setText("录制设置已保存（下次录制生效）："+qualityLabels[qSpin.getSelectedItemPosition()]+" · "+fpsLabels[fSpin.getSelectedItemPosition()]);
+   }).show();
  }
 
  /** Turn all-day auto recording on or off straight from the phone. */
@@ -310,10 +493,13 @@ public class MainActivity extends Activity {
  // ---------- settings ----------
 
  void settingsDialog(){
+  boolean deleteAfter=getSharedPreferences("desk",0).getBoolean("delete_uploaded",false);
   String[] items={
    "与电脑重新连接 / 同步主播",
    (independent?"关闭":"开启")+"手机自己检测（不用电脑）",
+   (deleteAfter?"关闭":"开启")+"上传校验后删除手机原文件",
    RecordingService.recording?"停止并保存手机屏幕录制":"备用：录制手机屏幕（系统授权）",
+   "手机录制的画质与帧率",
    "诊断信息"
   };
   new AlertDialog.Builder(this).setTitle("设置").setItems(items,(d,which)->{
@@ -324,7 +510,21 @@ public class MainActivity extends Activity {
     nextScan=0;scanAt.clear();
     if(independent){status.setText("手机自己检测已开启：逐个检查主播，开播就直接录到手机");scan();}
     else status.setText("已关闭手机自己检测，改由电脑检测开播");
-   }else if(which==2)screenRecordDialog();
+   }else if(which==2){
+    if(deleteAfter){
+     getSharedPreferences("desk",0).edit().putBoolean("delete_uploaded",false).apply();
+     status.setText("已关闭自动删除；今后回放上传后手机原片会保留");
+    }else{
+     new AlertDialog.Builder(this).setTitle("开启后会自动删除手机原片")
+      .setMessage("只有电脑完整接收并校验 SHA-256 后才会删除；删除后无法从手机恢复。建议先确认电脑素材库里的回放可以正常播放。")
+      .setNegativeButton("取消",null)
+      .setPositiveButton("开启",(x,y)->{
+       getSharedPreferences("desk",0).edit().putBoolean("delete_uploaded",true).apply();
+       status.setText("已开启：上传完成并校验后删除手机原片");
+      }).show();
+    }
+   }else if(which==3)screenRecordDialog();
+   else if(which==4)recordOptionsDialog();
    else diagnostics();
   }).show();
  }
@@ -336,7 +536,7 @@ public class MainActivity extends Activity {
   int pending=0;for(int i=0;i<all.length();i++)if(!all.optJSONObject(i).optBoolean("uploaded"))pending++;
   String text="电脑连接："+(connection.getText().toString().startsWith("●")?"已连接":"未连接")
    +"\n自动录播：由电脑执行"
-   +"\n手机录制："+StreamService.captures.size()+" / 4 路"
+   +"\n手机录制："+StreamService.captures.size()+" / "+StreamService.limit+" 路"
    +"\n待传回电脑："+pending+" 段"
    +"\n传输状态："+StreamService.transferMessage
    +"\n版本："+versionName();
@@ -572,6 +772,7 @@ public class MainActivity extends Activity {
   if(System.currentTimeMillis()>nextPoll){poll();nextPoll=System.currentTimeMillis()+(visible?4000:8000);}
   if(independent)scan();
   render();
+  listenChanged();
   handler.postDelayed(this,1500);
  }};
 
@@ -579,6 +780,16 @@ public class MainActivity extends Activity {
 
  void acceptIntent(Intent i){
   if(i==null)return;
+  if(Intent.ACTION_SEND.equals(i.getAction())&&i.getType()!=null&&i.getType().startsWith("text/")){
+   String shared=i.getStringExtra(Intent.EXTRA_TEXT);
+   if(shared!=null&&!shared.trim().isEmpty()){
+    String url=firstUrl(shared);
+    if(url.isEmpty())status.setText("没有从分享内容里找到链接");
+    else if(anchorShare(url))addAnchorDialog(shared);
+    else if(shortShare(url))shareChoice(shared);
+    else saveVideo(shared);
+   }
+  }
   String endpoint=i.getStringExtra("endpoint"),key=i.getStringExtra("pairing_key");
   if("http://127.0.0.1:47631".equals(endpoint)&&key!=null&&key.length()>=20){
    if(!key.equals(getSharedPreferences("desk",0).getString("key","")))
@@ -590,11 +801,45 @@ public class MainActivity extends Activity {
   if(online!=null)currentId=online;
  }
 
+ String firstUrl(String text){
+  Matcher m=Pattern.compile("https?://[^\\s<>\"，。]+").matcher(text==null?"":text);
+  return m.find()?m.group().replaceAll("[.,;!）)]+$",""):"";
+ }
+
+ boolean anchorShare(String value){
+  try{
+   Uri u=Uri.parse(value);String host=(u.getHost()==null?"":u.getHost().toLowerCase()),path=u.getPath()==null?"/":u.getPath();
+   if("live.douyin.com".equals(host))return path.matches("/\\d{4,30}/?");
+   if("webcast.amemv.com".equals(host))return path.matches("/douyin/webcast/reflow/\\d{4,30}/?");
+   if(Arrays.asList("www.douyin.com","douyin.com","m.douyin.com").contains(host))
+    return path.matches("/user/[A-Za-z0-9_-]{8,200}/?")||path.matches("/live/\\d{4,30}/?")||(path.startsWith("/shop/")&&path.length()>6);
+   if(Arrays.asList("haohuo.jinritemai.com","jinritemai.com").contains(host))
+    return path.startsWith("/views/shop/index")||path.startsWith("/ecommerce/trade/detail");
+  }catch(Exception ignored){}
+  return false;
+ }
+
+ boolean shortShare(String value){
+  try{
+   String host=(Uri.parse(value).getHost()==null?"":Uri.parse(value).getHost().toLowerCase());
+   return "v.douyin.com".equals(host)||"z.douyin.com".equals(host);
+  }catch(Exception ignored){return false;}
+ }
+
+ void shareChoice(String shared){
+  new AlertDialog.Builder(this).setTitle("分享链接")
+   .setMessage("这个短链接可能是视频，也可能是主播/直播/店铺。要下载视频，还是把作者加入录播？")
+   .setNegativeButton("加入主播",(d,w)->addAnchorDialog(shared))
+   .setPositiveButton("下载视频",(d,w)->saveVideo(shared))
+   .setNeutralButton("取消",null).show();
+ }
+
  @Override public void onNewIntent(Intent i){super.onNewIntent(i);setIntent(i);acceptIntent(i);}
  @Override public void onResume(){super.onResume();visible=true;nextPoll=0;}
  @Override public void onPause(){super.onPause();visible=false;}
  @Override public void onDestroy(){
   handler.removeCallbacksAndMessages(null);current=null;
+  AudioPlayer.stop();
   if(streams!=null)streams.destroy();
   worker.shutdown();super.onDestroy();
  }
