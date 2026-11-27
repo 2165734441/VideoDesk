@@ -1,2 +1,3 @@
 5d85fdc5d920c4ab199635cacf4f519f5769f112bd0f9effd27165c746ffdb13  VideoDesk-2.9.8-build.json
 568d2aa96224d3aa592d00001a5f35e62138d500dee1c018c6ff53817ec24877  VideoDesk-2.9.8-Windows-x64.exe
+f4f2aa72bc28323069d43906cc3d754b2cb0806d8c7d1d2c27ba01a77eb89b09  VideoDesk-Android-1.8.0.apk
